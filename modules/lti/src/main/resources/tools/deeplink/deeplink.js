@@ -19,7 +19,8 @@
  *
  */
 
-/* global $, Mustache, i18ndata, refreshList */
+/* global $, Mustache, i18ndata */
+/* exported refreshList */
 
 'use strict';
 
