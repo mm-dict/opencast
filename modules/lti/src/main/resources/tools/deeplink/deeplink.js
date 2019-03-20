@@ -19,12 +19,13 @@
  *
  */
 
-/* global $, Mustache, i18ndata */
+/* global $, Mustache, i18ndata, refreshList */
 
 'use strict';
 
 var player,
     currentpage,
+    context_label,
     defaultLang = i18ndata['en-US'],
     lang = defaultLang;
 
@@ -59,12 +60,20 @@ function i18n(key) {
   return lang[key];
 }
 
-function getSeries() {
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.has('series')) {
-    return urlParams.get('series');
-  }
-  return '';
+function loadLTIData() {
+  var ltiUrl = '/lti';
+  return $.getJSON(ltiUrl, function( data ){
+    context_label = data.context_label;
+  });
+}
+
+function loadSearchInput() {
+  // render series filter
+  var seriesFilterTemplate = $('#template-series-filter').html(),
+      seriesFilterTplData = {
+        lticontextlabel: context_label,
+      };
+  $('#searchfield').html(Mustache.render(seriesFilterTemplate, seriesFilterTplData));
 }
 
 function loadDefaultPlayer() {
@@ -79,19 +88,13 @@ function loadDefaultPlayer() {
   });
 }
 
-function loadPage(page) {
+function loadPage(page, q) {
 
   var limit = 15,
       offset = (page - 1) * limit,
-      series = getSeries(),
-      url = '/search/episode.json?limit=' + limit + '&offset=' + offset;
+      url = '/search/episode.json?limit=' + limit + '&offset=' + offset + '&q=' + q;
 
   currentpage = page;
-
-  // attach series query if a series is requested
-  if (series) {
-    url += '&sid=' + series;
-  }
 
   // load spinner
   $('#selections').html($('#template-loading').html());
@@ -143,7 +146,7 @@ function loadPage(page) {
             end: offset + parseInt(data.limit)
           }
         };
-    $('header').text(Mustache.render(resultTemplate, resultTplData));
+    $('#results').text(Mustache.render(resultTemplate, resultTplData));
 
     // render pagination
     $('footer').pagination({
@@ -193,8 +196,16 @@ function populateData(title, image, created, player) {
 
 }
 
+function refreshList() {
+  var value = $('#selected-series').val();
+  loadPage(1, value);
+}
+
 $(document).ready(function() {
   lang = matchLanguage(navigator.language);
-  loadDefaultPlayer()
-    .then(loadPage(1));
+  loadLTIData().then(function(){
+    loadSearchInput();
+    loadDefaultPlayer()
+      .then(loadPage(1, context_label));
+  });
 });

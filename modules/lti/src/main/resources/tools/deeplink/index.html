@@ -17,7 +17,10 @@
 </head>
 <body>
 
-<header></header>
+<header>
+<div id="searchfield"></div>
+<div id="results"></div>
+</header>
 <main>
   <form id=select method=post action=/lti/ci>
     <div id=selections></div>
@@ -45,6 +48,17 @@
       </div>
     </label>
   </div>
+</script>
+
+<!-- Template for number of results -->
+<script id=template-results type=x-tmpl-mustache>
+  Results {{range.begin}}-{{range.end}} of {{total}}
+</script>
+
+<!-- Template for search field -->
+<script id=template-series-filter type=x-tmpl-mustache>
+  <input type=text id="selected-series" value="{{lticontextlabel}}"/>
+  <input type=submit onClick="refreshList()" value="Refresh list"/>
 </script>
 
 <!-- Template for spinner -->
