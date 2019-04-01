@@ -1246,7 +1246,11 @@ public class WorkflowServiceImpl extends AbstractIndexProducer implements Workfl
     }
 
     User workflowCreator = userDirectoryService.loadUser(workflow.getCreatorName());
+<<<<<<< HEAD
     String workflowOrgId = workflowCreator != null ? workflowCreator.getOrganization().getId() : currentOrgId;
+=======
+    String workflowOrgId = workflowCreator.getOrganization().getId();
+>>>>>>> cd01a46c31... MH-13381, Use Username In Workflows
 
     boolean authorized = currentUser.hasRole(GLOBAL_ADMIN_ROLE)
             || (currentUser.hasRole(currentOrgAdminRole) && currentOrgId.equals(workflowOrgId))
