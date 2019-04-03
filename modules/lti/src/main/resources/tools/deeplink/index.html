@@ -7,58 +7,81 @@
 <link rel=stylesheet type=text/css href=deeplink.css />
 <link rel=stylesheet href=/ltitools/lib/font-awesome/css/font-awesome.min.css />
 <link rel=stylesheet href=/ltitools/lib/paginationjs/dist/pagination.css />
-<script type=text/javascript src=/ltitools/lib/jquery/dist/jquery.min.js></script>
-<script type=text/javascript src=/ltitools/lib/mustache/mustache.min.js></script>
-<script type=text/javascript src=/ltitools/lib/paginationjs/dist/pagination.min.js></script>
-<script type=text/javascript src=/ltitools/i18n-data.js></script>
-<script type=text/javascript src=deeplink.js></script>
+<link rel=stylesheet href=/ltitools/lib/bootstrap/dist/css/bootstrap.min.css />
+
 
 <title>Opencast: Deep Linking</title>
 </head>
 <body>
+  <ul class="nav nav-tabs">
+    <li class="nav-item active"><a class="nav-link" data-toggle="tab" href="#episodes" aria-controls="episodes" aria-selected="true">Episodes</a></li>
+    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#series" aria-controls="series" aria-selected="false">Series</a></li>
+  </ul>
 
-<header>
-<div id="searchfield"></div>
-<div id="results"></div>
-</header>
-<main>
-  <form id=select method=post action=/lti/ci>
-    <div id=selections></div>
-    <input type=hidden name=content_items id=content_items>
-    <input type=hidden name=data id=data>
-    <input type=hidden name=test id=test>
-    <input type=hidden name=consumer_key id=consumer_key>
-    <input type=hidden name=content_item_return_url id=content_item_return_url>
-    <input type=submit value=Select />
-  </form>
-</main>
-<footer></footer>
+<div class="tab-content">
+  <div id="episodes" role="tabpanel" aria-labelledby="episodes-tab" class="tab-pane fade show active">
+    <div id=searchfield></div>
+    <div id=selections class="card-columns"></div>
+    <div id=episodes-pager></div>
+  </div>
+  <div id="series" role="tabpanel" aria-labelledby="series-tab" class="tab-pane fade">
+    <div id=searchfield></div>
+    <div id="series-results" class="card-columns"></div>
+    <div id=series-pager></div>
+  </div>
+</div>
+<form id=select method=post action=/lti/ci>
+  <input type=hidden name=content_items id=content_items>
+  <input type=hidden name=data id=data>
+  <input type=hidden name=test id=test>
+  <input type=hidden name=consumer_key id=consumer_key>
+  <input type=hidden name=content_item_return_url id=content_item_return_url>
+  <input id="item-form-submit" type=submit value=Select />
+</form>
 
 <!-- Template for episodes -->
 <script id=template-episode type=x-tmpl-mustache>
-  <div class=episode>
-    <input type=radio name=mpID id={{mpID}} value={{mpID}}
-      onclick="populateData('{{title}}', '{{image}}', '{{created}}', '{{player}}')">
-    <label for={{mpID}}>
-      <div class=preview><img alt=Preview src={{image}} /></div>
-      <div class=desc>
-        <h2>{{title}}</h2>
-        {{i18ncreator}}<br />
-        {{created}}
-      </div>
-    </label>
+<div class="card item-card" for={{mpID}}>
+  <img class="card-img-top" alt=Preview src={{image}} />
+  <div class="card-body">
+    <h5 class="card-title">{{title}}</h5>
+    {{#i18ncreator}}
+    <p class="card-text creator">{{i18ncreator}}<p/>
+    {{/i18ncreator}}
+    {{#seriestitle}}
+    <p class="card-text seriestitle">{{seriestitle}}<p/>
+    {{/seriestitle}}
+    <p class="card-text created">{{created}}</p>
   </div>
+  <a href="#" class="btn btn-primary card-text selectitem"
+    onclick="populateData('{{title}}', '{{image}}', '{{created}}', '{{tool}}')">Select</a>
+</div>
+</script>
+
+<!-- Template for series -->
+<script id=template-series type=x-tmpl-mustache>
+<div class="card item-card">
+  <div class="card-body">
+    <h4 class="card-title">{{title}}</h4>
+  </div>
+  <a href="#" class="btn btn-primary card-text selectitem"
+    onclick="populateData('{{title}}', '{{image}}', '{{created}}', '{{tool}}')">Select</a>
+</div>
 </script>
 
 <!-- Template for number of results -->
-<script id=template-results type=x-tmpl-mustache>
+<script id=template-results-episode type=x-tmpl-mustache>
   Results {{range.begin}}-{{range.end}} of {{total}}
 </script>
 
 <!-- Template for search field -->
+<script id=template-episodes-filter type=x-tmpl-mustache>
+  <input type=text id="selected-episodes" value="{{lticontextlabel}}"/>
+  <input type=submit onClick="refreshEpisodesList()" value="Refresh list"/>
+</script>
 <script id=template-series-filter type=x-tmpl-mustache>
   <input type=text id="selected-series" value="{{lticontextlabel}}"/>
-  <input type=submit onClick="refreshList()" value="Refresh list"/>
+  <input type=submit onClick="refreshSeriesList()" value="Refresh list"/>
 </script>
 
 <!-- Template for spinner -->
@@ -69,5 +92,12 @@
   </div>
 </script>
 
+<script type=text/javascript src=/ltitools/lib/jquery/dist/jquery.min.js></script>
+<script type=text/javascript src=/ltitools/lib/bootstrap/dist/js/bootstrap.min.js></script>
+<script type=text/javascript src=/ltitools/lib/axios/dist/axios.min.js></script>
+<script type=text/javascript src=/ltitools/lib/mustache/mustache.min.js></script>
+<script type=text/javascript src=/ltitools/lib/paginationjs/dist/pagination.min.js></script>
+<script type=text/javascript src=/ltitools/i18n-data.js></script>
+<script type=text/javascript src=deeplink.js></script>
 </body>
 </html>
