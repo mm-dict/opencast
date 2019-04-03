@@ -231,6 +231,11 @@
                     <include>mustache/mustache.min.js</include>
                     <include>paginationjs/dist/pagination.css</include>
                     <include>paginationjs/dist/pagination.min.js</include>
+                    <include>vue/dist/vue.js</include>
+                    <include>vue/dist/vue.min.js</include>
+                    <include>bootstrap/dist/css/bootstrap.min.css</include>
+                    <include>bootstrap/dist/js/bootstrap.min.js</include>
+                    <include>axios/dist/axios.min.js</include>
                   </includes>
                   <filtering>false</filtering>
                 </resource>

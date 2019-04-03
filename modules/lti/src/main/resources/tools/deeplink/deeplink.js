@@ -19,13 +19,12 @@
  *
  */
 
-/* global $, Mustache, i18ndata */
-/* exported refreshList */
+/* global $, axios, i18ndata, Mustache */
+/* exported populateData, refreshList */
 
 'use strict';
 
-var player,
-    currentpage,
+var currentpage,
     context_label,
     defaultLang = i18ndata['en-US'],
     lang = defaultLang;
@@ -62,11 +61,12 @@ function i18n(key) {
 }
 
 function loadLTIData() {
-  var ltiUrl = '/lti';
-  return $.getJSON(ltiUrl, function( data ){
-    context_label = data.context_label;
-  });
+  return axios.get('/lti');
 }
+
+// function loadDefaultPlayer() {
+//   return axios.get('/info/me.json');
+// }
 
 function loadSearchInput() {
   // render series filter
@@ -77,21 +77,9 @@ function loadSearchInput() {
   $('#searchfield').html(Mustache.render(seriesFilterTemplate, seriesFilterTplData));
 }
 
-function loadDefaultPlayer() {
-  var infoUrl = '/info/me.json';
+function loadEpisodesTab(page, q) {
 
-  // load spinner
-  $('#selections').html($('#template-loading').html());
-
-  // get organization configuration
-  return $.getJSON(infoUrl, function( data ) {
-    player = data.org.properties.player;
-  });
-}
-
-function loadPage(page, q) {
-
-  var limit = 15,
+  let limit = 15,
       offset = (page - 1) * limit,
       url = '/search/episode.json?limit=' + limit + '&offset=' + offset + '&q=' + q;
 
@@ -100,9 +88,87 @@ function loadPage(page, q) {
   // load spinner
   $('#selections').html($('#template-loading').html());
 
-  $.getJSON(url, function( data ) {
-    data = data['search-results'];
-    var rendered = '',
+  loadSearchInput();
+
+  axios.get(url)
+    .then((response) => {
+      let data = response.data['search-results'];
+      let rendered = '',
+          results = [],
+          total = parseInt(data.total);
+
+      if (total > 0) {
+        results = Array.isArray(data.result) ? data.result : [data.result];
+      }
+
+      for (var i = 0; i < results.length; i++) {
+        var episode = results[i],
+            i18ncreator = Mustache.render(i18n('CREATOR'), {creator: episode.dcCreator}),
+            template = $('#template-episode').html(),
+            tpldata = {
+              tool: '/play/' + episode.id,
+              title: episode.dcTitle,
+              i18ncreator: i18ncreator,
+              created: tryLocalDate(episode.dcCreated),
+              seriestitle: episode.seriestitle,
+              mpID: episode.id};
+
+        // get preview image
+        var attachments = episode.mediapackage.attachments.attachment;
+        attachments = Array.isArray(attachments) ? attachments : [attachments];
+        for (var j = 0; j < attachments.length; j++) {
+          if (attachments[j].type.endsWith('/search+preview')) {
+            tpldata['image'] = attachments[j].url;
+            break;
+          }
+        }
+
+        // render template
+        rendered += Mustache.render(template, tpldata);
+      }
+
+      // render episode view
+      $('#selections').html(rendered);
+
+      // render result information
+      // var resultTemplate = i18n('RESULTS'),
+      //     resultTplData = {
+      //       total: total,
+      //       range: {
+      //         begin: Math.min(offset + 1, total),
+      //         end: offset + parseInt(data.limit)
+      //       }
+      //     };
+      //$('#results').text(Mustache.render(resultTemplate, resultTplData));
+
+      // render pagination
+      $('#episodes-pager').pagination({
+        dataSource: Array(total),
+        pageSize: limit,
+        pageNumber: currentpage,
+        showNavigator: true,
+        formatNavigator: '<%= currentPage %> / <%= totalPage %>, <%= totalNumber %> entries',
+        callback: function(data, pagination) {
+          if (pagination.pageNumber != currentpage) {
+            loadEpisodesTab(pagination.pageNumber);
+          }
+        }
+      });
+    });
+}
+
+function loadSeriesTab(page, q) {
+  let limit = 15,
+      offset = (page - 1) * limit,
+      url = '/search/series.json?limit=' + limit + '&offset=' + offset + '&q=' + q;
+
+  currentpage = page;
+
+  axios.get(url)
+  .then((response) => {
+    let data = response.data['search-results'],
+        seriestool = 'ltitools/series/index.html?series=',
+        rendered = '',
         results = [],
         total = parseInt(data.total);
 
@@ -111,62 +177,47 @@ function loadPage(page, q) {
     }
 
     for (var i = 0; i < results.length; i++) {
-      var episode = results[i],
-          i18ncreator = Mustache.render(i18n('CREATOR'), {creator: episode.dcCreator}),
-          template = $('#template-episode').html(),
+      let serie = results[i],
+          template = $('#template-series').html(),
           tpldata = {
-            player: player + '?id=' + episode.id,
-            title: episode.dcTitle,
-            i18ncreator: i18ncreator,
-            created: tryLocalDate(episode.dcCreated),
-            mpID: episode.id};
-
-      // get preview image
-      var attachments = episode.mediapackage.attachments.attachment;
-      attachments = Array.isArray(attachments) ? attachments : [attachments];
-      for (var j = 0; j < attachments.length; j++) {
-        if (attachments[j].type.endsWith('/search+preview')) {
-          tpldata['image'] = attachments[j].url;
-          break;
-        }
-      }
+            tool: seriestool + serie.id,
+            title: serie.dcTitle,
+            created: serie.dcCreated,
+            image: 'engage/ui/img/logo/opencast-icon.svg'};
 
       // render template
       rendered += Mustache.render(template, tpldata);
     }
 
     // render episode view
-    $('#selections').html(rendered);
+    $('#series-results').html(rendered);
 
-    // render result information
-    var resultTemplate = i18n('RESULTS'),
-        resultTplData = {
-          total: total,
-          range: {
-            begin: Math.min(offset + 1, total),
-            end: offset + parseInt(data.limit)
-          }
-        };
-    $('#results').text(Mustache.render(resultTemplate, resultTplData));
+    // // render result information
+    // let resultTemplate = i18n('RESULTS'),
+    //     resultTplData = {
+    //       total: total,
+    //       range: {
+    //         begin: Math.min(offset + 1, total),
+    //         end: offset + parseInt(data.limit)
+    //       }
+    //     };
+    // $('#results').text(Mustache.render(resultTemplate, resultTplData));
 
     // render pagination
-    $('footer').pagination({
+    $('#series-pager').pagination({
       dataSource: Array(total),
       pageSize: limit,
       pageNumber: currentpage,
       callback: function(data, pagination) {
         if (pagination.pageNumber != currentpage) {
-          loadPage(pagination.pageNumber);
+          loadSeriesTab(pagination.pageNumber);
         }
       }
     });
-
   });
-
 }
 
-// eslint-disable-next-line
-function populateData(title, image, created, player) {
+function populateData(title, image, created, tool) {
   // pass required data back to the server
   const urlParams = new URLSearchParams(window.location.search);
   $('#content_item_return_url').val(urlParams.get('content_item_return_url'));
@@ -188,25 +239,25 @@ function populateData(title, image, created, player) {
       text: created,
       thumbnail: {'@id': image},
       custom: {
-        tool: player
+        tool: tool
       }
     }]
   };
 
   $('#content_items').val(JSON.stringify(contentItems).replace(/"/g, '"'));
-
+  document.forms[0].submit();
 }
 
 function refreshList() {
   var value = $('#selected-series').val();
-  loadPage(1, value);
+  loadEpisodesTab(1, value);
 }
 
-$(document).ready(function() {
-  lang = matchLanguage(navigator.language);
-  loadLTIData().then(function(){
-    loadSearchInput();
-    loadDefaultPlayer()
-      .then(loadPage(1, context_label));
-  });
-});
+lang = matchLanguage(navigator.language);
+axios.all([loadLTIData()])
+  .then(axios.spread( function (ltidata) {
+    context_label = ltidata.data.context_label;
+    loadEpisodesTab(1, context_label);
+    loadSeriesTab(1, context_label);
+  })
+  );
