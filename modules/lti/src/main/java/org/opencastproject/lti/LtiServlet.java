@@ -31,7 +31,7 @@ import org.osgi.service.cm.ManagedService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.oauth.common.signature.SharedConsumerSecret;
+import org.springframework.security.oauth.common.signature.SharedConsumerSecretImpl;
 import org.springframework.security.oauth.provider.ConsumerDetails;
 import org.springframework.security.oauth.provider.ConsumerDetailsService;
 import org.tsugi.basiclti.BasicLTIConstants;
@@ -241,7 +241,7 @@ public class LtiServlet extends HttpServlet implements ManagedService {
   private void sendContentItem(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     String consumerKey = req.getParameter(CONSUMER_KEY);
     ConsumerDetails consumer = consumerDetailsService.loadConsumerByConsumerKey(consumerKey);
-    String consumerSecret = ((SharedConsumerSecret) consumer.getSignatureSecret()).getConsumerSecret();
+    String consumerSecret = ((SharedConsumerSecretImpl) consumer.getSignatureSecret()).getConsumerSecret();
 
     String contentItems = req.getParameter(CONTENT_ITEMS);
     String returnUrl = req.getParameter(BasicLTIConstants.CONTENT_ITEM_RETURN_URL);
