@@ -166,7 +166,7 @@ public class LtiServlet extends HttpServlet implements ManagedService {
       URI toolUri;
       if (messageType.equals(BasicLTIConstants.LTI_MESSAGE_TYPE_CONTENTITEMSELECTIONREQUEST)) {
         toolUri = new URI(URLDecoder.decode(StringUtils.trimToEmpty(
-                req.getParameter(CUSTOM_TOOL)), "UTF-8"));
+                req.getParameter(CUSTOM_DL_TOOL)), "UTF-8"));
       } else {
         toolUri = new URI(URLDecoder.decode(StringUtils.trimToEmpty(
                 req.getParameter(CUSTOM_TOOL)), "UTF-8"));
