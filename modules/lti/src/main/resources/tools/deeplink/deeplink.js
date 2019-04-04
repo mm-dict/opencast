@@ -24,8 +24,9 @@
 
 'use strict';
 
-var currentpage,
+let currentpage,
     context_label,
+    series,
     defaultLang = i18ndata['en-US'],
     lang = defaultLang;
 
@@ -60,6 +61,14 @@ function i18n(key) {
   return lang[key];
 }
 
+function getSeries() {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has('series')) {
+    return urlParams.get('series');
+  }
+  return '';
+}
+
 function loadLTIData() {
   return axios.get('/lti');
 }
@@ -70,7 +79,7 @@ function loadLTIData() {
 
 function loadSearchInput() {
   // render series filter
-  var seriesFilterTemplate = $('#template-series-filter').html(),
+  let seriesFilterTemplate = $('#template-series-filter').html(),
       seriesFilterTplData = {
         lticontextlabel: context_label,
       };
@@ -81,14 +90,23 @@ function loadEpisodesTab(page, q) {
 
   let limit = 15,
       offset = (page - 1) * limit,
-      url = '/search/episode.json?limit=' + limit + '&offset=' + offset + '&q=' + q;
+      series = getSeries(),
+      url = '/search/episode.json?limit=' + limit + '&offset=' + offset;
 
   currentpage = page;
 
+  // attach series query if a series is requested
+  if (series) {
+    url += '&sid=' + series;
+    $('#series-tab').remove();
+  } else { // if no series query is found query the episodes based on the context_label
+    url += '&q=' + q;
+    // no series parameter found, display the search field
+    loadSearchInput();
+  }
+
   // load spinner
   $('#selections').html($('#template-loading').html());
-
-  loadSearchInput();
 
   axios.get(url)
     .then((response) => {
@@ -101,7 +119,7 @@ function loadEpisodesTab(page, q) {
         results = Array.isArray(data.result) ? data.result : [data.result];
       }
 
-      for (var i = 0; i < results.length; i++) {
+      for (let i = 0; i < results.length; i++) {
         var episode = results[i],
             i18ncreator = Mustache.render(i18n('CREATOR'), {creator: episode.dcCreator}),
             template = $('#template-episode').html(),
@@ -114,9 +132,9 @@ function loadEpisodesTab(page, q) {
               mpID: episode.id};
 
         // get preview image
-        var attachments = episode.mediapackage.attachments.attachment;
+        let attachments = episode.mediapackage.attachments.attachment;
         attachments = Array.isArray(attachments) ? attachments : [attachments];
-        for (var j = 0; j < attachments.length; j++) {
+        for (let j = 0; j < attachments.length; j++) {
           if (attachments[j].type.endsWith('/search+preview')) {
             tpldata['image'] = attachments[j].url;
             break;
@@ -176,7 +194,7 @@ function loadSeriesTab(page, q) {
       results = Array.isArray(data.result) ? data.result : [data.result];
     }
 
-    for (var i = 0; i < results.length; i++) {
+    for (let i = 0; i < results.length; i++) {
       let serie = results[i],
           template = $('#template-series').html(),
           tpldata = {
@@ -230,7 +248,7 @@ function populateData(title, image, created, tool) {
   }
 
   // generate content_items
-  var contentItems = {
+  let contentItems = {
     '@context': 'http://purl.imsglobal.org/ctx/lti/v1/ContentItem',
     '@graph': [{
       '@type': 'LtiLinkItem',
@@ -249,7 +267,7 @@ function populateData(title, image, created, tool) {
 }
 
 function refreshList() {
-  var value = $('#selected-series').val();
+  let value = $('#selected-series').val();
   loadEpisodesTab(1, value);
 }
 
@@ -257,7 +275,10 @@ lang = matchLanguage(navigator.language);
 axios.all([loadLTIData()])
   .then(axios.spread( function (ltidata) {
     context_label = ltidata.data.context_label;
+    series = getSeries();
     loadEpisodesTab(1, context_label);
-    loadSeriesTab(1, context_label);
+    if(!series) {
+      loadSeriesTab(1, context_label);
+    }
   })
   );
