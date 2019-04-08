@@ -20,7 +20,7 @@
  */
 
 /* global $, axios, i18ndata, Mustache */
-/* exported populateData, refreshList */
+/* exported populateData, refreshEpisodesList, refreshSeriesList */
 
 'use strict';
 
@@ -77,13 +77,22 @@ function loadLTIData() {
 //   return axios.get('/info/me.json');
 // }
 
-function loadSearchInput() {
+function loadEpisodeSearchInput() {
+  // render series filter
+  let episodesFilterTemplate = $('#template-episodes-filter').html(),
+      episodesFilterTplData = {
+        lticontextlabel: context_label,
+      };
+  $('#episodes-searchfield').html(Mustache.render(episodesFilterTemplate, episodesFilterTplData));
+}
+
+function loadSeriesSearchInput() {
   // render series filter
   let seriesFilterTemplate = $('#template-series-filter').html(),
       seriesFilterTplData = {
         lticontextlabel: context_label,
       };
-  $('#searchfield').html(Mustache.render(seriesFilterTemplate, seriesFilterTplData));
+  $('#series-searchfield').html(Mustache.render(seriesFilterTemplate, seriesFilterTplData));
 }
 
 function loadEpisodesTab(page, q) {
@@ -102,7 +111,7 @@ function loadEpisodesTab(page, q) {
   } else { // if no series query is found query the episodes based on the context_label
     url += '&q=' + q;
     // no series parameter found, display the search field
-    loadSearchInput();
+    loadEpisodeSearchInput();
   }
 
   // load spinner
@@ -146,7 +155,7 @@ function loadEpisodesTab(page, q) {
       }
 
       // render episode view
-      $('#selections').html(rendered);
+      $('#episodes-results').html(rendered);
 
       // render result information
       // var resultTemplate = i18n('RESULTS'),
@@ -181,6 +190,8 @@ function loadSeriesTab(page, q) {
       url = '/search/series.json?limit=' + limit + '&offset=' + offset + '&q=' + q;
 
   currentpage = page;
+
+  loadSeriesSearchInput();
 
   axios.get(url)
   .then((response) => {
@@ -266,9 +277,14 @@ function populateData(title, image, created, tool) {
   document.forms[0].submit();
 }
 
-function refreshList() {
-  let value = $('#selected-series').val();
+function refreshEpisodesList() {
+  let value = $('#selected-episodes').val();
   loadEpisodesTab(1, value);
+}
+
+function refreshSeriesList() {
+  let value = $('#selected-series').val();
+  loadSeriesTab(1, value);
 }
 
 lang = matchLanguage(navigator.language);
