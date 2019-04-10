@@ -86,11 +86,11 @@
 
 <!-- Template for search field -->
 <script id=template-episodes-filter type=x-tmpl-mustache>
-  <input type=text id="selected-episodes" value="{{lticontextlabel}}"/>
+  <input type=text id="selected-episodes" value="{{query}}"/>
   <input type=submit onClick="refreshEpisodesList()" value="Refresh list"/>
 </script>
 <script id=template-series-filter type=x-tmpl-mustache>
-  <input type=text id="selected-series" value="{{lticontextlabel}}"/>
+  <input type=text id="selected-series" value="{{query}}"/>
   <input type=submit onClick="refreshSeriesList()" value="Refresh list"/>
 </script>
 

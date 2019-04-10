@@ -75,20 +75,20 @@ function loadLTIData() {
   return axios.get('/lti');
 }
 
-function loadEpisodeSearchInput() {
+function loadEpisodeSearchInput(q) {
   // render series filter
   let episodesFilterTemplate = $('#template-episodes-filter').html(),
       episodesFilterTplData = {
-        lticontextlabel: context_label,
+        query: q,
       };
   $('#episodes-searchfield').html(Mustache.render(episodesFilterTemplate, episodesFilterTplData));
 }
 
-function loadSeriesSearchInput() {
+function loadSeriesSearchInput(q) {
   // render series filter
   let seriesFilterTemplate = $('#template-series-filter').html(),
       seriesFilterTplData = {
-        lticontextlabel: context_label,
+        query: q,
       };
   $('#series-searchfield').html(Mustache.render(seriesFilterTemplate, seriesFilterTplData));
 }
@@ -109,7 +109,7 @@ function loadEpisodesTab(page, q) {
   } else { // if no series query is found query the episodes based on the context_label
     url += '&q=' + q;
     // no series parameter found, display the search field
-    loadEpisodeSearchInput();
+    loadEpisodeSearchInput(q);
   }
 
   // load spinner
@@ -175,7 +175,7 @@ function loadEpisodesTab(page, q) {
         formatNavigator: '<%= currentPage %> / <%= totalPage %>, <%= totalNumber %> entries',
         callback: function(data, pagination) {
           if (pagination.pageNumber != currentpage) {
-            loadEpisodesTab(pagination.pageNumber);
+            loadEpisodesTab(pagination.pageNumber, q);
           }
         }
       });
@@ -227,7 +227,7 @@ function loadSeriesTab(page, q) {
       pageNumber: currentpage,
       callback: function(data, pagination) {
         if (pagination.pageNumber != currentpage) {
-          loadSeriesTab(pagination.pageNumber);
+          loadSeriesTab(pagination.pageNumber, q);
         }
       }
     });
