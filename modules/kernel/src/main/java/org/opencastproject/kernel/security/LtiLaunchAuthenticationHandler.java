@@ -92,6 +92,9 @@ public class LtiLaunchAuthenticationHandler implements OAuthAuthenticationHandle
   /** The prefix of the key to look up a consumer key. */
   private static final String HIGHLY_TRUSTED_CONSUMER_KEY_PREFIX = "lti.oauth.highly_trusted_consumer_key.";
 
+  /** The prefix of the key to look up a customUsername. */
+  private static final String CUSTOM_USERNAME = "lti.custom_username";
+
   /** The prefix of the key to look up a blacklisted user. */
   private static final String BLACKLIST_USER_PREFIX = "lti.blacklist.user.";
 
@@ -112,6 +115,9 @@ public class LtiLaunchAuthenticationHandler implements OAuthAuthenticationHandle
 
   /** Set of usernames that should not authenticated as themselves even if the OAuth consumer keys is trusted */
   private Set<String> usernameBlacklist = new HashSet<>();
+
+  /** customUsername field to use as LTI username */
+  private String customUsername = new String();
 
   /**
    * OSGi DI
@@ -166,6 +172,10 @@ public class LtiLaunchAuthenticationHandler implements OAuthAuthenticationHandle
       }
       usernameBlacklist.add(username);
     }
+
+    // LTI custom username
+    logger.debug("Looking for configuration of {}", CUSTOM_USERNAME);
+    customUsername = StringUtils.trimToNull((String) properties.get(CUSTOM_USERNAME));
   }
 
   /**
@@ -204,12 +214,16 @@ public class LtiLaunchAuthenticationHandler implements OAuthAuthenticationHandle
       // If supplied we use the human readable name coming from:
       //   1. ext_user_username    (optional Moodle-only field)
       //   2. lis_person_sourcedid (optional standard field)
+      //   3. customUsername (optional configured username field)
       String ltiUsername = request.getParameter("ext_user_username");
       if (StringUtils.isBlank(ltiUsername)) {
         ltiUsername = request.getParameter("lis_person_sourcedid");
         if (StringUtils.isBlank(ltiUsername)) {
-          // If no eid is set we use the supplied ID
-          ltiUsername = userIdFromConsumer;
+          ltiUsername = request.getParameter(customUsername);
+          if (StringUtils.isBlank(ltiUsername)) {
+            // If no eid is set we use the supplied ID
+            ltiUsername = userIdFromConsumer;
+          }
         }
       }
 

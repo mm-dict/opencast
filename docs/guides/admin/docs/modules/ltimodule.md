@@ -61,6 +61,13 @@ lti.blacklist.user.1=myAdminUser
 > that user access to Opencast. In the default configuration, that includes the `admin` and `opencast_system_account`
 > users.
 
+To set a custom username field ( in case your LMS uses non default variables ), you can set the custom_username field
+to a value that makes sense for your LMS ( ex. for Brightspace LMS ).
+
+```properties
+lti_custom_username=ext_d2l_orgdefinedid
+```
+
 Configure and test an LTI tool in the LMS
 -----------------------------------------
 
