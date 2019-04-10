@@ -28,7 +28,9 @@ let currentpage,
     context_label,
     series,
     defaultLang = i18ndata['en-US'],
-    lang = defaultLang;
+    lang = defaultLang,
+    seriesRgbMax = new Array(220, 220, 220), //color range.
+    seriesRgbOffset = new Array(20, 20, 20); //darkest possible color;
 
 function matchLanguage(lang) {
   // break for too short codes
@@ -72,10 +74,6 @@ function getSeries() {
 function loadLTIData() {
   return axios.get('/lti');
 }
-
-// function loadDefaultPlayer() {
-//   return axios.get('/info/me.json');
-// }
 
 function loadEpisodeSearchInput() {
   // render series filter
@@ -129,19 +127,30 @@ function loadEpisodesTab(page, q) {
       }
 
       for (let i = 0; i < results.length; i++) {
-        var episode = results[i],
-            i18ncreator = Mustache.render(i18n('CREATOR'), {creator: episode.dcCreator}),
+        let episode = results[i],
+            i18ncreator,
             template = $('#template-episode').html(),
-            tpldata = {
-              tool: '/play/' + episode.id,
-              title: episode.dcTitle,
-              i18ncreator: i18ncreator,
-              created: tryLocalDate(episode.dcCreated),
-              seriestitle: episode.seriestitle,
-              mpID: episode.id};
+            tpldata,
+            attachments;
+
+        if(episode.dcCreator != null) {
+          i18ncreator = Mustache.render(i18n('CREATOR'), {creator: episode.dcCreator});
+        } else {
+          i18ncreator = '';
+        }
+
+        tpldata = {
+          tool: '/play/' + episode.id,
+          title: episode.dcTitle,
+          i18ncreator: i18ncreator,
+          created: tryLocalDate(episode.dcCreated),
+          seriestitle: episode.mediapackage.seriestitle,
+          mpID: episode.id,
+          color: generateSeriesColor(episode.mediapackage.series),
+          duration: formatDuration(episode.mediapackage.duration)};
 
         // get preview image
-        let attachments = episode.mediapackage.attachments.attachment;
+        attachments = episode.mediapackage.attachments.attachment;
         attachments = Array.isArray(attachments) ? attachments : [attachments];
         for (let j = 0; j < attachments.length; j++) {
           if (attachments[j].type.endsWith('/search+preview')) {
@@ -156,17 +165,6 @@ function loadEpisodesTab(page, q) {
 
       // render episode view
       $('#episodes-results').html(rendered);
-
-      // render result information
-      // var resultTemplate = i18n('RESULTS'),
-      //     resultTplData = {
-      //       total: total,
-      //       range: {
-      //         begin: Math.min(offset + 1, total),
-      //         end: offset + parseInt(data.limit)
-      //       }
-      //     };
-      //$('#results').text(Mustache.render(resultTemplate, resultTplData));
 
       // render pagination
       $('#episodes-pager').pagination({
@@ -211,8 +209,9 @@ function loadSeriesTab(page, q) {
           tpldata = {
             tool: seriestool + serie.id,
             title: serie.dcTitle,
-            created: serie.dcCreated,
-            image: 'engage/ui/img/logo/opencast-icon.svg'};
+            created: tryLocalDate(serie.dcCreated),
+            image: 'engage/ui/img/logo/opencast-icon.svg',
+            color: generateSeriesColor(serie.id)};
 
       // render template
       rendered += Mustache.render(template, tpldata);
@@ -220,17 +219,6 @@ function loadSeriesTab(page, q) {
 
     // render episode view
     $('#series-results').html(rendered);
-
-    // // render result information
-    // let resultTemplate = i18n('RESULTS'),
-    //     resultTplData = {
-    //       total: total,
-    //       range: {
-    //         begin: Math.min(offset + 1, total),
-    //         end: offset + parseInt(data.limit)
-    //       }
-    //     };
-    // $('#results').text(Mustache.render(resultTemplate, resultTplData));
 
     // render pagination
     $('#series-pager').pagination({
@@ -285,6 +273,46 @@ function refreshEpisodesList() {
 function refreshSeriesList() {
   let value = $('#selected-series').val();
   loadSeriesTab(1, value);
+}
+
+function generateSeriesColor(id) {
+
+  if (id == null) {
+    return '#fff';
+  }
+
+  let rgb = new Array(0, 0, 0);
+
+  for (let i = 0; i < id.length; ++i) {
+    rgb[(i % 3)] += id.charCodeAt(i);
+  }
+
+  for (let i = 0; i < 3; ++i) {
+    rgb[i] = ((rgb[i] % seriesRgbMax[i]) + seriesRgbOffset[i]).toString(16);
+    if (rgb[i].length < 1) {
+      rgb[i] = '0' + rgb[i];
+    }
+  }
+
+  return '#' + rgb[0] + rgb[1] + rgb[2];
+}
+
+function formatDuration(duration) {
+  let seconds = Math.floor((duration / 1000) % 60),
+      minutes = Math.floor((duration / (1000 * 60) % 60)),
+      hours = Math.floor((duration / (1000 * 60 * 60) % 60));
+
+  if (seconds < 10) {
+    seconds = '0' + seconds;
+  }
+  if (minutes < 10) {
+    minutes = '0' + minutes;
+  }
+  if (hours < 10) {
+    hours = '0' + hours;
+  }
+
+  return hours + ':' + minutes + ':' + seconds;
 }
 
 lang = matchLanguage(navigator.language);
