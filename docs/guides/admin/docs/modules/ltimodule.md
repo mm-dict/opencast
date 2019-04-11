@@ -100,9 +100,21 @@ custom parameters to be defined separately in each place where an LTI tool is us
 custom parameters to be defined globally.
 
 * To show the Opencast Media Module, use `tool=engage/ui/`
-* To show all videos for a single series, use `tool=ltitools/series/index.html;series=SERIESID`
-* To show a single video, use `tool=engage/theodul/ui/core.html;id=MEDIAPACKAGEID`
+* To show all videos for a single series, use `tool=ltitools/series/index.html?series=SERIESID`
+* To show a single video, use `tool=engage/theodul/ui/core.html?id=MEDIAPACKAGEID`
 * To show a short debugging page before proceeding to the tool page, add the parameter `test=true`
 
 For more information about how to set custom LTI parameters, please check the documentation of your LMS.
+
+LTI Deep Linking integration 
+-----------------------------
+
+There is a specific tool to enable deep linking of Content Items into your LMS. To configure the LTI deep linking tool use :
+
+* To select the deep linking tool, use `dl_tool=ltitools/deeplinking/index.html`
+* To limit the shown videos to a specific series, use `dl_tool=ltitools/deeplinking/index.html?series=SERIESID`
+* Ommit the series parameter to add a search field prefilled with the LTI context_label variable, enabling you to search
+for recordings and series.
+
+For more information on how to configure LTI deep linking, please check the documentation of your LMS.
 
