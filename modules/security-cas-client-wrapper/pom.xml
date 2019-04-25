@@ -139,13 +139,13 @@
               org.opensaml.xml.signature.impl;version=2.6.4,
               org.opensaml.xml.util;version=2.6.4,
               org.opensaml.xml.validation;version=2.6.4,
-              org.jasig.cas.client.authentication;version=3.5.1,
-              org.jasig.cas.client.jaas;version=3.5.1,
-              org.jasig.cas.client.proxy;version=3.5.1,
-              org.jasig.cas.client.ssl;version=3.5.1,
-              org.jasig.cas.client.session;version=3.5.1,
-              org.jasig.cas.client.util;version=3.5.1,
-              org.jasig.cas.client.validation;version=3.5.1
+              org.jasig.cas.client.authentication;version=3.1.12,
+              org.jasig.cas.client.jaas;version=3.1.12,
+              org.jasig.cas.client.proxy;version=3.1.12,
+              org.jasig.cas.client.ssl;version=3.1.12,
+              org.jasig.cas.client.session;version=3.1.12,
+              org.jasig.cas.client.util;version=3.1.12,
+              org.jasig.cas.client.validation;version=3.1.12
             </Export-Package>
           </instructions>
         </configuration>
