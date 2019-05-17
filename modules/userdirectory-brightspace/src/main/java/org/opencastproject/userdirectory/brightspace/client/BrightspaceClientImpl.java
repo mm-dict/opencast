@@ -26,9 +26,6 @@ import org.opencastproject.userdirectory.brightspace.client.api.OrgUnitResponse;
 import org.opencastproject.userdirectory.brightspace.client.api.PagingInfo;
 import org.opencastproject.userdirectory.brightspace.client.api.UsersResponse;
 
-import be.ugent.brightspace.idkeyauth.AuthenticationSecurityFactory;
-import be.ugent.brightspace.idkeyauth.ID2LAppContext;
-import be.ugent.brightspace.idkeyauth.ID2LUserContext;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -49,6 +46,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.net.ssl.HttpsURLConnection;
+
+import be.ugent.brightspace.idkeyauth.AuthenticationSecurityFactory;
+import be.ugent.brightspace.idkeyauth.ID2LAppContext;
+import be.ugent.brightspace.idkeyauth.ID2LUserContext;
 
 public class BrightspaceClientImpl implements BrightspaceClient {
 
@@ -91,7 +92,6 @@ public class BrightspaceClientImpl implements BrightspaceClient {
               });
       return brightspaceUserList.stream().findFirst().orElse(null);
     } catch (IOException e) {
-      logger.error(UNEXPECTED_JSON_RESPONSE);
       throw new BrightspaceClientException(UNEXPECTED_JSON_RESPONSE, e);
     }
   }
@@ -131,7 +131,6 @@ public class BrightspaceClientImpl implements BrightspaceClient {
       UsersResponse usersResponse = objectMapper.readValue(response, UsersResponse.class);
       return usersResponse.getItems();
     } catch (IOException e) {
-      logger.error(UNEXPECTED_JSON_RESPONSE);
       throw new BrightspaceClientException(UNEXPECTED_JSON_RESPONSE);
     }
 
@@ -161,7 +160,7 @@ public class BrightspaceClientImpl implements BrightspaceClient {
     } catch (MalformedURLException mue) {
       throw new BrightspaceClientException("url was malformed", mue);
     }
-    logger.debug("about to make GET request to : {}", uri.toString());
+    logger.debug("about to make GET request to : {}", uri);
     return url;
   }
 
@@ -192,7 +191,7 @@ public class BrightspaceClientImpl implements BrightspaceClient {
       while ((inputline = bufferedReader.readLine()) != null) {
         content.append(inputline);
       }
-      logger.debug("call to brightspace api: {}", content.toString());
+      logger.debug("call to brightspace api: {}", content);
       return content.toString();
     } catch (IOException io) {
       throw new BrightspaceClientException("Could not read response", io);
