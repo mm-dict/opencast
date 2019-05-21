@@ -39,16 +39,12 @@ public class BrightspaceUser {
   private String displayName;
 
   @JsonCreator
-<<<<<<< HEAD
-  public BrightspaceUser(@JsonProperty("OrgId") String orgId, @JsonProperty("UserId") String userId, @JsonProperty("FirstName") String firstName, @JsonProperty("MiddleName") String middleName, @JsonProperty("LastName") String lastName, @JsonProperty("UserName") String userName, @JsonProperty("ExternalEmail") String externalEmail, @JsonProperty("OrgDefinedId") String orgDefinedId, @JsonProperty("UniqueIdentifier") String uniqueIdentifier, @JsonProperty("Activation") Activation activation, @JsonProperty("DisplayName") String displayName) {
-=======
   public BrightspaceUser(@JsonProperty("OrgId") String orgId,
                          @JsonProperty("UserId") String userId, @JsonProperty("FirstName") String firstName,
                          @JsonProperty("MiddleName") String middleName, @JsonProperty("LastName") String lastName,
                          @JsonProperty("UserName") String userName, @JsonProperty("ExternalEmail") String externalEmail,
                          @JsonProperty("OrgDefinedId") String orgDefinedId, @JsonProperty("UniqueIdentifier") String uniqueIdentifier,
                          @JsonProperty("Activation") Activation activation, @JsonProperty("DisplayName") String displayName) {
->>>>>>> feature/userdirectory-brightspace
     this.orgId = orgId;
     this.userId = userId;
     this.firstName = firstName;
