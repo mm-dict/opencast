@@ -21,6 +21,7 @@
 
 package org.opencastproject.kernel.security;
 
+import org.opencastproject.security.api.SecurityConstants;
 import org.opencastproject.security.util.SecurityUtil;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -85,9 +86,6 @@ public class LtiLaunchAuthenticationHandler implements OAuthAuthenticationHandle
 
   /** The default learner for LTI **/
   private static final String DEFAULT_LEARNER = "USER";
-
-  /** The key to look up the admin username **/
-  private static final String ADMIN_USER_KEY = "org.opencastproject.security.admin.user";
 
   /** The prefix of the key to look up a consumer key. */
   private static final String HIGHLY_TRUSTED_CONSUMER_KEY_PREFIX = "lti.oauth.highly_trusted_consumer_key.";
@@ -155,7 +153,8 @@ public class LtiLaunchAuthenticationHandler implements OAuthAuthenticationHandle
 
     // User blacklist
     if (!BooleanUtils.toBoolean(StringUtils.trimToNull((String) properties.get(ALLOW_SYSTEM_ADMINISTRATOR_KEY)))) {
-      String adminUsername = StringUtils.trimToNull(componentContext.getBundleContext().getProperty(ADMIN_USER_KEY));
+      String adminUsername = StringUtils.trimToNull(
+              componentContext.getBundleContext().getProperty(SecurityConstants.GLOBAL_ADMIN_USER_PROPERTY));
       if (adminUsername != null) {
         usernameBlacklist.add(adminUsername);
       }
