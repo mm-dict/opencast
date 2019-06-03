@@ -1488,6 +1488,41 @@ public class IndexServiceImpl implements IndexService {
   }
 
   @Override
+  public EventRemovalResult removeEvent(Event event, Runnable doOnNotFound, String retractWorkflowId)
+      throws UnauthorizedException, WorkflowDatabaseException, NotFoundException {
+    final boolean hasOnlyEngageLive = event.getPublications().size() == 1
+        && EventUtils.ENGAGE_LIVE_CHANNEL_ID.equals(event.getPublications().get(0).getChannel());
+    final boolean retract = event.hasPreview()
+        || (!event.getPublications().isEmpty()  && !hasOnlyEngageLive && this.hasSnapshots(event.getIdentifier()));
+    if (retract) {
+      retractAndRemoveEvent(event.getIdentifier(), doOnNotFound, retractWorkflowId);
+      return EventRemovalResult.RETRACTING;
+    } else {
+      try {
+        final boolean success = removeEvent(event.getIdentifier());
+        return success ? EventRemovalResult.SUCCESS : EventRemovalResult.GENERAL_FAILURE;
+      } catch (NotFoundException e) {
+        return EventRemovalResult.NOT_FOUND;
+      }
+    }
+  }
+
+  private void retractAndRemoveEvent(String id, Runnable doOnNotFound, String retractWorkflowId)
+      throws WorkflowDatabaseException, NotFoundException {
+    final WorkflowDefinition wfd = workflowService.getWorkflowDefinitionById(retractWorkflowId);
+    final Workflows workflows = new Workflows(assetManager, workflowService);
+    final ConfiguredWorkflow workflow = workflow(wfd);
+    final List<WorkflowInstance> result = workflows.applyWorkflowToLatestVersion(Collections.singleton(id), workflow).toList();
+    if (result.size() != 1) {
+        throw new IllegalStateException("Couldn't start workflow to retract media package" + id);
+    }
+    this.retractions.put(
+        result.get(0).getId(),
+        new Retraction(securityService.getUser(), securityService.getOrganization(), doOnNotFound)
+    );
+  }
+
+  @Override
   public boolean removeEvent(String id) throws NotFoundException, UnauthorizedException {
     boolean unauthorizedScheduler = false;
     boolean notFoundScheduler = false;
