@@ -27,6 +27,10 @@ import org.opencastproject.security.api.Organization;
 import org.opencastproject.security.api.Role;
 import org.opencastproject.security.api.SecurityService;
 import org.opencastproject.security.api.User;
+import org.opencastproject.serviceregistry.api.HostRegistration;
+import org.opencastproject.serviceregistry.api.ServiceRegistration;
+import org.opencastproject.serviceregistry.api.ServiceRegistry;
+import org.opencastproject.serviceregistry.api.ServiceRegistryException;
 import org.opencastproject.systems.OpencastConstants;
 import org.opencastproject.userdirectory.UserIdRoleProvider;
 import org.opencastproject.util.UrlSupport;
@@ -90,6 +94,12 @@ public class RuntimeInfo {
 
   private static final Gson gson = new Gson();
 
+  /* Health Check values */
+  public static final String HEALTH_CHECK_VERSION = "1";
+  public static final String HEALTH_CHECK_STATUS_PASS = "pass";
+  public static final String HEALTH_CHECK_STATUS_WARN = "warn";
+  public static final String HEALTH_CHECK_STATUS_FAIL = "fail";
+
   /**
    * The rest publisher looks for any non-servlet with the 'opencast.service.path' property
    */
@@ -98,6 +108,7 @@ public class RuntimeInfo {
 
   private UserIdRoleProvider userIdRoleProvider;
   private SecurityService securityService;
+  private ServiceRegistry serviceRegistry;
   private BundleContext bundleContext;
   private URL serverUrl;
 
@@ -107,6 +118,10 @@ public class RuntimeInfo {
 
   protected void setSecurityService(SecurityService securityService) {
     this.securityService = securityService;
+  }
+
+  protected void setServiceRegistry(ServiceRegistry serviceRegistry) {
+    this.serviceRegistry = serviceRegistry;
   }
 
   private ServiceReference[] getRestServiceReferences() throws InvalidSyntaxException {
@@ -260,11 +275,14 @@ public class RuntimeInfo {
         "version" : "1"
     }
      */
-
+    String status = HEALTH_CHECK_STATUS_PASS; // pass, warn or fail
     // Conditional workaround for unit tests
     String releaseId = this.bundleContext != null ? this.bundleContext.getBundle().getVersion().toString() : "TEST";
     String hostname = serviceRegistry.getRegistryHostname();
-    Health health;
+    Gson gson = new Gson();
+
+    List<String> notes = new ArrayList<>();
+    List<Object> serviceStates = new ArrayList<>();
     Map<String, Object> checks = new HashMap<>();
 
     try {
@@ -306,36 +324,61 @@ public class RuntimeInfo {
         } catch (ServiceRegistryException e) {
           logger.error("Failed to get services: ", e);
           status = HEALTH_CHECK_STATUS_FAIL;
+<<<<<<< HEAD
           notes.add("internal health check error!");
+=======
+          notes.add("Internal health check error!");
+>>>>>>> 170858442a... MH-13515, add health-check endpoint
         }
       }
     } catch (ServiceRegistryException e) {
       logger.error("Failed to get host registration: ", e);
       status = HEALTH_CHECK_STATUS_FAIL;
+<<<<<<< HEAD
       notes.add("internal health check error!");
+=======
+      notes.add("Internal health check error!");
+>>>>>>> 170858442a... MH-13515, add health-check endpoint
     }
 
     // format response
     Map<String, Object> json = new HashMap<>();
+<<<<<<< HEAD
     json.put("status", health.getStatus());
+=======
+    json.put("status", status);
+>>>>>>> 170858442a... MH-13515, add health-check endpoint
     json.put("version", HEALTH_CHECK_VERSION);
     json.put("releaseId", releaseId);
     json.put("serviceId", hostname);
     json.put("description", "Opencast node's health status");
 
+<<<<<<< HEAD
     if (!health.getNotes().isEmpty()) {
       json.put("notes", health.getNotes());
     }
 
     if (!health.getServiceStates().isEmpty()) {
       checks.put("service:states", health.getServiceStates());
+=======
+    if (!notes.isEmpty()) {
+      json.put("notes", notes);
+    }
+
+    if (!serviceStates.isEmpty()) {
+      checks.put("service:states", serviceStates);
+>>>>>>> 170858442a... MH-13515, add health-check endpoint
     }
 
     if (!checks.isEmpty()) {
       json.put("checks", checks);
     }
 
+<<<<<<< HEAD
     if (HEALTH_CHECK_STATUS_FAIL.equalsIgnoreCase(health.getStatus())) {
+=======
+    if (HEALTH_CHECK_STATUS_FAIL.equalsIgnoreCase(status)) {
+>>>>>>> 170858442a... MH-13515, add health-check endpoint
       response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
     } else {
       response.setStatus(HttpServletResponse.SC_OK);
@@ -344,6 +387,7 @@ public class RuntimeInfo {
     return gson.toJson(json);
   }
 
+<<<<<<< HEAD
   private class Health {
 
     private String status;
@@ -435,6 +479,8 @@ public class RuntimeInfo {
     return health;
   }
 
+=======
+>>>>>>> 170858442a... MH-13515, add health-check endpoint
   protected Map<String, Object> getServiceStateAsJson(ServiceRegistration service) {
     Map<String, Object> json = new HashMap<>();
     json.put("componentId", service.getServiceType());
