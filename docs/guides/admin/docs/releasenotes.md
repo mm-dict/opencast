@@ -10,16 +10,16 @@ New Features
 - Update Elasticsearch and make it possible to run Elasticsearch as an external service.
 - Per-Tenant Capture Agent Users
 - Asset manager snaphots clean-up to remove older snapshots for a given media package. In some cases, this can
-  drastically reduce Opencast's storage consumption. This feature is implemented as an option for the [asset-delete workflow
-  operation handler](workflowoperationhandlers/asset-delete-woh.md).
+  drastically reduce Opencast's storage consumption. This feature is implemented as an option for the
+  [asset-delete workflow operation handler](workflowoperationhandlers/asset-delete-woh.md).
 - Allow the workflow to select the audio track for composite video
 - Add multi-tenant support for all list providers
 - Make waveform size configurable
 - Create a generic user interface configuration service
-- Add link to series details to the events table
-- Add Internationalization support for series LTI tools
-- Display responsible person for workflows
-- Allow the Ingest Service to make authenticated requests to other servers
+- In the events table add a link to the series details
+- Add internationalization support for series LTI tools
+- Display creator of workflow
+- Allow the ingest service to make authenticated requests to other servers
 - Some modules are now plugins. These are not started by default to reduce the amount of code running unnecessarily.
   They can easily be enabled in `etc/org.apache.karaf.features.cfg`. Modified modules are:
     - Moodle user directory
@@ -28,15 +28,14 @@ New Features
 Improvements
 ------------
 
-A non-comprehensive list of improvements:
-
-- Improvement of performance when scheduling new events or checking for conflicts, reducing the time for adding
-multiple schedules by up to 90% compared to the previous implementation. Please read the [upgrade guide](upgrade.md)
-to make sure you migrate your data properly.
+- Improved performance when scheduling new events or checking for conflicts (reducing the time for adding
+multiple schedules by up to 90%).
 
 Configuration changes
 ---------------------
 
+- `etc/org.opencastproject.scheduler.impl.SchedulerServiceImpl.cfg` has a new option `maintenance` which temporarily
+  disables the scheduler if set to `true`.
 - `KARAF_NOROOT` is now set to `true` by default, preventing Opencast to be started as root user unless the
   configuration is changed.
 - The default configuration for the Paella player has been moved to `etc/ui-config/mh_default_org/paella/config.json`
@@ -46,12 +45,8 @@ Configuration changes
   `etc/org.opencastproject.ingest.impl.IngestServiceImpl.cfg`.
 - By default, the Paella player now respects all tracks published to engage instead of having a hard-coded filter for
   tracks with the sub-flavor `delivery` only.
-- The structure of the configuration files concerning URL signing has changed.
-  See [here](./configuration/stream-security.md). The affected files are:
-    - `etc/org.opencastproject.security.urlsigning.filter.UrlSigningFilter.cfg `
-    - `etc/org.opencastproject.security.urlsigning.provider.impl.GenericUrlSigningProvider.cfg`
-    - `etc/org.opencastproject.security.urlsigning.provider.impl.WowzaUrlSigningProvider.cfg`
-    - `etc/org.opencastproject.security.urlsigning.verifier.impl.UrlSigningVerifierImpl.cfg`
+- The structure of the configuration files concerning URL signing has changed. See the
+[stream security configuration](./configuration/stream-security.md) for more details.
 
 API changes
 -----------
@@ -79,22 +74,6 @@ Due to [MH-13446](https://opencast.jira.com/browse/MH-13446):
 - Removed DELETE /acl-manager/series/{transitionId}
 - Removed PUT /acl-manager/episode/{transitionId}
 - Removed PUT /acl-manager/series/{transitionId}
-
-Additional Notes about 6.4
---------------------------
-
-Opencast 6.4 contains a number of bug fixes, some of which are security relevant. The following known vulnerability
-within Opencast's `org.springframework.security.oauth:spring-security-oauth` dependency have been fixed by this release:
-`CVE-2019-3778`.
-
-
-Additional Notes about 6.5
---------------------------
-
-Opencast 6.5 contains a change to the job dispatching logic, which will change how your cluster dispatches jobs to its
-workers.  This change means that workers with a higher maximum load will absorb more work before workers with lower
-maximum loads will accept heavy workloads.  This change does not require any configuration changes, however you may
-notice large changes in processing load distribution depending on your cluster configuration.
 
 Release Schedule
 ----------------
