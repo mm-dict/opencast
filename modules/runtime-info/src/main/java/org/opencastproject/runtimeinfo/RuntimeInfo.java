@@ -269,12 +269,50 @@ public class RuntimeInfo {
 
     try {
       HostRegistration host = serviceRegistry.getHostRegistration(hostname);
-      health = checkHostHealth(host);
+
+      // check most severe conditions first
+      if (!host.isOnline()) {
+        // NOTE: This is not strictly possible as a node can't test if it's offline
+        status = HEALTH_CHECK_STATUS_FAIL;
+        notes.add("node is offline");
+      } else if (!host.isActive()) {
+        status = HEALTH_CHECK_STATUS_FAIL;
+        notes.add("node is disabled");
+      } else if (host.isMaintenanceMode()) {
+        status = HEALTH_CHECK_STATUS_FAIL;
+        notes.add("node is in maintenance");
+      } else {
+        // find non normal services
+        try {
+          List<ServiceRegistration> services = serviceRegistry.getServiceRegistrationsByHost(hostname);
+          for (ServiceRegistration service : services) {
+            switch (service.getServiceState()) {
+              case WARNING: {
+                status = HEALTH_CHECK_STATUS_WARN;
+                notes.add("service(s) in WARN state");
+                serviceStates.add(getServiceStateAsJson(service));
+                break;
+              }
+              case ERROR: {
+                status = HEALTH_CHECK_STATUS_WARN;
+                notes.add("service(s) in ERROR state");
+                serviceStates.add(getServiceStateAsJson(service));
+                break;
+              }
+              default:
+                break;
+            }
+          }
+        } catch (ServiceRegistryException e) {
+          logger.error("Failed to get services: ", e);
+          status = HEALTH_CHECK_STATUS_FAIL;
+          notes.add("internal health check error!");
+        }
+      }
     } catch (ServiceRegistryException e) {
       logger.error("Failed to get host registration: ", e);
-      health = new Health();
-      health.setStatus(HEALTH_CHECK_STATUS_FAIL);
-      health.addNote("internal health check error!");
+      status = HEALTH_CHECK_STATUS_FAIL;
+      notes.add("internal health check error!");
     }
 
     // format response
