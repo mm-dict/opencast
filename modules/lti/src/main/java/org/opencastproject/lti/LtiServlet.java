@@ -183,7 +183,7 @@ public class LtiServlet extends HttpServlet implements ManagedService {
       } else {
         // Remove the schema and "authority" parts of the URI for security reasons.
         // "authority" consists of user-info, host and port.
-        builder = UriBuilder.fromUri(toolUri).scheme(null).host(null).userInfo(null).port(-1);
+        builder = UriBuilder.fromUri(toolUri).userInfo(null).port(-1);
       }
     } catch (URISyntaxException ex) {
       logger.warn("The 'custom_tool' parameter was invalid: '{}'. Reverting to default: '{}'",
