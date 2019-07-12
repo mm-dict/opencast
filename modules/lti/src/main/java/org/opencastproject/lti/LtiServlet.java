@@ -157,7 +157,7 @@ public class LtiServlet extends HttpServlet implements ManagedService {
     String messageType = StringUtils.trimToEmpty(req.getParameter(BasicLTIConstants.LTI_MESSAGE_TYPE));
 
     // The URL of the LTI tool. If no specific tool is passed we use the test tool
-    UriBuilder builder = null;
+    UriBuilder builder;
     try {
       // If a content item request, use the dl_tool instead of tool so that we can
       // return a custom tool param in the result later
