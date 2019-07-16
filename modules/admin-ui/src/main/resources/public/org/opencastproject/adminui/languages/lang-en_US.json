@@ -1,3 +1,4 @@
+
 {
    "MATTERHORN":   "Opencast",
    "NAV_HOME":     "Start",
@@ -124,8 +125,8 @@
      "SERIES_NOT_UPDATED_ID":  "The series {{ id }} could not be saved",
      "SERIES_NOT_UPDATED_ALL":  "None of the series could be saved",
      "EVENT_DELETED":      "The event has been deleted.",
-     "EVENT_WILL_BE_DELETED": "The event will be unpublished first, and will then be deleted automatically.",
-     "EVENTS_DELETED":      "The events are being deleted. Published events will be unpublished first, and then be deleted automatically.",
+     "EVENT_WILL_BE_DELETED": "The event is being deleted",
+     "EVENTS_DELETED":      "The events are being deleted.",
      "EVENTS_NOT_DELETED":  "The event(s) could not be deleted.",
      "EVENTS_NOT_DELETED_NOT_AUTHORIZED":  "The event(s) could not be deleted, because you don't have the permission to do so.",
      "SERIES_DELETED": "The series has been deleted",
@@ -161,8 +162,8 @@
      "THEME_NOT_DELETED":    "The theme could not be deleted",
      "TASK_CREATED": "The task has been created",
      "TASK_NOT_CREATED": "The task could not be created",
-     "VIDEO_CUT_NOT_SAVED": "The editing information could not be saved",
-     "VIDEO_CUT_SAVED": "The editing information has been saved",
+     "VIDEO_CUT_NOT_SAVED": "The changes could not be saved",
+     "VIDEO_CUT_SAVED": "The changes have been saved",
      "VIDEO_CUT_PROCESSING": "The video is being processed…",
      "THUMBNAIL_CHANGE_FAILED": "Failed to change thumbnail.",
      "VIDEO_SOURCE_TRACKS_INVALID": "You have selected no video tracks to process",
@@ -182,7 +183,7 @@
           "EVENTS": {
             "CAPTION": "Delete",
             "DELETE_EVENTS": "Delete Events",
-            "UNAUTHORIZED": "You are not authorized to delete the highlighted events. Please unselect them to continue.",
+            "UNAUTHORIZED": "You are not authorized to delete the highlighted events. Please unselect them to continue."
           }
       },
 
@@ -257,7 +258,7 @@
       "NEXT_STEP": "Next",
       "BACK": "Previous",
       "CREATE": "Create",
-      "RETRACT_DELETE": "Retract/Delete",
+      "DELETE": "Delete",
       "UPDATE": "Update",
       "DURATION": {
           "HOURS": "Hours",
@@ -292,6 +293,9 @@
      },
      "CONFIGURATION": {
        "TITLE": "Configuration"
+     },
+     "STATISTICS": {
+       "TITLE": "Statistics"
      }
    },
    "EVENTS": {
@@ -502,7 +506,8 @@
            "SCHEDULING": "Scheduling",
            "WORKFLOWS":   "Workflows",
            "ACCESS":      "Access policy",
-           "COMMENTS":    "Comments"
+           "COMMENTS":    "Comments",
+           "STATISTICS":    "Statistics"
          },
          "PUBLICATIONS": {
            "CAPTION":                    "Publications",
@@ -744,6 +749,9 @@
              "PROCESSING_FAILURE" : "Processing failure"
            }
          },
+         "STATISTICS": {
+           "CAPTION":     "Statistics"
+         },
          "METADATA": {
            "CAPTION": "Event details",
            "TITLE":          "Title",
@@ -967,7 +975,8 @@
            "EXTENDED_METADATA":    "Metadata II",
            "EVENTS":      "Events",
            "PERMISSIONS": "Access policy",
-           "THEME": "Theme"
+           "THEME": "Theme",
+           "STATISTICS": "Statistics"
          },
          "ACCESS": {
            "CAPTION": "Access policy",
@@ -1420,6 +1429,7 @@
          "CREATED":   "Created",
          "CREATOR":   "Creator",
          "HOST_NAME": "Host name",
+         "NODE_NAME": "Node name",
          "OPERATION": "Operation",
          "STARTED":   "Started",
          "STATUS":    "Status",
@@ -1445,6 +1455,7 @@
          "CAPTION":         "Servers",
          "STATUS":          "Status",
          "HOST_NAME":       "Host name",
+         "NODE_NAME":       "Node name",
          "CORES":           "Cores",
          "COMPLETED":       "Jobs completed",
          "RUNNING":         "Jobs running",
@@ -1462,6 +1473,7 @@
          "STATUS":          "Status",
          "NAME":            "Service name",
          "HOST_NAME":       "Host name",
+         "NODE_NAME":       "Node name",
          "COMPLETED":       "Jobs completed",
          "RUNNING":         "Jobs running",
          "QUEUED":          "Jobs queued",
@@ -1507,18 +1519,24 @@
      },
      "ACTIONS": {
        "SPLIT": "Split",
-       "CUT":   "Cut",
-       "REPLAY_SEGMENT": "Replay segment",
-       "REPLAY_END_OF_SEGMENT": "End of segment",
-       "REPLAY_SEGMENT_WITH_PREROLL": "Check transition",
+       "SPLIT_TOOLTIP": "Split segment at the current cursor position.",
+       "CUT":   "Hide/Show",
+       "CUT_TOOLTIP":   "Hide or show the selected part of the video.",
+       "REPLAY_SEGMENT": "Play Start of Segment",
+       "REPLAY_SEGMENT_TOOLTIP": "Play the current segment from the beginning.",
+       "REPLAY_END_OF_SEGMENT": "Play End of Segment",
+       "REPLAY_END_OF_SEGMENT_TOOLTIP": "Play a few seconds at the end of the current segment.",
+       "REPLAY_SEGMENT_WITH_PREROLL": "Play Transition",
+       "REPLAY_SEGMENT_WITH_PREROLL_TOOLTIP": "Play a few seconds containing the end of the previous and the beginning of the next segment.",
        "UNDO": "Undo",
        "REDO": "Redo",
-       "CLEAR_SEGMENTS": "Clear segments",
-       "CLEAR_SELECTED_SEGMENT": "Clear selected segment"
+       "CLEAR_SEGMENTS": "Clear All Segments",
+       "CLEAR_SEGMENTS_TOOLTIP": "Clear all segments, leaving one big segment."
      },
      "SEGMENTS": {
        "REMOVE_SEGMENT":  "Remove Segment",
-       "USE_SEGMENT":     "Use this Segment",
+       "SHOW_SEGMENT":     "Show this Segment",
+       "HIDE_SEGMENT":     "Hide this Segment",
        "START":           "Start",
        "END":             "End"
      },
@@ -1736,6 +1754,9 @@
        "HOSTNAME": {
            "LABEL": "Host name"
        },
+       "NODE_NAME": {
+            "LABEL": "Node name"
+       },
        "STATUS": {
            "LABEL": "Status",
            "PAUSED": "Paused",
@@ -1777,6 +1798,9 @@
        "HOSTNAME": {
            "LABEL": "Host name"
        },
+       "NODE_NAME": {
+            "LABEL": "Node name"
+       },
        "STATUS": {
          "LABEL": "Status",
          "MAINTENANCE": "Maintenance",
@@ -1790,6 +1814,9 @@
         },
         "HOSTNAME": {
             "LABEL": "Host name"
+        },
+        "NODE_NAME": {
+            "LABEL": "Node name"
         },
         "NAME": {
             "LABEL": "Name"
@@ -1935,6 +1962,27 @@
   "EDITABLE": {
     "MULTI": {
       "PLACEHOLDER": "To insert multiple values press Enter in between"
+    }
+  },
+  "STATISTICS": {
+    "NOT_AVAILABLE": "Statistics cannot be displayed at the moment. Please try again later.",
+    "UNSUPPORTED_TYPE": "Sorry, Opencast cannot render this type of statistical data.",
+    "FROM": "From",
+    "TO": "To",
+    "TOTAL": "Total",
+    "GRANULARITY": "Granularity",
+    "NAVIGATION": {
+      "ORGANIZATION": "Organisation"
+    },
+    "TITLE": {
+      "RANDOM": "Random Data",
+      "VIEWS_SUM": "Total Number of Views",
+      "VIEWS_AVG": "Average Number of Views"
+    },
+    "DESCRIPTION": {
+      "RANDOM": "This displays random data as a showcase. You can disable this chart by deleting the corresponding statistics provider's json definition from etc/providers",
+      "VIEWS_SUM": "This displays the total number of views per time uinit.",
+      "VIEWS_AVG": "This displays the mean number of daily views per time uinit."
     }
   }
 }
