@@ -63,10 +63,10 @@ function i18n(key) {
   return lang[key];
 }
 
-function getSeries() {
+function getParam(name) {
   const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.has('series')) {
-    return urlParams.get('series');
+  if (urlParams.has(name)) {
+    return urlParams.get(name);
   }
   return '';
 }
@@ -97,7 +97,8 @@ function loadEpisodesTab(page, q) {
 
   let limit = 15,
       offset = (page - 1) * limit,
-      series = getSeries(),
+      series = getParam('series'),
+      seriesName = getParam('series_name'),
       url = '/search/episode.json?limit=' + limit + '&offset=' + offset;
 
   currentpage = page;
@@ -106,7 +107,11 @@ function loadEpisodesTab(page, q) {
   if (series) {
     url += '&sid=' + series;
     $('#series-tab').remove();
-  } else { // if no series query is found query the episodes based on the context_label
+  } else if (seriesName) {
+    url += '%sname=' + seriesName;
+    $('#series-tab').remove();
+  } 
+  else { // if no series query is found query the episodes based on the context_label
     url += '&q=' + q;
     // no series parameter found, display the search field
     loadEpisodeSearchInput(q);
@@ -319,9 +324,10 @@ lang = matchLanguage(navigator.language);
 axios.all([loadLTIData()])
   .then(axios.spread( function (ltidata) {
     context_label = ltidata.data.context_label;
-    series = getSeries();
+    series = getParam('series');
+    series_name = getParam('series_name');
     loadEpisodesTab(1, context_label);
-    if(!series) {
+    if(!series && !series_name) {
       loadSeriesTab(1, context_label);
     }
   })
