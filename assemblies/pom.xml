@@ -120,6 +120,7 @@
               <feature>opencast-security-cas</feature>
               <feature>opencast-moodle</feature>
               <feature>opencast-sakai</feature>
+              <feature>opencast-brightspace</feature>
             </installedFeatures>
           </configuration>
         </plugin>
