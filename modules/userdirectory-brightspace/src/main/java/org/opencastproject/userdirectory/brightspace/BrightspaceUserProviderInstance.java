@@ -30,7 +30,6 @@ import org.opencastproject.security.api.Organization;
 import org.opencastproject.security.api.Role;
 import org.opencastproject.security.api.Role.Target;
 import org.opencastproject.security.api.RoleProvider;
-import org.opencastproject.security.api.SecurityConstants;
 import org.opencastproject.security.api.User;
 import org.opencastproject.security.api.UserProvider;
 import org.opencastproject.userdirectory.brightspace.client.BrightspaceClient;
@@ -43,13 +42,11 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.ExecutionError;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -74,7 +71,6 @@ public class BrightspaceUserProviderInstance implements UserProvider, RoleProvid
   private Object nullToken = new Object();
   private AtomicLong loadUserRequests;
   private AtomicLong brightspaceWebServiceRequests;
-  private final List<String> ignoredUsernames;
 
   /**
    * Constructs a Brighspace user provider with the needed settings
@@ -86,16 +82,10 @@ public class BrightspaceUserProviderInstance implements UserProvider, RoleProvid
    * @param cacheExpiration The number of minutes to cache users.
    */
   public BrightspaceUserProviderInstance(String pid, BrightspaceClient client, Organization organization, int cacheSize,
-          int cacheExpiration, String adminUserName) {
+          int cacheExpiration) {
     this.pid = pid;
     this.client = client;
     this.organization = organization;
-    this.ignoredUsernames = Arrays.asList("", SecurityConstants.GLOBAL_ANONYMOUS_USERNAME);
-
-    if (StringUtils.isNoneEmpty(adminUserName)) {
-      ignoredUsernames.add(adminUserName);
-    }
-
     logger.info("Creating new BrightspaceUserProviderInstance(pid={}, url={}, cacheSize={}, cacheExpiration={})", pid,
             client.getURL(), cacheSize, cacheExpiration);
 
@@ -243,10 +233,8 @@ public class BrightspaceUserProviderInstance implements UserProvider, RoleProvid
   private User loadUserFromBrightspace(String username) {
     if (this.cache == null) {
       throw new IllegalStateException("The Brightspace user detail service has not yet been configured");
-    } else if (ignoredUsernames.stream().anyMatch(u -> u.equals(username))) {
-      logger.debug("We don't answer for: " + username);
-      return null;
-    } else {
+    } else if (!"admin".equals(username) && !"".equals(username) && !"anonymous".equals(username)) {
+
       JaxbOrganization jaxbOrganization = JaxbOrganization.fromOrganization(organization);
 
       this.brightspaceWebServiceRequests.incrementAndGet();
@@ -278,6 +266,9 @@ public class BrightspaceUserProviderInstance implements UserProvider, RoleProvid
       } finally {
         currentThread.setContextClassLoader(originalClassloader);
       }
+    } else {
+      logger.debug("We don't answer for: " + username);
+      return null;
     }
   }
 }

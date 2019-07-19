@@ -25,7 +25,6 @@ package org.opencastproject.userdirectory.brightspace;
 import org.opencastproject.security.api.Organization;
 import org.opencastproject.security.api.OrganizationDirectoryService;
 import org.opencastproject.security.api.RoleProvider;
-import org.opencastproject.security.api.SecurityConstants;
 import org.opencastproject.security.api.UserProvider;
 import org.opencastproject.userdirectory.brightspace.client.BrightspaceClientImpl;
 import org.opencastproject.util.NotFoundException;
@@ -119,7 +118,6 @@ public class BrightspaceUserProviderFactory implements ManagedServiceFactory {
   @Override
   public void updated(String pid, Dictionary properties) throws ConfigurationException {
     logger.debug("updated BrightspaceUserProviderFactory");
-    String adminUserName = StringUtils.trimToNull(bundleContext.getProperty(SecurityConstants.GLOBAL_ADMIN_USER_PROPERTY));
     String organization = (String) properties.get(ORGANIZATION_KEY);
     String urlStr = (String) properties.get(BRIGHTSPACE_URL);
     String systemUserId = (String) properties.get(BRIGHTSPACE_USER_ID);
@@ -154,7 +152,7 @@ public class BrightspaceUserProviderFactory implements ManagedServiceFactory {
 
     BrightspaceUserProviderInstance provider = new BrightspaceUserProviderInstance(pid,
             new BrightspaceClientImpl(urlStr, applicationId, applicationKey, systemUserId, systemUserKey), org, cacheSize,
-            cacheExpiration, adminUserName);
+            cacheExpiration);
     this.providerRegistrations
             .put(pid, this.bundleContext.registerService(UserProvider.class.getName(), provider, null));
     this.providerRegistrations
