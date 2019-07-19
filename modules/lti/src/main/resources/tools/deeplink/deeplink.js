@@ -27,6 +27,7 @@
 let currentpage,
     context_label,
     series,
+    series_name,
     defaultLang = i18ndata['en-US'],
     lang = defaultLang,
     seriesRgbMax = new Array(220, 220, 220), //color range.
