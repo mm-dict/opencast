@@ -21,20 +21,26 @@
 
 package org.opencastproject.userdirectory.brightspace;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.is;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
-import org.opencastproject.security.api.DefaultOrganization;
-import org.opencastproject.security.api.Role;
+import org.opencastproject.security.api.Organization;
 import org.opencastproject.security.api.User;
+import org.opencastproject.userdirectory.brightspace.client.BrightspaceClient;
 import org.opencastproject.userdirectory.brightspace.client.BrightspaceClientException;
-import org.opencastproject.userdirectory.brightspace.client.BrightspaceClientImpl;
+import org.opencastproject.userdirectory.brightspace.client.api.Activation;
+import org.opencastproject.userdirectory.brightspace.client.api.BrightspaceUser;
 
+import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.Mockito;
 
-import java.util.Set;
+import java.util.Arrays;
+import java.util.HashSet;
 
 public class BrightspaceUserProviderInstanceTest {
 
@@ -43,34 +49,39 @@ public class BrightspaceUserProviderInstanceTest {
   private static final int CACHE_EXPIRATION = 1000;
 
   private BrightspaceUserProviderInstance brightspaceUserProviderInstance;
-  private BrightspaceClientImpl client;
-  private DefaultOrganization organization;
+  private BrightspaceClient client;
+  private Organization organization;
 
   @Before
-  public void setup() throws BrightspaceClientException {
-    client = new BrightspaceClientImpl("http://brightspace/api", "myAppId", "myAppKey", "myUserId", "myUserKey");
-    organization = new DefaultOrganization();
-
+  public void setup() {
+    client = Mockito.mock(BrightspaceClient.class);
+    organization = Mockito.mock(Organization.class);
     brightspaceUserProviderInstance = new BrightspaceUserProviderInstance(PID, client, organization, CACHE_SIZE,
-        CACHE_EXPIRATION, "admin");
+            CACHE_EXPIRATION);
   }
 
   @Test
-  @Ignore
-  public void testLoadUser() throws BrightspaceClientException {
-    //When using a superadmin user in brightspace, only return a single admin role to prevert returning
-    //all course-ids in a brightspace installation.
-    User user = brightspaceUserProviderInstance.loadUser("admin");
-    assertNotNull(user);
+  public void shouldCallBrightspaceClient() throws BrightspaceClientException {
+    when(client.findUser(anyString())).thenReturn(
+            new BrightspaceUser("org-id", "user-id", "user-firstname", null, "user-middlename", "username",
+                    "email@orgainisation.org", "org-defined-id", "unique-id", new Activation(true), "dsplay-name"));
+    when(client.getURL()).thenReturn("localhost:8080/");
+    when(client.findCourseIds(anyString())).thenReturn(new HashSet<>(Arrays.asList("course123", "course456")));
 
-    assertTrue(hasRole(user.getRoles(), "ROLE_BRIGHTSPACE_ADMIN"));
+    User user = brightspaceUserProviderInstance.loadUser("org-defined-id");
+
+    verify(client).findUser("org-defined-id");
+    verify(client).findCourseIds("user-id");
+    verify(client).getURL();
+    verifyNoMoreInteractions(client);
+
+    Assert.assertThat(user.getUsername(), is("username"));
   }
 
-  private boolean hasRole(Set<Role> roles, String roleName) {
-    for (Role role : roles)
-      if (roleName.equals(role.getName()))
-        return true;
-
-    return false;
+  public void shouldReturnProviderName() {
+    Assert.assertThat(brightspaceUserProviderInstance.getName(), is("brightspace"));
   }
+
+
+
 }
