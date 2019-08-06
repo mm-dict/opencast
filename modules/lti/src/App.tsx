@@ -8,9 +8,9 @@ import { parsedQueryString } from "./utils";
 
 function App() {
     const qsParsed = parsedQueryString();
-    if (qsParsed.subtool === "series")
+    if (qsParsed.tool === "series")
         return <div className="container"><Series /></div>;
-    if (qsParsed.subtool === "upload")
+    if (qsParsed.tool === "upload")
         return <div className="container"><Upload /></div>;
     return <div className="container"><Welcome /></div>;
 }

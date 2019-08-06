@@ -88,8 +88,7 @@ public class SearchRestService extends AbstractJobProducerEndpoint {
   /** The search service */
   protected SearchServiceImpl searchService;
 
-  /** The optional series service; has to be volatile by the OSGi spec */
-  private volatile SeriesService seriesService;
+  private SeriesService seriesService;
 
   /** The service registry */
   private ServiceRegistry serviceRegistry;
@@ -278,11 +277,7 @@ public class SearchRestService extends AbstractJobProducerEndpoint {
               .build();
     }
 
-    boolean invalidSeries = false;
     if (seriesName != null) {
-      if (seriesService == null) {
-        return Response.status(Response.Status.NOT_IMPLEMENTED).build();
-      }
       DublinCoreCatalogList result;
       try {
         result = seriesService.getSeries(new SeriesQuery().setSeriesTitle(seriesName));
@@ -290,20 +285,21 @@ public class SearchRestService extends AbstractJobProducerEndpoint {
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("error while searching for series")
                 .build();
       }
-      // Specifying a nonexistent series ID is not an error, so a nonexistent series name shouldn't be, either.
       if (result.getTotalCount() == 0) {
-        invalidSeries = true;
-      } else {
-        if (result.getTotalCount() > 1) {
-          return Response.status(Response.Status.BAD_REQUEST).entity("more than one series matches given series name").build();
-        }
-        DublinCoreCatalog seriesResult = result.getCatalogList().get(0);
-        final List<DublinCoreValue> identifiers = seriesResult.get(DublinCore.PROPERTY_IDENTIFIER);
-        if (identifiers.size() != 1) {
-          return Response.status(Response.Status.BAD_REQUEST).entity("more than one identifier in dublin core catalog for series").build();
-        }
-        seriesId = identifiers.get(0).getValue();
+        return Response.status(Response.Status.BAD_REQUEST).entity("series with given name doesn't exist")
+                .build();
       }
+      if (result.getTotalCount() > 1) {
+        return Response.status(Response.Status.BAD_REQUEST).entity("more than one series matches given series name")
+                .build();
+      }
+      DublinCoreCatalog seriesResult = result.getCatalogList().get(0);
+      final List<DublinCoreValue> identifiers = seriesResult.get(DublinCore.PROPERTY_IDENTIFIER);
+      if (identifiers.size() != 1) {
+        return Response.status(Response.Status.BAD_REQUEST).entity("more than one identifier in dublin core catalog for series")
+                .build();
+      }
+      seriesId = identifiers.get(0).getValue();
     }
 
     final boolean signURLs = BooleanUtils.toBoolean(Objects.toString(sign, "true"));

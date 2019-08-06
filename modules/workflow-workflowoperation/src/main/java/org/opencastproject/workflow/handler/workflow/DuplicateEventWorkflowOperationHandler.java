@@ -47,9 +47,6 @@ import org.opencastproject.mediapackage.selector.SimpleElementSelector;
 import org.opencastproject.metadata.dublincore.DublinCore;
 import org.opencastproject.metadata.dublincore.DublinCoreCatalog;
 import org.opencastproject.metadata.dublincore.DublinCoreUtil;
-import org.opencastproject.security.api.AccessControlList;
-import org.opencastproject.security.api.AclScope;
-import org.opencastproject.security.api.AuthorizationService;
 import org.opencastproject.security.api.UnauthorizedException;
 import org.opencastproject.series.api.SeriesException;
 import org.opencastproject.series.api.SeriesService;
@@ -151,19 +148,8 @@ public class DuplicateEventWorkflowOperationHandler extends AbstractWorkflowOper
   /** The series service */
   private SeriesService seriesService;
 
-  /** The authorization service */
-  private AuthorizationService authorizationService;
-
   /** The ingest service */
   private IngestService ingestService;
-
-  /**
-   * OSGi setter
-   * @param authorizationService
-   */
-  public void setAuthorizationService(AuthorizationService authorizationService) {
-    this.authorizationService = authorizationService;
-  }
 
   /**
    * OSGi setter
@@ -221,7 +207,8 @@ public class DuplicateEventWorkflowOperationHandler extends AbstractWorkflowOper
     final String configuredSourceTags = trimToEmpty(operation.getConfiguration(SOURCE_TAGS_PROPERTY));
     final String configuredTargetTags = trimToEmpty(operation.getConfiguration(TARGET_TAGS_PROPERTY));
     final boolean noSuffix = Boolean.parseBoolean(trimToEmpty(operation.getConfiguration(NO_SUFFIX)));
-    final String seriesId = trimToEmpty(operation.getConfiguration(SET_SERIES_ID));
+    final String seriesIdStr = operation.getConfiguration(SET_SERIES_ID);
+    final String seriesId = seriesIdStr == null || seriesIdStr.startsWith("$") ? "" : seriesIdStr;
     final int numberOfEvents = Integer.parseInt(operation.getConfiguration(NUMBER_PROPERTY));
     final String configuredPropertyNamespaces = trimToEmpty(operation.getConfiguration(PROPERTY_NAMESPACES_PROPERTY));
     int maxNumberOfEvents = MAX_NUMBER_DEFAULT;
@@ -236,12 +223,10 @@ public class DuplicateEventWorkflowOperationHandler extends AbstractWorkflowOper
     }
 
     SeriesInformation series = null;
-    AccessControlList seriesAccessControl = null;
     if (!seriesId.isEmpty()) {
       try {
         final DublinCoreCatalog dc = seriesService.getSeries(seriesId);
         series = new SeriesInformation(seriesId, dc, dc.get(DublinCore.PROPERTY_TITLE).get(0).getValue());
-        seriesAccessControl = seriesService.getSeriesAccessControl(seriesId);
       } catch (SeriesException e) {
         throw new WorkflowOperationException(e);
       } catch (NotFoundException e) {
@@ -303,10 +288,6 @@ public class DuplicateEventWorkflowOperationHandler extends AbstractWorkflowOper
         // Remove episode DC since we will add a new one
         elements.remove(e);
       }
-      if (series != null && MediaPackageElements.XACML_POLICY_SERIES.equals(e.getFlavor())) {
-        seriesAclTags.addAll(Arrays.asList(e.getTags()));
-        elements.remove(e);
-      }
     }
 
     final MediaPackageElement[] originalEpisodeDc = mediaPackage.getElementsByFlavor(MediaPackageElements.EPISODE);
@@ -333,14 +314,6 @@ public class DuplicateEventWorkflowOperationHandler extends AbstractWorkflowOper
           newMp = ingestService
                   .addCatalog(new ByteArrayInputStream(series.dc.toXmlString().getBytes(StandardCharsets.UTF_8)),
                           UUID.randomUUID().toString() + ".xml", MediaPackageElements.SERIES, newMp);
-          if (seriesAccessControl != null) {
-            newMp = authorizationService.setAcl(newMp, AclScope.Series, seriesAccessControl).getA();
-            for (MediaPackageElement seriesAclMpe : newMp.getElementsByFlavor(MediaPackageElements.XACML_POLICY_SERIES)) {
-              for (final String tag : seriesAclTags) {
-                seriesAclMpe.addTag(tag);
-              }
-            }
-          }
         }
 
         // Create and add new episode dublin core with changed title
