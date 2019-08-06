@@ -7,7 +7,11 @@
   <parent>
     <groupId>org.opencastproject</groupId>
     <artifactId>base</artifactId>
+<<<<<<< HEAD
     <version>7-SNAPSHOT</version>
+=======
+    <version>8-SNAPSHOT</version>
+>>>>>>> d63dbba23c... MH-13680: Implement delete and upload functionality for LTI
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <properties>

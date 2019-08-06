@@ -5,9 +5,8 @@ const fs = require('fs');
 
 let i18n = {},
     inpath = './src/i18n/',
-
     toolprefix = './target/classes/tools/',
-    outpaths = [toolprefix+'series/', toolprefix+'upload/', toolprefix+'deeplink/'],
+    outpaths = [toolprefix+'series/', toolprefix+'upload/'],
     files = fs.readdirSync(inpath);
 
 files.forEach(file => {

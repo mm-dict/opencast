@@ -41,13 +41,12 @@ import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.fileupload.util.Streams;
-import org.apache.commons.io.IOUtils;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -125,8 +124,6 @@ public class LtiServiceRestEndpoint {
     String seriesName = "";
     String seriesId = "";
     Map<String, String> metadata = new HashMap<>();
-    byte[] stream = null;
-    String streamName = null;
     try {
       for (FileItemIterator iter = new ServletFileUpload().getItemIterator(request); iter.hasNext();) {
         final FileItemStream item = iter.next();
@@ -152,6 +149,15 @@ public class LtiServiceRestEndpoint {
       }
       final String resultSeriesId = service.upload(new ByteArrayInputStream(stream), streamName, seriesId, seriesName, metadata);
       return Response.ok().entity(resultSeriesId).build();
+=======
+          final InputStream stream = item.openStream();
+          final String streamName = item.getName();
+          final String resultSeriesId = service.upload(stream, streamName, seriesId, seriesName, metadata);
+          return Response.ok().entity(resultSeriesId).build();
+        }
+      }
+      return Response.status(Status.BAD_REQUEST).entity("No file given").build();
+>>>>>>> d63dbba23c... MH-13680: Implement delete and upload functionality for LTI
     } catch (FileUploadException | IOException e) {
       return Response.status(Status.INTERNAL_SERVER_ERROR).entity("error while uploading").build();
     }

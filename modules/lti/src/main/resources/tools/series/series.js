@@ -93,8 +93,12 @@ function loadPage(page) {
 
   $.when(
     $.getJSON('/lti', function( data ) {
-      roles = data['roles'].split(',');
-      isInstructor = roles.includes('Instructor');
+      if (data.roles === undefined) {
+        isInstructor = false;
+      } else {
+        roles = data['roles'].split(',');
+        isInstructor = roles.includes('Instructor');
+      }
     }),
     $.getJSON(url, function( data ) {
       episodes = data['search-results'];
