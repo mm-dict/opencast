@@ -293,6 +293,10 @@
     <!-- Enable access to the LTI tools -->
     <sec:intercept-url pattern="/ltitools/**" access="ROLE_OAUTH_USER" />
 
+    <!-- Enable access to the LTI service -->
+    <sec:intercept-url pattern="/lti-service/**" access="ROLE_OAUTH_USER" />
+    <sec:intercept-url pattern="/lti-service-gui/**" access="ROLE_OAUTH_USER" />
+
     <sec:intercept-url pattern="/transcripts/watson/results*" method="GET" access="ROLE_ANONYMOUS" />
     <sec:intercept-url pattern="/transcripts/watson/results*" method="POST" access="ROLE_ANONYMOUS" />
 
@@ -360,7 +364,7 @@
 
         <!-- 2-legged OAuth is used by trusted 3rd party applications, including LTI. -->
         <!-- Uncomment the line below to support LTI or other OAuth clients.          -->
-        <!-- <ref bean="oauthProtectedResourceFilter" /> -->
+        <ref bean="oauthProtectedResourceFilter" />
       </list>
     </property>
   </bean>
