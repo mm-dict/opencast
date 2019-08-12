@@ -109,7 +109,7 @@ function loadEpisodesTab(page, q) {
     url += '&sid=' + series;
     $('#series-tab').remove();
   } else if (seriesName) {
-    url += '%sname=' + seriesName;
+    url += '&sname=' + seriesName;
     $('#series-tab').remove();
   } 
   else { // if no series query is found query the episodes based on the context_label
