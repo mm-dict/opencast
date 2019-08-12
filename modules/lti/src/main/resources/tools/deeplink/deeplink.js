@@ -68,7 +68,7 @@ function getParam(name) {
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.has(name)) {
     let param = urlParams.get(name);
-    return encodeURIComponent(param);
+    return encodeURI(param);
   }
   return '';
 }
