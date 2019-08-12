@@ -67,8 +67,7 @@ function i18n(key) {
 function getParam(name) {
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.has(name)) {
-    let param = urlParams.get(name);
-    return encodeURI(param);
+    return urlParams.get(name);
   }
   return '';
 }
