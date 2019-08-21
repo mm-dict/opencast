@@ -87,10 +87,10 @@ public class BrightspaceClientImpl implements BrightspaceClient {
     String response = httpGetRequest(request);
 
     try {
-      List<BrightspaceUser> brightspaceUserList = objectMapper
+      BrightspaceUser brightspaceUser = objectMapper
               .readValue(response, new TypeReference<BrightspaceUser>() {
               });
-      return brightspaceUserList.stream().findFirst().orElse(null);
+      return brightspaceUser;
     } catch (IOException e) {
       throw new BrightspaceClientException(UNEXPECTED_JSON_RESPONSE, e);
     }
