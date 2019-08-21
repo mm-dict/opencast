@@ -88,7 +88,7 @@ public class BrightspaceClientImpl implements BrightspaceClient {
 
     try {
       List<BrightspaceUser> brightspaceUserList = objectMapper
-              .readValue(response, new TypeReference<List<BrightspaceUser>>() {
+              .readValue(response, new TypeReference<BrightspaceUser>() {
               });
       return brightspaceUserList.stream().findFirst().orElse(null);
     } catch (IOException e) {
