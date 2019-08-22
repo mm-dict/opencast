@@ -186,8 +186,8 @@ public class LtiServlet extends HttpServlet implements ManagedService {
         builder = UriBuilder.fromUri(toolUri).scheme(null).host(null).userInfo(null).port(-1);
       }
     } catch (URISyntaxException ex) {
-      logger.warn("The 'custom_tool' parameter was invalid: '{}'. Reverting to default: '{}'",
-              Arrays.toString(req.getParameterValues(CUSTOM_TOOL)), TOOLS_URL);
+      logger.warn("The 'custom_tool' parameter was invalid: '{}'. Reverting to default: '{}'. Got syntaxerror: '{}'",
+              Arrays.toString(req.getParameterValues(CUSTOM_TOOL)), TOOLS_URL, ex);
       builder = UriBuilder.fromPath(TOOLS_URL);
     }
 
