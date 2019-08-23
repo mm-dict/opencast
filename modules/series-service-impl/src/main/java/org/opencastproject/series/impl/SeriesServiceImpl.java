@@ -340,7 +340,6 @@ public class SeriesServiceImpl extends AbstractIndexProducer implements SeriesSe
   @Override
   public DublinCoreCatalogList getSeries(SeriesQuery query) throws SeriesException {
     try {
-      logger.debug("Executing getSeries search query: {}", query);
       return index.search(query);
     } catch (SeriesServiceDatabaseException e) {
       logger.error("Failed to execute search query: {}", e.getMessage());
