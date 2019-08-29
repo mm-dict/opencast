@@ -50,7 +50,7 @@ public class HealthCheckTest {
   public void setUp() throws Exception {
     ServiceRegistry serviceRegistry = EasyMock.createMock(ServiceRegistry.class);
     hostRegistration = new HostRegistrationJpaImpl(
-            "http://localhost", "127.0.0.1", "node", 1024L, 4, 4, true, false);
+            "http://localhost", "127.0.0.1", 1024L, 4, 4, true, false);
     serviceReg1 = new ServiceRegistrationJpaImpl(
             hostRegistration, "service1", "service1", false);
     serviceReg2 = new ServiceRegistrationJpaImpl(
