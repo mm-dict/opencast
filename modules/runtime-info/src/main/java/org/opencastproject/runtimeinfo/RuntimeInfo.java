@@ -275,119 +275,52 @@ public class RuntimeInfo {
         "version" : "1"
     }
      */
-    String status = HEALTH_CHECK_STATUS_PASS; // pass, warn or fail
+
     // Conditional workaround for unit tests
     String releaseId = this.bundleContext != null ? this.bundleContext.getBundle().getVersion().toString() : "TEST";
     String hostname = serviceRegistry.getRegistryHostname();
-    Gson gson = new Gson();
-
-    List<String> notes = new ArrayList<>();
-    List<Object> serviceStates = new ArrayList<>();
+    Health health;
     Map<String, Object> checks = new HashMap<>();
 
-    try {
+     try {
       HostRegistration host = serviceRegistry.getHostRegistration(hostname);
-
-      // check most severe conditions first
-      if (!host.isOnline()) {
-        // NOTE: This is not strictly possible as a node can't test if it's offline
-        status = HEALTH_CHECK_STATUS_FAIL;
-        notes.add("node is offline");
-      } else if (!host.isActive()) {
-        status = HEALTH_CHECK_STATUS_FAIL;
-        notes.add("node is disabled");
-      } else if (host.isMaintenanceMode()) {
-        status = HEALTH_CHECK_STATUS_FAIL;
-        notes.add("node is in maintenance");
-      } else {
-        // find non normal services
-        try {
-          List<ServiceRegistration> services = serviceRegistry.getServiceRegistrationsByHost(hostname);
-          for (ServiceRegistration service : services) {
-            switch (service.getServiceState()) {
-              case WARNING: {
-                status = HEALTH_CHECK_STATUS_WARN;
-                notes.add("service(s) in WARN state");
-                serviceStates.add(getServiceStateAsJson(service));
-                break;
-              }
-              case ERROR: {
-                status = HEALTH_CHECK_STATUS_WARN;
-                notes.add("service(s) in ERROR state");
-                serviceStates.add(getServiceStateAsJson(service));
-                break;
-              }
-              default:
-                break;
-            }
-          }
-        } catch (ServiceRegistryException e) {
-          logger.error("Failed to get services: ", e);
-          status = HEALTH_CHECK_STATUS_FAIL;
-<<<<<<< HEAD
-          notes.add("internal health check error!");
-=======
-          notes.add("Internal health check error!");
->>>>>>> 170858442a... MH-13515, add health-check endpoint
-        }
-      }
+      health = checkHostHealth(host);
     } catch (ServiceRegistryException e) {
       logger.error("Failed to get host registration: ", e);
-      status = HEALTH_CHECK_STATUS_FAIL;
-<<<<<<< HEAD
-      notes.add("internal health check error!");
-=======
-      notes.add("Internal health check error!");
->>>>>>> 170858442a... MH-13515, add health-check endpoint
+      health = new Health();
+      health.setStatus(HEALTH_CHECK_STATUS_FAIL);
+      health.addNote("internal health check error!");
     }
 
-    // format response
+     // format response
     Map<String, Object> json = new HashMap<>();
-<<<<<<< HEAD
     json.put("status", health.getStatus());
-=======
-    json.put("status", status);
->>>>>>> 170858442a... MH-13515, add health-check endpoint
     json.put("version", HEALTH_CHECK_VERSION);
     json.put("releaseId", releaseId);
     json.put("serviceId", hostname);
     json.put("description", "Opencast node's health status");
 
-<<<<<<< HEAD
-    if (!health.getNotes().isEmpty()) {
+     if (!health.getNotes().isEmpty()) {
       json.put("notes", health.getNotes());
     }
 
-    if (!health.getServiceStates().isEmpty()) {
+     if (!health.getServiceStates().isEmpty()) {
       checks.put("service:states", health.getServiceStates());
-=======
-    if (!notes.isEmpty()) {
-      json.put("notes", notes);
     }
 
-    if (!serviceStates.isEmpty()) {
-      checks.put("service:states", serviceStates);
->>>>>>> 170858442a... MH-13515, add health-check endpoint
-    }
-
-    if (!checks.isEmpty()) {
+     if (!checks.isEmpty()) {
       json.put("checks", checks);
     }
 
-<<<<<<< HEAD
-    if (HEALTH_CHECK_STATUS_FAIL.equalsIgnoreCase(health.getStatus())) {
-=======
-    if (HEALTH_CHECK_STATUS_FAIL.equalsIgnoreCase(status)) {
->>>>>>> 170858442a... MH-13515, add health-check endpoint
+     if (HEALTH_CHECK_STATUS_FAIL.equalsIgnoreCase(health.getStatus())) {
       response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
     } else {
       response.setStatus(HttpServletResponse.SC_OK);
     }
 
-    return gson.toJson(json);
+     return gson.toJson(json);
   }
 
-<<<<<<< HEAD
   private class Health {
 
     private String status;
@@ -479,8 +412,6 @@ public class RuntimeInfo {
     return health;
   }
 
-=======
->>>>>>> 170858442a... MH-13515, add health-check endpoint
   protected Map<String, Object> getServiceStateAsJson(ServiceRegistration service) {
     Map<String, Object> json = new HashMap<>();
     json.put("componentId", service.getServiceType());
