@@ -40,7 +40,7 @@ import org.tsugi.basiclti.BasicLTIUtil;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLDecoder;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -168,8 +168,10 @@ public class LtiServlet extends HttpServlet implements ManagedService {
         toolUri = new URI(URLDecoder.decode(StringUtils.trimToEmpty(
                 req.getParameter(CUSTOM_DL_TOOL)), "UTF-8"));
       } else {
-        toolUri = new URI(URLDecoder.decode(StringUtils.trimToEmpty(
-                req.getParameter(CUSTOM_TOOL)), "UTF-8"));
+        String toolUriStr = req.getParameter(LTI_CUSTOM_TOOL);
+        toolUriStr = toolUriStr.replace(" ", "%20");
+        toolUriStr = toolUriStr.replaceAll("/ltitools/(?<tool>[^/]*)/index.html\\??", "/ltitools/index.html?tool=${tool}1&");
+        URI toolUri = new URI(StringUtils.trimToEmpty(toolUriStr));
       }
 
       if (toolUri.getPath().isEmpty())
@@ -297,7 +299,8 @@ public class LtiServlet extends HttpServlet implements ManagedService {
     } else {
       Map<String, String> ltiAttributes = (Map<String, String>) session.getAttribute(SESSION_ATTRIBUTE_KEY);
       if (ltiAttributes == null) {
-        ltiAttributes = new HashMap<String, String>();
+        ltiAttributes = new HashMap<>();
+        ltiAttributes.put("roles", "Instructor");
       }
       resp.setContentType("application/json");
       Gson gson = new GsonBuilder().create();

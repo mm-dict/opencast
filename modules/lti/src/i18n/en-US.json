@@ -1,6 +1,6 @@
 {
-  "RESULTS": "Results {{{range.begin}}}-{{{range.end}}} of {{{total}}}",
-  "CREATOR": "by {{{creator}}}",
+  "RESULTS": "Results {{range.begin}}-{{range.end}} of {{total}}",
+  "CREATOR": "by {{creator}}",
   "CURRENT_JOBS": "Today's uploads",
   "NEW_UPLOAD": "New Video",
   "TITLE": "Title",
@@ -9,6 +9,11 @@
   "PRESENTER": "Presenter",
   "PRESENTER_DESCRIPTION": "Presenter movie track",
   "UPLOAD": "Upload",
+  "UPLOAD_TITLE": "Opencast: Upload",
+  "UPLOADING": "Uploading",
+  "UPLOAD_SUCCESS": "Upload succeeded",
+  "UPLOAD_FAILURE": "Upload failed",
+  "UPLOAD_FAILURE_DESCRIPTION": "Please try again later…",
   "EVENTS.EVENTS.STATUS.PENDING": "Pending",
   "EVENTS.EVENTS.STATUS.PROCESSING": "Running",
   "EVENTS.EVENTS.STATUS.PAUSED": "Paused",
@@ -18,5 +23,7 @@
   "DELETION_SUCCESS": "Deletion queued successfully",
   "DELETION_SUCCESS_DESCRIPTION": "The event will disappear from the list in a short while…",
   "DELETION_FAILURE": "Deletion failed",
-  "DELETION_FAILURE_DESCRIPTION": "Please try again later…"
+  "DELETION_FAILURE_DESCRIPTION": "Please try again later…",
+  "SERIES_TITLE": "Opencast: Series",
+  "GENERIC_ERROR": "An error occurred: {{message}}"
 }
