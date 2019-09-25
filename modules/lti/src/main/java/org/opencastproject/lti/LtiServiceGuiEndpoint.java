@@ -39,12 +39,10 @@ import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.fileupload.util.Streams;
-import org.apache.commons.io.IOUtils;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -123,8 +121,6 @@ public class LtiServiceGuiEndpoint {
     String seriesName = "";
     String seriesId = "";
     Map<String, String> metadata = new HashMap<>();
-    byte[] stream = null;
-    String streamName = null;
     try {
       for (FileItemIterator iter = new ServletFileUpload().getItemIterator(request); iter.hasNext();) {
         final FileItemStream item = iter.next();
@@ -141,16 +137,13 @@ public class LtiServiceGuiEndpoint {
           final String fieldValue = Streams.asString(item.openStream());
           metadata.put(fieldName, fieldValue);
         } else {
-          stream = IOUtils.toByteArray(item.openStream());
-          streamName = item.getName();
+          final String streamName = item.getName();
+          final String resultSeriesId = service.upload(item.openStream(), streamName, seriesId, seriesName, metadata);
+          final String location = "/ltitools/upload/index.html?series=" + resultSeriesId;
+          return Response.ok().entity("Upload complete, <a href=\"" + location + "\">go back</a>").build();
         }
       }
-      if (stream == null) {
-        return Response.status(Status.BAD_REQUEST).entity("No file given").build();
-      }
-      final String resultSeriesId = service.upload(new ByteArrayInputStream(stream), streamName, seriesId, seriesName, metadata);
-      final String location = "/ltitools/upload/index.html?series=" + resultSeriesId;
-      return Response.ok().entity("Upload complete, <a href=\"" + location + "\">go back</a>").build();
+      return Response.status(Status.BAD_REQUEST).entity("No file given").build();
     } catch (FileUploadException | IOException e) {
       return Response.status(Status.INTERNAL_SERVER_ERROR).entity("error while uploading").build();
     }
