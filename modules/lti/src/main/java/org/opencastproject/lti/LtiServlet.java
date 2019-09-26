@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -205,7 +204,7 @@ public class LtiServlet extends HttpServlet {
     try {
       String toolUriStr = req.getParameter(LTI_CUSTOM_TOOL);
       toolUriStr = toolUriStr.replace(" ", "%20");
-      toolUriStr = toolUriStr.replaceAll("/ltitools/(?<tool>[^/]*)/index.html\\??", "/ltitools/index.html?tool=${tool}1&");
+      toolUriStr = toolUriStr.replaceAll("/?ltitools/(?<tool>[^/]*)/index.html\\??", "/ltitools/index.html?tool=${tool}&");
       URI toolUri = new URI(StringUtils.trimToEmpty(toolUriStr));
 
       if (toolUri.getPath().isEmpty())
