@@ -6,9 +6,16 @@ import { Location } from "history";
 import { parse as parseQuery } from "query-string";
 import { Series } from "./components/Series";
 import { Upload } from "./components/Upload";
+import { Welcome } from "./components/Welcome";
 import "./i18n";
 
 function transformLocation(inputLocation: Location): Location {
+    if (inputLocation.search === "") {
+        return {
+            ...inputLocation,
+            pathname: "/",
+        };
+    }
     const qsParsed = parseQuery(inputLocation.search);
     if (qsParsed.tool === undefined) {
         return inputLocation;
@@ -31,12 +38,14 @@ function transformLocation(inputLocation: Location): Location {
     };
 }
 
+
 function App() {
     return (
         <Router>
             <Route render={(routeProps: RouteComponentProps<any>) => (
                 <div className="container">
                     <Switch location={transformLocation(routeProps.location)}>
+                        <Route exact path="/" component={Welcome} />
                         <Route exact path="/series" component={Series} />
                         <Route exact path="/upload" component={Upload} />
                     </Switch>
