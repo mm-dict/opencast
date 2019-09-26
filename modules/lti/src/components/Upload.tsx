@@ -1,9 +1,8 @@
 import Helmet from "react-helmet";
 import React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
-import { RouteComponentProps } from "react-router";
-import { parse as parseQuery } from "query-string";
 import { getJobs, JobResult, uploadFile } from "../OpencastRest";
+import { parsedQueryString } from "../utils";
 
 interface UploadState {
     readonly jobs: JobResult[] | string;
@@ -13,7 +12,7 @@ interface UploadState {
     readonly jobsTimerId?: ReturnType<typeof setTimeout>;
 }
 
-interface UploadProps extends RouteComponentProps<any>, WithTranslation {
+interface UploadProps extends WithTranslation {
 }
 
 
@@ -28,7 +27,7 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
     }
 
     retrieveJobs() {
-        const qs = parseQuery(this.props.location.search);
+        const qs = parsedQueryString();
         getJobs(
             typeof qs.series === "string" ? qs.series : undefined,
             typeof qs.seriesName === "string" ? qs.seriesName : undefined
@@ -68,7 +67,7 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
     onSubmit(_: any) {
         if (this.state.selectedFile === undefined)
             return;
-        const qs = parseQuery(this.props.location.search);
+        const qs = parsedQueryString();
         this.setState({
             ...this.state,
             uploadState: "pending"

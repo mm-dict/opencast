@@ -1,6 +1,4 @@
 import React from "react";
-import { RouteComponentProps } from "react-router";
-import { parse as parseQuery } from "query-string";
 import { SearchEpisodeResults, searchEpisode, getLti, SearchEpisodeResult, deleteEpisode } from "../OpencastRest";
 import { Loading } from "./Loading";
 import { withTranslation, WithTranslation } from "react-i18next";
@@ -11,6 +9,7 @@ import Helmet from "react-helmet";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import i18next from "i18next";
+import { parsedQueryString } from "../utils";
 
 interface SeriesState {
     readonly searchResults?: SearchEpisodeResults;
@@ -20,7 +19,7 @@ interface SeriesState {
     readonly deleteSuccess?: boolean;
 }
 
-interface SeriesProps extends RouteComponentProps<any>, WithTranslation {
+interface SeriesProps extends WithTranslation {
 }
 
 interface EpisodeProps {
@@ -74,7 +73,7 @@ class TranslatedSeries extends React.Component<SeriesProps, SeriesState> {
     }
 
     loadCurrentPage() {
-        const qs = parseQuery(this.props.location.search);
+        const qs = parsedQueryString();
         searchEpisode(
             15,
             this.state.currentPage - 1,
@@ -112,7 +111,7 @@ class TranslatedSeries extends React.Component<SeriesProps, SeriesState> {
     }
 
     hasDeletion() {
-        return parseQuery(this.props.location.search).deletion === "true";
+        return parsedQueryString().deletion === "true";
     }
 
     componentDidMount() {
