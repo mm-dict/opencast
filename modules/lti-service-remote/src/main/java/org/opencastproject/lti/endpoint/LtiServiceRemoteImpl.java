@@ -20,7 +20,7 @@
  */
 package org.opencastproject.lti.endpoint;
 
-import org.opencastproject.lti.service.api.Job;
+import org.opencastproject.lti.service.api.LtiJob;
 import org.opencastproject.lti.service.api.LtiService;
 import org.opencastproject.serviceregistry.api.RemoteBase;
 
@@ -52,7 +52,7 @@ public class LtiServiceRemoteImpl extends RemoteBase implements LtiService {
   }
 
   @Override
-  public List<Job> listJobs(String seriesName, String seriesId) {
+  public List<LtiJob> listJobs(String seriesName, String seriesId) {
     HttpResponse response = null;
     try {
       HttpGet get = new HttpGet("/jobs?series_name" + seriesName + "&series=" + seriesId);
@@ -62,10 +62,10 @@ public class LtiServiceRemoteImpl extends RemoteBase implements LtiService {
       }
       final JSONArray jsonResult = (JSONArray)new JSONParser()
               .parse(IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8));
-      final List<Job> result = new ArrayList<>(jsonResult.size());
+      final List<LtiJob> result = new ArrayList<>(jsonResult.size());
       for (Object job : jsonResult) {
         Map<String, String> jobValue = (Map<String, String>) job;
-        result.add(new Job(jobValue.get("title"), jobValue.get("status")));
+        result.add(new LtiJob(jobValue.get("title"), jobValue.get("status")));
       }
       return result;
     } catch (IOException e) {

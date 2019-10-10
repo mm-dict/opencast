@@ -23,11 +23,6 @@
     <!-- opencast -->
     <dependency>
       <groupId>org.opencastproject</groupId>
-      <artifactId>opencast-capture-admin-service-api</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.opencastproject</groupId>
       <artifactId>opencast-lti-service-api</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -62,26 +57,22 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.opencastproject</groupId>
-      <artifactId>opencast-userdirectory</artifactId>
-      <version>${project.version}</version>
-      <scope>provided</scope>
+      <groupId>commons-fileupload</groupId>
+      <artifactId>commons-fileupload</artifactId>
     </dependency>
     <dependency>
       <groupId>org.opencastproject</groupId>
-      <artifactId>opencast-scheduler-api</artifactId>
+      <artifactId>opencast-workflow-service-api</artifactId>
       <version>${project.version}</version>
-      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.entwinemedia.common</groupId>
+      <artifactId>functional</artifactId>
     </dependency>
     <dependency>
       <!-- we use this for the transitive dependency to elasticsearch -->
       <groupId>org.opencastproject</groupId>
       <artifactId>opencast-search-api</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.opencastproject</groupId>
-      <artifactId>opencast-search</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -91,22 +82,6 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-collections4</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpcore-osgi</artifactId>
     </dependency>
     <dependency>
       <groupId>javax.ws.rs</groupId>
@@ -121,12 +96,19 @@
       <artifactId>javax.servlet-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.xml.bind</groupId>
-      <artifactId>jaxb-api</artifactId>
+      <groupId>org.opencastproject</groupId>
+      <artifactId>opencast-search</artifactId>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
   <build>
     <plugins>
+<!-- Gives weird error in opencast-search
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+      </plugin>
+-->
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
@@ -147,8 +129,6 @@
               javax.servlet.http,
               org.apache.commons.lang3,
               org.osgi.service.component,
-              org.json.simple,
-              org.json.simple.parser,
               org.osgi.framework,
               org.slf4j,
               javax.ws.rs;version=2.0.1,

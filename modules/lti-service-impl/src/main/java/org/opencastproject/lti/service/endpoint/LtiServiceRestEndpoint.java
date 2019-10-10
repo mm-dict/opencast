@@ -20,14 +20,9 @@
  */
 package org.opencastproject.lti.service.endpoint;
 
-import static org.opencastproject.util.RestUtil.getEndpointUrl;
 import static org.opencastproject.util.doc.rest.RestParameter.Type.STRING;
 
 import org.opencastproject.lti.service.api.LtiService;
-import org.opencastproject.rest.RestConstants;
-import org.opencastproject.systems.OpencastConstants;
-import org.opencastproject.util.UrlSupport;
-import org.opencastproject.util.data.Tuple;
 import org.opencastproject.util.doc.rest.RestParameter;
 import org.opencastproject.util.doc.rest.RestParameter.Type;
 import org.opencastproject.util.doc.rest.RestQuery;
@@ -41,7 +36,6 @@ import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.fileupload.util.Streams;
-import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,6 +55,7 @@ import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -73,9 +68,6 @@ public class LtiServiceRestEndpoint {
   /** The logging facility */
   private static final Logger logger = LoggerFactory.getLogger(LtiServiceRestEndpoint.class);
 
-  /** Base URL of this endpoint */
-  private String endpointBaseUrl;
-
   /* OSGi service references */
   private LtiService service;
 
@@ -84,18 +76,9 @@ public class LtiServiceRestEndpoint {
     this.service = service;
   }
 
-  /** OSGi activation method */
-  void activate(ComponentContext cc) {
-    logger.info("Activating LTI service Endpoint");
-
-    final Tuple<String, String> endpointUrl = getEndpointUrl(cc, OpencastConstants.EXTERNAL_API_URL_ORG_PROPERTY,
-            RestConstants.SERVICE_PATH_PROPERTY);
-    endpointBaseUrl = UrlSupport.concat(endpointUrl.getA(), endpointUrl.getB());
-    logger.debug("Configured service endpoint is {}", endpointBaseUrl);
-  }
-
   @GET
   @Path("/jobs")
+  @Produces(MediaType.APPLICATION_JSON)
   public Response listJobs(@QueryParam("series_name") final String seriesName, @QueryParam("series") String seriesId) {
     final List<Map<String, String>> results = service.listJobs(seriesName, seriesId).stream().map(e -> {
       Map<String, String> eventMap = new HashMap<>();
@@ -110,7 +93,6 @@ public class LtiServiceRestEndpoint {
   @Path("/")
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @RestQuery(name = "createevent", description = "Creates an event by sending metadata, access control list, processing instructions and files in a multipart request.", returnDescription = "", restParameters = {
-          @RestParameter(name = "acl", isRequired = false, description = "A collection of roles with their possible action", type = STRING),
           @RestParameter(name = "metadata", description = "Event metadata as Form param", isRequired = false, type = STRING),
           @RestParameter(name = "scheduling", description = "Scheduling information as Form param", isRequired = false, type = STRING),
           @RestParameter(name = "presenter", description = "Presenter movie track", isRequired = false, type = Type.FILE),
