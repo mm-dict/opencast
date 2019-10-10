@@ -21,10 +21,8 @@
 package org.opencastproject.lti.service.impl;
 
 import org.opencastproject.index.service.api.IndexService;
-import org.opencastproject.index.service.catalog.adapter.MetadataList;
 import org.opencastproject.index.service.impl.index.AbstractSearchIndex;
 import org.opencastproject.index.service.impl.index.event.Event;
-import org.opencastproject.index.service.impl.index.event.EventHttpServletRequest;
 import org.opencastproject.index.service.impl.index.event.EventSearchQuery;
 import org.opencastproject.ingest.api.IngestService;
 import org.opencastproject.lti.service.api.Job;
@@ -42,9 +40,6 @@ import org.opencastproject.metadata.dublincore.DublinCoreValue;
 import org.opencastproject.metadata.dublincore.EventCatalogUIAdapter;
 import org.opencastproject.metadata.dublincore.MetadataCollection;
 import org.opencastproject.metadata.dublincore.MetadataField;
-import org.opencastproject.scheduler.api.SchedulerException;
-import org.opencastproject.security.api.AccessControlEntry;
-import org.opencastproject.security.api.AccessControlList;
 import org.opencastproject.security.api.SecurityService;
 import org.opencastproject.security.api.UnauthorizedException;
 import org.opencastproject.security.api.User;
@@ -56,20 +51,18 @@ import org.opencastproject.util.NotFoundException;
 import org.opencastproject.workflow.api.WorkflowDatabaseException;
 
 import com.entwinemedia.fn.data.Opt;
+import com.google.gson.Gson;
 
 import org.apache.commons.lang3.StringUtils;
-import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.osgi.service.cm.ManagedService;
 
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
@@ -84,6 +77,7 @@ public class LtiServiceImpl implements LtiService, ManagedService {
   private String workflow;
   private String workflowConfiguration;
   private String retractWorkflowId;
+  private static final Gson gson = new Gson();
   private final List<EventCatalogUIAdapter> catalogUIAdapters = new ArrayList<>();
 
   /** OSGi DI */
@@ -161,16 +155,13 @@ public class LtiServiceImpl implements LtiService, ManagedService {
       throw new RuntimeException("no workflow configured, cannot upload");
     }
     try {
-      final EventHttpServletRequest r = new EventHttpServletRequest();
-      final MediaPackage mp = ingestService.createMediaPackage();
+      MediaPackage mp = ingestService.createMediaPackage();
       if (mp == null) {
         throw new RuntimeException("Unable to create media package for event");
       }
-      r.setMediaPackage(mp);
-      final MetadataList metadataList = new MetadataList();
       final MediaPackageElementFlavor flavor = new MediaPackageElementFlavor("dublincore", "episode");
-      final EventCatalogUIAdapter adapter = catalogUIAdapters.stream().filter(e -> e.getFlavor().equals(flavor)).findAny()
-              .orElse(null);
+      final EventCatalogUIAdapter adapter = catalogUIAdapters.stream().filter(e -> e.getFlavor().equals(flavor))
+              .findAny().orElse(null);
       if (adapter == null) {
         throw new RuntimeException("no adapter found");
       }
@@ -178,36 +169,23 @@ public class LtiServiceImpl implements LtiService, ManagedService {
       if (StringUtils.trimToNull(seriesId) == null) {
         seriesId = resolveSeriesName(seriesName);
       }
-      r.setMediaPackage(ingestService.addTrack(file, sourceName, MediaPackageElements.PRESENTER_SOURCE, mp));
-      metadata.put("isPartOf", seriesId);
-      final SimpleDateFormat sdf = MetadataField
-              .getSimpleDateFormatter(collection.getOutputFields().get("startDate").getPattern().get());
-      metadata.put("startDate", sdf.format(new Date()));
+      mp = ingestService.addTrack(file, sourceName, MediaPackageElements.PRESENTER_SOURCE, mp);
       metadata.put("duration", "6000");
+      metadata.put("isPartOf", seriesId);
       metadata.forEach((k, v) -> replaceField(collection, k, v));
 
+      adapter.storeFields(mp, collection);
+/*
       r.setAcl(new AccessControlList(new AccessControlEntry("ROLE_ADMIN", "write", true),
               new AccessControlEntry("ROLE_ADMIN", "read", true),
               new AccessControlEntry("ROLE_OAUTH_USER", "write", true),
               new AccessControlEntry("ROLE_OAUTH_USER", "read", true)));
-      r.setProcessing(
-              (JSONObject) new JSONParser().parse(
-                      String.format("{\"workflow\":\"%s\",\"configuration\":%s}", workflow, workflowConfiguration)));
-      r.setMetadataList(metadataList);
-      metadataList.add(adapter, collection);
+*/
 
-      JSONObject source = new JSONObject();
-      source.put("type", "UPLOAD");
-      r.setSource(source);
-      indexService.createEvent(r);
+      final Map<String, String> configuration = gson.fromJson(workflowConfiguration, Map.class);
+      configuration.put("workflowDefinitionId", workflow);
+      ingestService.ingest(mp, workflow, configuration);
       return seriesId;
-    } catch (SchedulerException e) {
-      if (e.getCause() != null && e.getCause() instanceof NotFoundException
-              || e.getCause() instanceof IllegalArgumentException) {
-        throw new RuntimeException("unable to create event", e.getCause());
-      } else {
-        throw new RuntimeException("unable to create event", e);
-      }
     } catch (Exception e) {
       throw new RuntimeException("unable to create event", e);
     }
