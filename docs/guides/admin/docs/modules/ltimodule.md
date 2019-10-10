@@ -118,7 +118,7 @@ custom parameters to be defined globally.
 - To show all videos for a single series, use `tool=ltitools/series/index.html?series=SERIESID`. You can also pass
   `series_name` to select a series by name (the name has to be unique). If you want the ability to delete events
   from the series (which will only be available for instructors), add `&deletion=true` to the URL.
-* To show an upload form, use `tool=ltitools/upload/index.html?series=SERIESID`. You can also pass
+- To show an upload form, use `tool=ltitools/upload/index.html?series=SERIESID`. You can also pass
   `series_name` to select a series by name (the name has to be unique).
 - To show a single video, use `tool=/play/MEDIAPACKAGEID`
 - To show a debug page before proceeding to the tool, append the parameter `test=true`
