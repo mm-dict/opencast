@@ -40,6 +40,8 @@ import org.tsugi.basiclti.BasicLTIUtil;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashMap;

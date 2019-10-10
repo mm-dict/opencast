@@ -20,11 +20,14 @@
  */
 package org.opencastproject.lti.service.api;
 
-public final class Job {
+/**
+ * Represents a job for the LTI user interface
+ */
+public final class LtiJob {
   private final String title;
   private final String status;
 
-  public Job(String title, String status) {
+  public LtiJob(String title, String status) {
     this.title = title;
     this.status = status;
   }

@@ -21,11 +21,6 @@
 package org.opencastproject.lti;
 
 import org.opencastproject.lti.service.api.LtiService;
-import org.opencastproject.rest.RestConstants;
-import org.opencastproject.systems.OpencastConstants;
-import org.opencastproject.util.RestUtil;
-import org.opencastproject.util.UrlSupport;
-import org.opencastproject.util.data.Tuple;
 import org.opencastproject.util.doc.rest.RestParameter;
 import org.opencastproject.util.doc.rest.RestParameter.Type;
 import org.opencastproject.util.doc.rest.RestQuery;
@@ -39,7 +34,6 @@ import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.fileupload.util.Streams;
-import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,25 +64,12 @@ public class LtiServiceGuiEndpoint {
   /** The logging facility */
   private static final Logger logger = LoggerFactory.getLogger(LtiServiceGuiEndpoint.class);
 
-  /** Base URL of this endpoint */
-  private String endpointBaseUrl;
-
   /* OSGi service references */
   private LtiService service;
 
   /** OSGi DI */
   public void setService(LtiService service) {
     this.service = service;
-  }
-
-  /** OSGi activation method */
-  void activate(ComponentContext cc) {
-    logger.info("Activating LTI service Endpoint");
-
-    final Tuple<String, String> endpointUrl = RestUtil.getEndpointUrl(cc, OpencastConstants.EXTERNAL_API_URL_ORG_PROPERTY,
-            RestConstants.SERVICE_PATH_PROPERTY);
-    endpointBaseUrl = UrlSupport.concat(endpointUrl.getA(), endpointUrl.getB());
-    logger.debug("Configured service endpoint is {}", endpointBaseUrl);
   }
 
   @GET

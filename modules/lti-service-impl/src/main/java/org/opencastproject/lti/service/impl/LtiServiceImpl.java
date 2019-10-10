@@ -25,7 +25,7 @@ import org.opencastproject.index.service.impl.index.AbstractSearchIndex;
 import org.opencastproject.index.service.impl.index.event.Event;
 import org.opencastproject.index.service.impl.index.event.EventSearchQuery;
 import org.opencastproject.ingest.api.IngestService;
-import org.opencastproject.lti.service.api.Job;
+import org.opencastproject.lti.service.api.LtiJob;
 import org.opencastproject.lti.service.api.LtiService;
 import org.opencastproject.matterhorn.search.SearchIndexException;
 import org.opencastproject.matterhorn.search.SearchResult;
@@ -52,10 +52,9 @@ import org.opencastproject.workflow.api.WorkflowDatabaseException;
 
 import com.entwinemedia.fn.data.Opt;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.osgi.service.cm.ManagedService;
 
 import java.io.InputStream;
@@ -130,7 +129,7 @@ public class LtiServiceImpl implements LtiService, ManagedService {
   }
 
   @Override
-  public List<Job> listJobs(String seriesName, String seriesId) {
+  public List<LtiJob> listJobs(String seriesName, String seriesId) {
     final User user = securityService.getUser();
     final EventSearchQuery query = new EventSearchQuery(securityService.getOrganization().getId(), user)
             .withCreator(user.getName()).withSeriesId(StringUtils.trimToNull(seriesId))
@@ -141,7 +140,7 @@ public class LtiServiceImpl implements LtiService, ManagedService {
       return Arrays.stream(results.getItems())
               .map(SearchResultItem::getSource)
               .filter(e -> ZonedDateTime.parse(e.getCreated()).compareTo(startOfDay) > 0)
-              .map(e -> new Job(e.getTitle(), e.getEventStatus()))
+              .map(e -> new LtiJob(e.getTitle(), e.getEventStatus()))
               .collect(Collectors.toList());
     } catch (SearchIndexException e) {
       throw new RuntimeException("search index exception", e);
@@ -247,7 +246,7 @@ public class LtiServiceImpl implements LtiService, ManagedService {
       throw new IllegalArgumentException("Configuration is missing 'workflow-configuration' parameter");
     }
     try {
-      new JSONParser().parse(workflowConfigurationStr);
+      gson.fromJson(workflowConfigurationStr, Map.class);
       workflowConfiguration = workflowConfigurationStr;
       workflow = workflowStr;
       final String retractWorkflowId = (String) properties.get("retract-workflow-id");
@@ -256,7 +255,7 @@ public class LtiServiceImpl implements LtiService, ManagedService {
       } else {
         this.retractWorkflowId = retractWorkflowId;
       }
-    } catch (ParseException e) {
+    } catch (JsonSyntaxException e) {
       throw new IllegalArgumentException("Invalid JSON specified for workflow configuration");
     }
   }
