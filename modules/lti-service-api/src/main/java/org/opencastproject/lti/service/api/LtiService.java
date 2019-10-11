@@ -31,7 +31,6 @@ public interface LtiService {
    * List currently running jobs for the series
    * @param seriesId ID of the series (optional only if the name is specified instead)
    * @param seriesName Name of the series (optional)
-   * @param seriesId ID of the series (optional only if the name is specified instead)
    * @return A list of jobs
    */
   List<LtiJob> listJobs(String seriesName, String seriesId);
@@ -43,9 +42,10 @@ public interface LtiService {
    * @param seriesId ID of the series (optional only if the name is specified instead)
    * @param seriesName Name of the series (optional)
    * @param metadata Metadata for the event
-   * @return The resolved series ID of the event
    */
-  String upload(InputStream file, String sourceName, String seriesId, String seriesName, Map<String, String> metadata);
+  void upload(InputStream file, String sourceName, String seriesId, String seriesName, Map<String, String> metadata);
+
+  LtiEditMetadata editMetadata();
 
   /**
    * Deletes the specified event

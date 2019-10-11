@@ -1,6 +1,10 @@
 {
   "RESULTS": "Results {{range.begin}}-{{range.end}} of {{total}}",
   "CREATOR": "by {{creator}}",
+  "LICENSE": "License",
+  "SELECT_LICENSE": "Select a license",
+  "LANGUAGE": "Language",
+  "SELECT_LANGUAGE": "Select a language",
   "CURRENT_JOBS": "Today's uploads",
   "NEW_UPLOAD": "New Video",
   "TITLE": "Title",

@@ -1,5 +1,20 @@
 import axios from "axios";
 
+export interface Language {
+    readonly shortCode: string;
+    readonly translationCode: string;
+}
+
+export interface License {
+    readonly key: string;
+    readonly label: string;
+}
+
+export interface EditMetadata {
+    readonly languages: Language[];
+    readonly licenses: License[];
+}
+
 export interface Attachment {
     readonly type: string;
     readonly url: string;
@@ -74,17 +89,32 @@ export async function getLti(): Promise<LtiData> {
     }
 }
 
+export async function getEditMetadata(): Promise<EditMetadata> {
+    const response = await axios.get(hostAndPort() + "/lti-service-gui/editMetadata");
+    return response.data;
+}
+
 export async function getJobs(seriesId?: string, seriesName?: string): Promise<JobResult[]> {
     const urlSuffix = seriesId ? "series=" + seriesId : seriesName ? "series_name=" + seriesName : "";
     const response = await axios.get(hostAndPort() + "/lti-service-gui/jobs?" + urlSuffix);
-    return response.data.map((response: any) => ({ title: response.title, status: response.status }))
+    return response.data.map((response: any) => ({ title: response.title, status: response.status }));
 }
 
-export async function uploadFile(file: Blob, title: string, seriesId?: string, seriesName?: string): Promise<{}> {
+export async function uploadFile(
+    file: Blob,
+    title: string,
+    license?: string,
+    language?: string,
+    seriesId?: string,
+    seriesName?: string): Promise<{}> {
     const data = new FormData();
-    data.append("hidden_series_name", seriesName === undefined ? "" : seriesName);
+    data.append("seriesName", seriesName === undefined ? "" : seriesName);
     data.append("isPartOf", seriesId === undefined ? "" : seriesId);
     data.append("title", title);
+    if (license !== undefined)
+        data.append("license", license);
+    if (language !== undefined)
+        data.append("language", language);
     data.append("presenter", file);
     return axios.post(hostAndPort() + "/lti-service-gui", data);
 }

@@ -36,8 +36,6 @@ import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.fileupload.util.Streams;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -65,9 +63,6 @@ import javax.ws.rs.core.Response.Status;
 @Path("/")
 @RestService(name = "ltirestservice", title = "LTI Service", notes = {}, abstractText = "Provides operations to LTI clients")
 public class LtiServiceRestEndpoint {
-  /** The logging facility */
-  private static final Logger logger = LoggerFactory.getLogger(LtiServiceRestEndpoint.class);
-
   /* OSGi service references */
   private LtiService service;
 
@@ -110,7 +105,7 @@ public class LtiServiceRestEndpoint {
       for (FileItemIterator iter = new ServletFileUpload().getItemIterator(request); iter.hasNext();) {
         final FileItemStream item = iter.next();
         final String fieldName = item.getFieldName();
-        if ("hidden_series_name".equals(fieldName)) {
+        if ("seriesName".equals(fieldName)) {
           seriesName = Streams.asString(item.openStream());
         } else if ("isPartOf".equals(fieldName)) {
           final String fieldValue = Streams.asString(item.openStream());
@@ -124,8 +119,8 @@ public class LtiServiceRestEndpoint {
         } else {
           final InputStream stream = item.openStream();
           final String streamName = item.getName();
-          final String resultSeriesId = service.upload(stream, streamName, seriesId, seriesName, metadata);
-          return Response.ok().entity(resultSeriesId).build();
+          service.upload(stream, streamName, seriesId, seriesName, metadata);
+          return Response.ok().build();
         }
       }
       return Response.status(Status.BAD_REQUEST).entity("No file given").build();
