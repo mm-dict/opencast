@@ -20,32 +20,32 @@
  */
 package org.opencastproject.lti.endpoint;
 
+import org.opencastproject.lti.service.api.LtiEditMetadata;
 import org.opencastproject.lti.service.api.LtiJob;
 import org.opencastproject.lti.service.api.LtiService;
 import org.opencastproject.serviceregistry.api.RemoteBase;
 
-import org.apache.commons.io.IOUtils;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.InputStreamBody;
-import org.apache.http.util.EntityUtils;
-import org.json.simple.JSONArray;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.core.Response;
 
 public class LtiServiceRemoteImpl extends RemoteBase implements LtiService {
+  private static final Gson gson = new Gson();
 
   public LtiServiceRemoteImpl() {
     super(LtiService.JOB_TYPE);
@@ -60,44 +60,48 @@ public class LtiServiceRemoteImpl extends RemoteBase implements LtiService {
       if (response == null) {
         throw new RuntimeException("No response from service");
       }
-      final JSONArray jsonResult = (JSONArray)new JSONParser()
-              .parse(IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8));
-      final List<LtiJob> result = new ArrayList<>(jsonResult.size());
-      for (Object job : jsonResult) {
-        Map<String, String> jobValue = (Map<String, String>) job;
-        result.add(new LtiJob(jobValue.get("title"), jobValue.get("status")));
-      }
-      return result;
+      return gson.fromJson(
+              new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8),
+              new TypeToken<List<LtiJob>>(){}.getType());
     } catch (IOException e) {
       throw new RuntimeException("failed retrieving jobs", e);
-    } catch (ParseException e) {
-      throw new RuntimeException("failed parsing job result", e);
     } finally {
       closeConnection(response);
     }
   }
 
   @Override
-  public String upload(InputStream file, String sourceName, String seriesId, String seriesName,
+  public void upload(InputStream file, String captions, String sourceName, String seriesId, String seriesName,
           Map<String, String> metadata) {
     MultipartEntityBuilder entity = MultipartEntityBuilder.create();
     entity.addTextBody("isPartOf", seriesId);
     entity.addTextBody("seriesName", seriesName);
+    entity.addTextBody("captions", captions);
     metadata.forEach(entity::addTextBody);
     entity.addPart(sourceName, new InputStreamBody(file, sourceName));
     HttpPost post = new HttpPost("/");
     post.setEntity(entity.build());
-    HttpResponse response = getResponse(post);
+    closeConnection(getResponse(post));
+    throw new RuntimeException("Unable to put file");
+  }
+
+  @Override
+  public LtiEditMetadata editMetadata() {
+    HttpResponse response = null;
     try {
-      if (response != null) {
-        return EntityUtils.toString(response.getEntity());
+      HttpGet get = new HttpGet("/editMetadata");
+      response = getResponse(get);
+      if (response == null) {
+        throw new RuntimeException("No response from service");
       }
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+      return gson.fromJson(
+              new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8),
+              new TypeToken<LtiEditMetadata>(){}.getType());
+    } catch (IOException e) {
+      throw new RuntimeException("failed retrieving jobs", e);
     } finally {
       closeConnection(response);
     }
-    throw new RuntimeException("Unable to put file");
   }
 
   @Override

@@ -34,4 +34,6 @@
   <reference bind="setListProvidersService"
              interface="org.opencastproject.index.service.resources.list.api.ListProvidersService"
              name="ListProvidersService"/>
+  <reference name="workspace" interface="org.opencastproject.workspace.api.Workspace"
+             bind="setWorkspace"/>
 </scr:component>

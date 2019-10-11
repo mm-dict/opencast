@@ -36,7 +36,7 @@ public final class LtiJob {
     return title;
   }
 
-  public String getEventStatus() {
+  public String getStatus() {
     return status;
   }
 }

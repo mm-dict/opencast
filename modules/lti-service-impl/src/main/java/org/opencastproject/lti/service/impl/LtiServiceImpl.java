@@ -20,6 +20,8 @@
  */
 package org.opencastproject.lti.service.impl;
 
+import static org.opencastproject.util.MimeType.mimeType;
+
 import org.opencastproject.index.service.api.IndexService;
 import org.opencastproject.index.service.exception.ListProviderException;
 import org.opencastproject.index.service.impl.index.AbstractSearchIndex;
@@ -37,6 +39,9 @@ import org.opencastproject.matterhorn.search.SearchIndexException;
 import org.opencastproject.matterhorn.search.SearchResult;
 import org.opencastproject.matterhorn.search.SearchResultItem;
 import org.opencastproject.mediapackage.MediaPackage;
+import org.opencastproject.mediapackage.MediaPackageElement;
+import org.opencastproject.mediapackage.MediaPackageElementBuilder;
+import org.opencastproject.mediapackage.MediaPackageElementBuilderFactory;
 import org.opencastproject.mediapackage.MediaPackageElementFlavor;
 import org.opencastproject.mediapackage.MediaPackageElements;
 import org.opencastproject.metadata.dublincore.DublinCore;
@@ -55,6 +60,7 @@ import org.opencastproject.series.api.SeriesService;
 import org.opencastproject.util.ConfigurationException;
 import org.opencastproject.util.NotFoundException;
 import org.opencastproject.workflow.api.WorkflowDatabaseException;
+import org.opencastproject.workspace.api.Workspace;
 
 import com.entwinemedia.fn.data.Opt;
 import com.google.gson.Gson;
@@ -63,7 +69,10 @@ import com.google.gson.JsonSyntaxException;
 import org.apache.commons.lang3.StringUtils;
 import org.osgi.service.cm.ManagedService;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -80,11 +89,16 @@ public class LtiServiceImpl implements LtiService, ManagedService {
   private SecurityService securityService;
   private ListProvidersService listProvidersService;
   private SeriesService seriesService;
+  private Workspace workspace;
   private AbstractSearchIndex searchIndex;
   private String workflow;
   private String workflowConfiguration;
   private String retractWorkflowId;
   private final List<EventCatalogUIAdapter> catalogUIAdapters = new ArrayList<>();
+
+  public void setWorkspace(Workspace workspace) {
+    this.workspace = workspace;
+  }
 
   /** OSGi DI */
   public void setListProvidersService(ListProvidersService listProvidersService) {
@@ -160,7 +174,12 @@ public class LtiServiceImpl implements LtiService, ManagedService {
   }
 
   @Override
-  public void upload(final InputStream file, final String sourceName, String seriesId, final String seriesName,
+  public void upload(
+          final InputStream file,
+          final String captions,
+          final String sourceName,
+          String seriesId,
+          final String seriesName,
           final Map<String, String> metadata) {
     if (workflow == null || workflowConfiguration == null) {
       throw new RuntimeException("no workflow configured, cannot upload");
@@ -170,6 +189,18 @@ public class LtiServiceImpl implements LtiService, ManagedService {
       if (mp == null) {
         throw new RuntimeException("Unable to create media package for event");
       }
+      if (captions != null) {
+        final MediaPackageElementFlavor captionsFlavor = new MediaPackageElementFlavor("vtt+en", "captions");
+        final MediaPackageElementBuilder elementBuilder = MediaPackageElementBuilderFactory.newInstance().newElementBuilder();
+        final MediaPackageElement captionsMpe = elementBuilder
+                .newElement(MediaPackageElement.Type.Attachment, captionsFlavor);
+        captionsMpe.setMimeType(mimeType("text", "vtt"));
+        captionsMpe.addTag("lang:en");
+        mp.add(captionsMpe);
+        final URI captionsUri = workspace.put(mp.getIdentifier().toString(), captionsMpe.getIdentifier(), "captions.vtt", new ByteArrayInputStream(captions.getBytes(StandardCharsets.UTF_8)));
+        captionsMpe.setURI(captionsUri);
+      }
+
       final MediaPackageElementFlavor flavor = new MediaPackageElementFlavor("dublincore", "episode");
       final EventCatalogUIAdapter adapter = catalogUIAdapters.stream().filter(e -> e.getFlavor().equals(flavor))
               .findAny().orElse(null);

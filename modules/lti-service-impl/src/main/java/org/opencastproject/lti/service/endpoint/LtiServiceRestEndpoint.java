@@ -22,6 +22,8 @@ package org.opencastproject.lti.service.endpoint;
 
 import static org.opencastproject.util.doc.rest.RestParameter.Type.STRING;
 
+import org.opencastproject.lti.service.api.LtiEditMetadata;
+import org.opencastproject.lti.service.api.LtiJob;
 import org.opencastproject.lti.service.api.LtiService;
 import org.opencastproject.util.doc.rest.RestParameter;
 import org.opencastproject.util.doc.rest.RestParameter.Type;
@@ -30,6 +32,7 @@ import org.opencastproject.util.doc.rest.RestResponse;
 import org.opencastproject.util.doc.rest.RestService;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
@@ -42,7 +45,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -63,6 +65,8 @@ import javax.ws.rs.core.Response.Status;
 @Path("/")
 @RestService(name = "ltirestservice", title = "LTI Service", notes = {}, abstractText = "Provides operations to LTI clients")
 public class LtiServiceRestEndpoint {
+  private static final Gson gson = new Gson();
+
   /* OSGi service references */
   private LtiService service;
 
@@ -75,13 +79,16 @@ public class LtiServiceRestEndpoint {
   @Path("/jobs")
   @Produces(MediaType.APPLICATION_JSON)
   public Response listJobs(@QueryParam("series_name") final String seriesName, @QueryParam("series") String seriesId) {
-    final List<Map<String, String>> results = service.listJobs(seriesName, seriesId).stream().map(e -> {
-      Map<String, String> eventMap = new HashMap<>();
-      eventMap.put("title", e.getTitle());
-      eventMap.put("status", e.getEventStatus());
-      return eventMap;
-    }).collect(Collectors.toList());
-    return Response.status(Status.OK).entity(new Gson().toJson(results, List.class)).build();
+    return Response.status(Status.OK)
+            .entity(gson.toJson(service.listJobs(seriesName, seriesId), new TypeToken<List<LtiJob>>() {
+            }.getType())).build();
+  }
+
+  @GET
+  @Path("/editMetadata")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response listJobs() {
+    return Response.status(Status.OK).entity(gson.toJson(service.editMetadata(), LtiEditMetadata.class)).build();
   }
 
   @POST
@@ -102,6 +109,7 @@ public class LtiServiceRestEndpoint {
     String seriesId = "";
     Map<String, String> metadata = new HashMap<>();
     try {
+      String captions = null;
       for (FileItemIterator iter = new ServletFileUpload().getItemIterator(request); iter.hasNext();) {
         final FileItemStream item = iter.next();
         final String fieldName = item.getFieldName();
@@ -116,6 +124,8 @@ public class LtiServiceRestEndpoint {
         } else if (item.isFormField()) {
           final String fieldValue = Streams.asString(item.openStream());
           metadata.put(fieldName, fieldValue);
+        } else if ("captions".equals(fieldName)) {
+          captions = Streams.asString(item.openStream());
         } else {
           stream = IOUtils.toByteArray(item.openStream());
           streamName = item.getName();
@@ -129,7 +139,7 @@ public class LtiServiceRestEndpoint {
 =======
           final InputStream stream = item.openStream();
           final String streamName = item.getName();
-          service.upload(stream, streamName, seriesId, seriesName, metadata);
+          service.upload(stream, captions, streamName, seriesId, seriesName, metadata);
           return Response.ok().build();
         }
       }

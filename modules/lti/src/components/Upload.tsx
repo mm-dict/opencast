@@ -18,6 +18,7 @@ export interface OptionType {
 interface UploadState {
     readonly jobs: JobResult[] | string;
     readonly selectedFile?: Blob;
+    readonly selectedCaption?: Blob;
     readonly uploadState: "success" | "error" | "pending" | "none";
     readonly title: string;
     readonly jobsTimerId?: ReturnType<typeof setTimeout>;
@@ -91,10 +92,21 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
             clearInterval(this.state.jobsTimerId);
     }
 
-    onChangeFile(e: any) {
+    onChangeFile(e: React.FormEvent<HTMLInputElement>) {
+        if (e.currentTarget.files === null)
+            return;
         this.setState({
             ...this.state,
-            selectedFile: e.target.files[0]
+            selectedFile: e.currentTarget.files[0]
+        });
+    }
+
+    onChangeCaption(e: React.FormEvent<HTMLInputElement>) {
+        if (e.currentTarget.files === null)
+            return;
+        this.setState({
+            ...this.state,
+            selectedCaption: e.currentTarget.files[0]
         });
     }
 
@@ -134,6 +146,7 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
             this.state.selectedFile,
             this.state.title,
             this.state.presenters,
+            this.state.selectedCaption,
             this.state.license,
             this.state.language,
             typeof qs.series === "string" ? qs.series : undefined,
@@ -181,6 +194,11 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                     <label htmlFor="presenter">{this.props.t("PRESENTER")}</label>
                     <input type="file" className="form-control-file" onChange={this.onChangeFile.bind(this)} />
                     <small className="form-text text-muted">{this.props.t("PRESENTER_DESCRIPTION")}</small>
+                </div>
+                <div className="form-group">
+                    <label htmlFor="caption">{this.props.t("CAPTION")}</label>
+                    <input type="file" className="form-control-file" onChange={this.onChangeCaption.bind(this)} />
+                    <small className="form-text text-muted">{this.props.t("CAPTION_DESCRIPTION")}</small>
                 </div>
                 <div className="form-group">
                     <label htmlFor="license">{this.props.t("LICENSE")}</label>
