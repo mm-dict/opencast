@@ -104,6 +104,7 @@ export async function uploadFile(
     file: Blob,
     title: string,
     presenters: string[],
+    captions?: Blob,
     license?: string,
     language?: string,
     seriesId?: string,
@@ -118,6 +119,8 @@ export async function uploadFile(
         data.append("language", language);
     for (var i = 0; i < presenters.length; i++)
         data.append("presenterNames[]", presenters[i]);
+    if (captions !== undefined)
+        data.append("captions", captions);
     data.append("presenter", file);
     return axios.post(hostAndPort() + "/lti-service-gui", data);
 }

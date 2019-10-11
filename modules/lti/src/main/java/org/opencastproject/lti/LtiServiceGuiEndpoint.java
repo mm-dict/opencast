@@ -101,7 +101,7 @@ public class LtiServiceGuiEndpoint {
     final List<Map<String, String>> results = service.listJobs(seriesName, seriesId).stream().map(e -> {
       Map<String, String> eventMap = new HashMap<>();
       eventMap.put("title", e.getTitle());
-      eventMap.put("status", e.getEventStatus());
+      eventMap.put("status", e.getStatus());
       return eventMap;
     }).collect(Collectors.toList());
     return Response.status(Status.OK).entity(new Gson().toJson(results, List.class)).build();
@@ -125,6 +125,7 @@ public class LtiServiceGuiEndpoint {
     Map<String, String> metadata = new HashMap<>();
     try {
       final List<String> presenterNames = new ArrayList<>();
+      String captions = null;
       for (FileItemIterator iter = new ServletFileUpload().getItemIterator(request); iter.hasNext();) {
         final FileItemStream item = iter.next();
         final String fieldName = item.getFieldName();
@@ -132,6 +133,8 @@ public class LtiServiceGuiEndpoint {
           seriesName = Streams.asString(item.openStream());
         } else if ("presenterNames[]".equals(fieldName)) {
           presenterNames.add(Streams.asString(item.openStream()));
+        } else if ("captions".equals(fieldName)) {
+          captions = Streams.asString(item.openStream());
         } else if ("isPartOf".equals(fieldName)) {
           final String fieldValue = Streams.asString(item.openStream());
           if (!fieldValue.isEmpty()) {
@@ -143,7 +146,7 @@ public class LtiServiceGuiEndpoint {
           metadata.put(fieldName, fieldValue);
         } else {
           metadata.put("creator", gson.toJson(presenterNames, List.class));
-          service.upload(item.openStream(), item.getName(), seriesId, seriesName, metadata);
+          service.upload(item.openStream(), captions, item.getName(), seriesId, seriesName, metadata);
           return Response.ok().build();
         }
       }
