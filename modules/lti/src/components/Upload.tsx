@@ -46,14 +46,14 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
         if (this.state.editMetadata === undefined) {
             return [];
         }
-        return this.state.editMetadata.languages.map((l) => ({ value: l.shortCode, label: l.translationCode }));
+        return this.state.editMetadata.languages.map((l) => ({ value: l.shortCode, label: this.props.t(l.translationCode) }));
     }
 
     licenseOptions() {
         if (this.state.editMetadata === undefined) {
             return [];
         }
-        return this.state.editMetadata.licenses.map((l) => ({ value: l.key, label: l.label }));
+        return this.state.editMetadata.licenses.map((l) => ({ value: l.key, label: this.props.t(l.label) }));
     }
 
     retrieveJobs() {
