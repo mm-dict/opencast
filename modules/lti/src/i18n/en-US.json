@@ -20,16 +20,59 @@
   "UPLOAD_SUCCESS": "Upload succeeded",
   "UPLOAD_FAILURE": "Upload failed",
   "UPLOAD_FAILURE_DESCRIPTION": "Please try again later…",
-  "EVENTS.EVENTS.STATUS.PENDING": "Pending",
-  "EVENTS.EVENTS.STATUS.PROCESSING": "Running",
-  "EVENTS.EVENTS.STATUS.PAUSED": "Paused",
-  "EVENTS.EVENTS.STATUS.PROCESSED": "Finished",
-  "EVENTS.EVENTS.STATUS.PROCESSING_FAILURE": "Processing failure",
-  "EVENTS.EVENTS.STATUS.PROCESSING_CANCELED": "Processing canceled",
   "DELETION_SUCCESS": "Deletion queued successfully",
   "DELETION_SUCCESS_DESCRIPTION": "The event will disappear from the list in a short while…",
   "DELETION_FAILURE": "Deletion failed",
   "DELETION_FAILURE_DESCRIPTION": "Please try again later…",
   "SERIES_TITLE": "Opencast: Series",
-  "GENERIC_ERROR": "An error occurred: {{message}}"
+  "GENERIC_ERROR": "An error occurred: {{message}}",
+  "EVENTS": {
+    "LICENSE": {
+      "ALLRIGHTS": "All rights reserved",
+      "CCBY": "CC BY",
+      "CCBYSA": "CC BY-SA",
+      "CCBYND": "CC BY-ND",
+      "CCBYNC": "CC BY-NC",
+      "CCBYNCSA": "CC BY-NC-SA",
+      "CCBYNCND": "CC BY-NC-ND",
+      "CC0": "CC0",
+      "BSD": "BSD",
+      "CCND": "CCND",
+      "GPL": "GPL"
+    },
+    "EVENTS": {
+      "STATUS": {
+        "PENDING": "Pending",
+        "PROCESSING": "Running",
+        "PAUSED": "Paused",
+        "PROCESSED": "Finished",
+        "PROCESSING_FAILURE": "Processing failure",
+        "PROCESSING_CANCELED": "Processing canceled"
+      }
+    }
+  },
+   "LANGUAGES": {
+      "ARABIC":"Arabic",
+      "DANISH":"Danish",
+      "GERMAN":"German",
+      "GERMAN_CH":"Swiss German",
+      "FINNISH":"Finnish",
+      "HINDI":"Hindi",
+      "ITALIAN":"Italian",
+      "JAPANESE":"Japanese",
+      "DUTCH":"Dutch",
+      "NORWEGIAN":"Norwegian",
+      "FRENCH":"French",
+      "ENGLISH":"English",
+      "SPANISH":"Spanish",
+      "ROMANSH":"Romansh",
+      "POLISH":"Polish",
+      "PORTUGESE":"Portuguese",
+      "SLOVENIAN":"Slovenian",
+      "SWEDISH":"Swedish",
+      "RUSSIAN":"Russian",
+      "TURKISH":"Turkish",
+      "UKRAINIAN":"Ukrainian",
+      "CHINESE":"Chinese"
+  }
 }

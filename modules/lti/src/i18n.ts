@@ -4,6 +4,8 @@ import { initReactI18next } from "react-i18next";
 import deJson from "./i18n/de-DE.json";
 import enJson from "./i18n/en-US.json";
 
+console.log(JSON.stringify(enJson));
+
 i18n
     .use(LanguageDetector)
     .use(initReactI18next)
@@ -23,8 +25,6 @@ i18n
         // have a common namespace used around the full app
         ns: ["translations"],
         defaultNS: "translations",
-
-        keySeparator: false, // we use content as keys
 
         interpolation: {
             escapeValue: false

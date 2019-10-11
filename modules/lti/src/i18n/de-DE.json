@@ -29,5 +29,20 @@
   "DELETION_FAILURE": "Löschen ist fehlgeschlagen",
   "DELETION_FAILURE_DESCRIPTION": "Bitte versuchen Sie es später erneut…",
   "SERIES_TITLE": "Opencast: Series",
-  "GENERIC_ERROR": "Ein Fehler ist aufgetreten: {{message}}"
+  "GENERIC_ERROR": "Ein Fehler ist aufgetreten: {{message}}",
+  "EVENTS": {
+    "LICENSE": {
+         "ALLRIGHTS": "Alle Rechte vorbehalten",
+         "CCBY": "CC BY",
+         "CCBYSA": "CC BY-SA",
+         "CCBYND": "CC BY-ND",
+         "CCBYNC": "CC BY-NC",
+         "CCBYNCSA": "CC BY-NC-SA",
+         "CCBYNCND": "CC BY-NC-ND",
+         "CC0": "CC0",
+         "BSD": "BSD",
+         "CCND": "CCND",
+         "GPL": "GPL"
+    }
+  }
 }
