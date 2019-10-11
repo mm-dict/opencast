@@ -35,10 +35,9 @@ import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.fileupload.util.Streams;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,11 +62,10 @@ import javax.ws.rs.core.Response.Status;
 @Path("/")
 @RestService(name = "ltirestserviceendpoint", title = "LTI Service", notes = {}, abstractText = "Provides operations to LTI clients")
 public class LtiServiceGuiEndpoint {
-  /** The logging facility */
-  private static final Logger logger = LoggerFactory.getLogger(LtiServiceGuiEndpoint.class);
-
   /* OSGi service references */
   private LtiService service;
+
+  private static final Gson gson = new Gson();
 
   /** OSGi DI */
   public void setService(LtiService service) {
@@ -126,11 +124,14 @@ public class LtiServiceGuiEndpoint {
     String seriesId = "";
     Map<String, String> metadata = new HashMap<>();
     try {
+      final List<String> presenterNames = new ArrayList<>();
       for (FileItemIterator iter = new ServletFileUpload().getItemIterator(request); iter.hasNext();) {
         final FileItemStream item = iter.next();
         final String fieldName = item.getFieldName();
         if ("seriesName".equals(fieldName)) {
           seriesName = Streams.asString(item.openStream());
+        } else if ("presenterNames[]".equals(fieldName)) {
+          presenterNames.add(Streams.asString(item.openStream()));
         } else if ("isPartOf".equals(fieldName)) {
           final String fieldValue = Streams.asString(item.openStream());
           if (!fieldValue.isEmpty()) {
@@ -141,6 +142,7 @@ public class LtiServiceGuiEndpoint {
           final String fieldValue = Streams.asString(item.openStream());
           metadata.put(fieldName, fieldValue);
         } else {
+          metadata.put("creator", gson.toJson(presenterNames, List.class));
           service.upload(item.openStream(), item.getName(), seriesId, seriesName, metadata);
           return Response.ok().build();
         }
