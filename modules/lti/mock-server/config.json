@@ -17,6 +17,10 @@
     "lti-service-gui/jobs": {
       "mockFile": "jobs.json",
       "verbs": ["get"]
+    },
+    "lti-service-gui/editMetadata": {
+      "mockFile": "editMetadata.json",
+      "verbs": ["get"]
     }
   }
 }

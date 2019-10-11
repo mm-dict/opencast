@@ -82,7 +82,7 @@ public class LtiServiceRemoteImpl extends RemoteBase implements LtiService {
           Map<String, String> metadata) {
     MultipartEntityBuilder entity = MultipartEntityBuilder.create();
     entity.addTextBody("isPartOf", seriesId);
-    entity.addTextBody("hidden_series_name", seriesName);
+    entity.addTextBody("seriesName", seriesName);
     metadata.forEach(entity::addTextBody);
     entity.addPart(sourceName, new InputStreamBody(file, sourceName));
     HttpPost post = new HttpPost("/");

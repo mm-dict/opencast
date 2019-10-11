@@ -21,11 +21,17 @@
 package org.opencastproject.lti.service.impl;
 
 import org.opencastproject.index.service.api.IndexService;
+import org.opencastproject.index.service.exception.ListProviderException;
 import org.opencastproject.index.service.impl.index.AbstractSearchIndex;
 import org.opencastproject.index.service.impl.index.event.Event;
 import org.opencastproject.index.service.impl.index.event.EventSearchQuery;
+import org.opencastproject.index.service.resources.list.api.ListProvidersService;
+import org.opencastproject.index.service.resources.list.query.ResourceListQueryImpl;
 import org.opencastproject.ingest.api.IngestService;
+import org.opencastproject.lti.service.api.LtiEditMetadata;
 import org.opencastproject.lti.service.api.LtiJob;
+import org.opencastproject.lti.service.api.LtiLanguage;
+import org.opencastproject.lti.service.api.LtiLicense;
 import org.opencastproject.lti.service.api.LtiService;
 import org.opencastproject.matterhorn.search.SearchIndexException;
 import org.opencastproject.matterhorn.search.SearchResult;
@@ -68,16 +74,22 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class LtiServiceImpl implements LtiService, ManagedService {
+  private static final Gson gson = new Gson();
   private IndexService indexService;
   private IngestService ingestService;
   private SecurityService securityService;
+  private ListProvidersService listProvidersService;
   private SeriesService seriesService;
   private AbstractSearchIndex searchIndex;
   private String workflow;
   private String workflowConfiguration;
   private String retractWorkflowId;
-  private static final Gson gson = new Gson();
   private final List<EventCatalogUIAdapter> catalogUIAdapters = new ArrayList<>();
+
+  /** OSGi DI */
+  public void setListProvidersService(ListProvidersService listProvidersService) {
+    this.listProvidersService = listProvidersService;
+  }
 
   /** OSGi DI */
   public void setSearchIndex(AbstractSearchIndex searchIndex) {
@@ -148,7 +160,7 @@ public class LtiServiceImpl implements LtiService, ManagedService {
   }
 
   @Override
-  public String upload(final InputStream file, final String sourceName, String seriesId, final String seriesName,
+  public void upload(final InputStream file, final String sourceName, String seriesId, final String seriesName,
           final Map<String, String> metadata) {
     if (workflow == null || workflowConfiguration == null) {
       throw new RuntimeException("no workflow configured, cannot upload");
@@ -184,9 +196,24 @@ public class LtiServiceImpl implements LtiService, ManagedService {
       final Map<String, String> configuration = gson.fromJson(workflowConfiguration, Map.class);
       configuration.put("workflowDefinitionId", workflow);
       ingestService.ingest(mp, workflow, configuration);
-      return seriesId;
     } catch (Exception e) {
       throw new RuntimeException("unable to create event", e);
+    }
+  }
+
+  @Override
+  public LtiEditMetadata editMetadata() {
+    final ResourceListQueryImpl query = new ResourceListQueryImpl();
+    try {
+      return new LtiEditMetadata(listProvidersService.getList("LANGUAGES", query, false).entrySet().stream()
+              .map(e -> new LtiLanguage(e.getKey(), e.getValue())).collect(Collectors.toList()),
+              listProvidersService.getList("LICENSES", query, false)
+                      .entrySet()
+                      .stream()
+                      .map(entry -> new LtiLicense((String)gson.fromJson(entry.getValue(), Map.class).get("label"), entry.getKey()))
+                      .collect(Collectors.toList()));
+    } catch (ListProviderException e) {
+      throw new RuntimeException("unable to retrieve language list", e);
     }
   }
 

@@ -20,6 +20,7 @@
  */
 package org.opencastproject.lti;
 
+import org.opencastproject.lti.service.api.LtiEditMetadata;
 import org.opencastproject.lti.service.api.LtiService;
 import org.opencastproject.util.doc.rest.RestParameter;
 import org.opencastproject.util.doc.rest.RestParameter.Type;
@@ -52,6 +53,7 @@ import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -73,7 +75,30 @@ public class LtiServiceGuiEndpoint {
   }
 
   @GET
+  @Path("/editMetadata")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response editMetadata() {
+    final LtiEditMetadata metadata = service.editMetadata();
+    final Map<String, Object> metadataMap = new HashMap<>();
+    metadataMap.put("languages", metadata.getLanguages().stream()
+            .map(e -> {
+              final Map<String, String> result = new HashMap<>();
+              result.put("shortCode", e.getShortCode());
+              result.put("translationCode", e.getTranslationCode());
+              return result;
+            }).collect(Collectors.toList()));
+    metadataMap.put("licenses", metadata.getLicenses().stream().map(l -> {
+      final Map<String, String> result = new HashMap<>();
+      result.put("key", l.getKey());
+      result.put("label", l.getLabel());
+      return result;
+    }).collect(Collectors.toList()));
+    return Response.status(Status.OK).entity(new Gson().toJson(metadataMap, Map.class)).build();
+  }
+
+  @GET
   @Path("/jobs")
+  @Produces(MediaType.APPLICATION_JSON)
   public Response listJobs(@QueryParam("series_name") final String seriesName, @QueryParam("series") String seriesId) {
     final List<Map<String, String>> results = service.listJobs(seriesName, seriesId).stream().map(e -> {
       Map<String, String> eventMap = new HashMap<>();
@@ -87,13 +112,11 @@ public class LtiServiceGuiEndpoint {
   @POST
   @Path("/")
   @Consumes(MediaType.MULTIPART_FORM_DATA)
-  @RestQuery(name = "createevent", description = "Creates an event by sending metadata, access control list, processing instructions and files in a multipart request.", returnDescription = "", restParameters = {
-          @RestParameter(name = "acl", isRequired = false, description = "A collection of roles with their possible action", type = Type.STRING),
-          @RestParameter(name = "metadata", description = "Event metadata as Form param", isRequired = false, type = Type.STRING),
-          @RestParameter(name = "scheduling", description = "Scheduling information as Form param", isRequired = false, type = Type.STRING),
+  @RestQuery(name = "uploadevent", description = "Creates an event in a multipart request.", returnDescription = "", restParameters = {
           @RestParameter(name = "presenter", description = "Presenter movie track", isRequired = false, type = Type.FILE),
-          @RestParameter(name = "presentation", description = "Presentation movie track", isRequired = false, type = Type.FILE),
-          @RestParameter(name = "audio", description = "Audio track", isRequired = false, type = Type.FILE),
+          @RestParameter(name = "license", description = "License chosen", isRequired = false, type = Type.STRING),
+          @RestParameter(name = "seriesName", description = "Series name", isRequired = false, type = Type.STRING),
+          @RestParameter(name = "isPartOf", description = "Series ID", isRequired = false, type = Type.STRING),
           @RestParameter(name = "processing", description = "Processing instructions task configuration", isRequired = false, type = Type.STRING) }, reponses = {
                   @RestResponse(description = "A new event is created and its identifier is returned in the Location header.", responseCode = HttpServletResponse.SC_CREATED),
                   @RestResponse(description = "The event could not be created due to a scheduling conflict.", responseCode = HttpServletResponse.SC_CONFLICT),
@@ -106,7 +129,7 @@ public class LtiServiceGuiEndpoint {
       for (FileItemIterator iter = new ServletFileUpload().getItemIterator(request); iter.hasNext();) {
         final FileItemStream item = iter.next();
         final String fieldName = item.getFieldName();
-        if ("hidden_series_name".equals(fieldName)) {
+        if ("seriesName".equals(fieldName)) {
           seriesName = Streams.asString(item.openStream());
         } else if ("isPartOf".equals(fieldName)) {
           final String fieldValue = Streams.asString(item.openStream());
@@ -118,10 +141,8 @@ public class LtiServiceGuiEndpoint {
           final String fieldValue = Streams.asString(item.openStream());
           metadata.put(fieldName, fieldValue);
         } else {
-          final String streamName = item.getName();
-          final String resultSeriesId = service.upload(item.openStream(), streamName, seriesId, seriesName, metadata);
-          final String location = "/ltitools/upload/index.html?series=" + resultSeriesId;
-          return Response.ok().entity("Upload complete, <a href=\"" + location + "\">go back</a>").build();
+          service.upload(item.openStream(), item.getName(), seriesId, seriesName, metadata);
+          return Response.ok().build();
         }
       }
       return Response.status(Status.BAD_REQUEST).entity("No file given").build();
