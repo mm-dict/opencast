@@ -4,6 +4,16 @@ import React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { getJobs, JobResult, uploadFile, getEditMetadata, EditMetadata } from "../OpencastRest";
 import { parsedQueryString } from "../utils";
+import Select from "react-select";
+import { ActionMeta, ValueType } from "react-select/src/types"; // tslint:disable-line no-submodule-imports
+
+import CreatableSelect from "react-select/creatable";
+
+export interface OptionType {
+    value: string;
+    label: string;
+}
+
 
 interface UploadState {
     readonly jobs: JobResult[] | string;
@@ -14,6 +24,7 @@ interface UploadState {
     readonly editMetadata?: EditMetadata;
     readonly license?: string;
     readonly language?: string;
+    readonly presenters: string[];
 }
 
 interface UploadProps extends WithTranslation {
@@ -26,8 +37,23 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
         this.state = {
             jobs: [],
             uploadState: "none",
-            title: ""
+            title: "",
+            presenters: []
         };
+    }
+
+    languageOptions() {
+        if (this.state.editMetadata === undefined) {
+            return [];
+        }
+        return this.state.editMetadata.languages.map((l) => ({ value: l.shortCode, label: l.translationCode }));
+    }
+
+    licenseOptions() {
+        if (this.state.editMetadata === undefined) {
+            return [];
+        }
+        return this.state.editMetadata.licenses.map((l) => ({ value: l.key, label: l.label }));
     }
 
     retrieveJobs() {
@@ -72,17 +98,27 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
         });
     }
 
-    onChangeLicense(e: React.FormEvent<HTMLSelectElement>) {
+    onChangeLicense(value: ValueType<OptionType>, _: ActionMeta) {
         this.setState({
             ...this.state,
-            license: e.currentTarget.value === "" ? undefined : e.currentTarget.value
+            license: value === undefined || value === null || Array.isArray(value) ? undefined : (value as OptionType).value
         });
     }
 
-    onChangeLanguage(e: React.FormEvent<HTMLSelectElement>) {
+    onChangeLanguage(value: ValueType<OptionType>, _: ActionMeta) {
         this.setState({
             ...this.state,
-            language: e.currentTarget.value === "" ? undefined : e.currentTarget.value
+            language: value === undefined || value === null || Array.isArray(value) ? undefined : (value as OptionType).value
+        });
+    }
+
+    onChangePresenter(value: ValueType<OptionType>, _: ActionMeta) {
+        if (value === null || value === undefined || !Array.isArray(value))
+            return;
+        const newPresenters = value.map((v) => v.value);
+        this.setState({
+            ...this.state,
+            presenters: newPresenters,
         });
     }
 
@@ -97,6 +133,7 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
         uploadFile(
             this.state.selectedFile,
             this.state.title,
+            this.state.presenters,
             this.state.license,
             this.state.language,
             typeof qs.series === "string" ? qs.series : undefined,
@@ -109,6 +146,7 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                 title: "",
                 license: undefined,
                 language: undefined,
+                presenters: []
             });
         }).catch((_) => {
             this.setState({
@@ -146,18 +184,31 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                 </div>
                 <div className="form-group">
                     <label htmlFor="license">{this.props.t("LICENSE")}</label>
-                    <select className="form-control" id="license" onChange={this.onChangeLicense.bind(this)}>
-                        <option value="">{this.props.t("SELECT_LICENSE")}</option>
-                        {this.state.editMetadata.licenses.map((l) => <option key={l.key} value={l.key}>{l.label}</option>)}
-                    </select>
+                    <Select
+                        id="license"
+                        onChange={this.onChangeLicense.bind(this)}
+                        options={this.licenseOptions()}
+                        placeholder={this.props.t("SELECT_LICENSE")} />
                 </div>
 
                 <div className="form-group">
                     <label htmlFor="language">{this.props.t("LANGUAGE")}</label>
-                    <select className="form-control" id="language" onChange={this.onChangeLanguage.bind(this)}>
-                        <option value="">{this.props.t("SELECT_LANGUAGE")}</option>
-                        {this.state.editMetadata.languages.map((l) => <option key={l.shortCode} value={l.shortCode}>{l.translationCode}</option>)}
-                    </select>
+                    <Select
+                        id="language"
+                        onChange={this.onChangeLanguage.bind(this)}
+                        options={this.languageOptions()}
+                        placeholder={this.props.t("SELECT_LANGUAGE")} />
+                </div>
+
+                <div className="form-group">
+                    <label htmlFor="presenters">{this.props.t("PRESENTERS")}</label>
+                    <CreatableSelect
+                        isMulti={true}
+                        isClearable={true}
+                        id="presenters"
+                        value={this.state.presenters.map((e) => ({ value: e, label: e }))}
+                        onChange={this.onChangePresenter.bind(this)}
+                    />
                 </div>
 
                 <button type="button" className="btn btn-primary" onClick={this.onSubmit.bind(this)} disabled={this.state.uploadState === "pending"}>{this.props.t(this.state.uploadState === "pending" ? "UPLOADING" : "UPLOAD")}</button>

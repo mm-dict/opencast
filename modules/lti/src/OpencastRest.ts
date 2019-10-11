@@ -103,6 +103,7 @@ export async function getJobs(seriesId?: string, seriesName?: string): Promise<J
 export async function uploadFile(
     file: Blob,
     title: string,
+    presenters: string[],
     license?: string,
     language?: string,
     seriesId?: string,
@@ -115,6 +116,8 @@ export async function uploadFile(
         data.append("license", license);
     if (language !== undefined)
         data.append("language", language);
+    for (var i = 0; i < presenters.length; i++)
+        data.append("presenterNames[]", presenters[i]);
     data.append("presenter", file);
     return axios.post(hostAndPort() + "/lti-service-gui", data);
 }
