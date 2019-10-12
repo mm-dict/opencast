@@ -77,6 +77,7 @@ class TranslatedSeries extends React.Component<SeriesProps, SeriesState> {
         searchEpisode(
             15,
             this.state.currentPage - 1,
+            undefined,
             typeof qs.series === "string" ? qs.series : undefined,
             typeof qs.series_name === "string" ? qs.series_name : undefined
         ).then((results) => this.setState({
@@ -133,6 +134,7 @@ class TranslatedSeries extends React.Component<SeriesProps, SeriesState> {
         if (this.state.httpErrors.length > 0)
             return <div>{this.props.t("GENERIC_ERROR", { message: this.state.httpErrors[0] })}</div>;
         if (this.state.searchResults !== undefined && this.state.ltiRoles !== undefined) {
+            console.log(JSON.stringify(this.state.searchResults));
             const sr = this.state.searchResults;
             const headingOpts = {
                 range: {

@@ -4,28 +4,14 @@ import React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { getJobs, JobResult, uploadFile, getEditMetadata, EditMetadata } from "../OpencastRest";
 import { parsedQueryString } from "../utils";
-import Select from "react-select";
-import { ActionMeta, ValueType } from "react-select/src/types"; // tslint:disable-line no-submodule-imports
-
-import CreatableSelect from "react-select/creatable";
-
-export interface OptionType {
-    value: string;
-    label: string;
-}
-
+import { EditForm, EditFormData } from "./EditForm";
 
 interface UploadState {
     readonly jobs: JobResult[] | string;
-    readonly selectedFile?: Blob;
-    readonly selectedCaption?: Blob;
     readonly uploadState: "success" | "error" | "pending" | "none";
-    readonly title: string;
     readonly jobsTimerId?: ReturnType<typeof setTimeout>;
     readonly editMetadata?: EditMetadata;
-    readonly license?: string;
-    readonly language?: string;
-    readonly presenters: string[];
+    readonly formData?: EditFormData;
 }
 
 interface UploadProps extends WithTranslation {
@@ -38,8 +24,6 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
         this.state = {
             jobs: [],
             uploadState: "none",
-            title: "",
-            presenters: []
         };
     }
 
@@ -79,7 +63,13 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
         this.retrieveJobs();
         getEditMetadata().then((metadata) => this.setState({
             ...this.state,
-            editMetadata: metadata
+            editMetadata: metadata,
+            formData: {
+                title: "",
+                presenters: [],
+                licenses: metadata.licenses,
+                languages: metadata.languages,
+            }
         }));
         this.setState({
             ...this.state,
@@ -92,50 +82,11 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
             clearInterval(this.state.jobsTimerId);
     }
 
-    onChangeFile(e: React.FormEvent<HTMLInputElement>) {
-        if (e.currentTarget.files === null)
+    onSubmit() {
+        if (this.state.formData === undefined)
             return;
-        this.setState({
-            ...this.state,
-            selectedFile: e.currentTarget.files[0]
-        });
-    }
-
-    onChangeCaption(e: React.FormEvent<HTMLInputElement>) {
-        if (e.currentTarget.files === null)
-            return;
-        this.setState({
-            ...this.state,
-            selectedCaption: e.currentTarget.files[0]
-        });
-    }
-
-    onChangeLicense(value: ValueType<OptionType>, _: ActionMeta) {
-        this.setState({
-            ...this.state,
-            license: value === undefined || value === null || Array.isArray(value) ? undefined : (value as OptionType).value
-        });
-    }
-
-    onChangeLanguage(value: ValueType<OptionType>, _: ActionMeta) {
-        this.setState({
-            ...this.state,
-            language: value === undefined || value === null || Array.isArray(value) ? undefined : (value as OptionType).value
-        });
-    }
-
-    onChangePresenter(value: ValueType<OptionType>, _: ActionMeta) {
-        if (value === null || value === undefined || !Array.isArray(value))
-            return;
-        const newPresenters = value.map((v) => v.value);
-        this.setState({
-            ...this.state,
-            presenters: newPresenters,
-        });
-    }
-
-    onSubmit(_: any) {
-        if (this.state.selectedFile === undefined)
+        const formData = this.state.formData;
+        if (formData.selectedFile === undefined)
             return;
         const qs = parsedQueryString();
         this.setState({
@@ -143,23 +94,25 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
             uploadState: "pending"
         });
         uploadFile(
-            this.state.selectedFile,
-            this.state.title,
-            this.state.presenters,
-            this.state.selectedCaption,
-            this.state.license,
-            this.state.language,
+            formData.selectedFile,
+            formData.title,
+            formData.presenters,
+            formData.selectedCaption,
+            formData.license,
+            formData.language,
             typeof qs.series === "string" ? qs.series : undefined,
             typeof qs.seriesName === "string" ? qs.seriesName : undefined
         ).then((_) => {
+            if (this.state.editMetadata === undefined)
+                return;
             this.setState({
                 ...this.state,
-                selectedFile: undefined,
-                uploadState: "success",
-                title: "",
-                license: undefined,
-                language: undefined,
-                presenters: []
+                formData: {
+                    title: "",
+                    presenters: [],
+                    licenses: this.state.editMetadata.licenses,
+                    languages: this.state.editMetadata.languages,
+                }
             });
         }).catch((_) => {
             this.setState({
@@ -169,8 +122,15 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
         });
     }
 
+    onDataChange(newData: EditFormData) {
+        this.setState({
+            ...this.state,
+            formData: newData
+        });
+    }
+
     render() {
-        if (this.state.editMetadata === undefined)
+        if (this.state.editMetadata === undefined || this.state.formData === undefined)
             return <Loading />;
         return <>
             <Helmet>
@@ -184,53 +144,10 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                 {this.props.t("UPLOAD_FAILURE")}<br />
                 <div className="text-muted">{this.props.t("UPLOAD_FAILURE_DESCRIPTION")}</div>
             </div>}
-            <form>
-                <div className="form-group">
-                    <label htmlFor="title">{this.props.t("TITLE")}</label>
-                    <input type="text" className="form-control" value={this.state.title} onChange={(e) => this.setState({ ...this.state, title: e.target.value })} />
-                    <small className="form-text text-muted">{this.props.t("TITLE_DESCRIPTION")}</small>
-                </div>
-                <div className="form-group">
-                    <label htmlFor="presenter">{this.props.t("PRESENTER")}</label>
-                    <input type="file" className="form-control-file" onChange={this.onChangeFile.bind(this)} />
-                    <small className="form-text text-muted">{this.props.t("PRESENTER_DESCRIPTION")}</small>
-                </div>
-                <div className="form-group">
-                    <label htmlFor="caption">{this.props.t("CAPTION")}</label>
-                    <input type="file" className="form-control-file" onChange={this.onChangeCaption.bind(this)} />
-                    <small className="form-text text-muted">{this.props.t("CAPTION_DESCRIPTION")}</small>
-                </div>
-                <div className="form-group">
-                    <label htmlFor="license">{this.props.t("LICENSE")}</label>
-                    <Select
-                        id="license"
-                        onChange={this.onChangeLicense.bind(this)}
-                        options={this.licenseOptions()}
-                        placeholder={this.props.t("SELECT_LICENSE")} />
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="language">{this.props.t("LANGUAGE")}</label>
-                    <Select
-                        id="language"
-                        onChange={this.onChangeLanguage.bind(this)}
-                        options={this.languageOptions()}
-                        placeholder={this.props.t("SELECT_LANGUAGE")} />
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="presenters">{this.props.t("PRESENTERS")}</label>
-                    <CreatableSelect
-                        isMulti={true}
-                        isClearable={true}
-                        id="presenters"
-                        value={this.state.presenters.map((e) => ({ value: e, label: e }))}
-                        onChange={this.onChangePresenter.bind(this)}
-                    />
-                </div>
-
-                <button type="button" className="btn btn-primary" onClick={this.onSubmit.bind(this)} disabled={this.state.uploadState === "pending"}>{this.props.t(this.state.uploadState === "pending" ? "UPLOADING" : "UPLOAD")}</button>
-            </form>
+            <EditForm
+                data={this.state.formData}
+                onDataChange={this.onDataChange.bind(this)}
+                onSubmit={this.onSubmit.bind(this)} pending={this.state.uploadState === "pending"} />
             <h2>{this.props.t("CURRENT_JOBS")}</h2>
             {typeof this.state.jobs !== "string" &&
                 <table className="table table-striped">
