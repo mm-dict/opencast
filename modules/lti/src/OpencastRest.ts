@@ -35,6 +35,8 @@ export interface SearchEpisodeResult {
     readonly dcTitle: string;
     readonly dcCreated: string;
     readonly mediapackage: MediaPackage;
+    readonly languageShortCode: string;
+    readonly licenseKey: string;
 }
 
 export interface SearchEpisodeResults {
@@ -54,8 +56,19 @@ function hostAndPort() {
     return debug ? "http://localhost:7878" : "";
 }
 
-export async function searchEpisode(limit: number, offset: number, seriesId?: string, seriesName?: string): Promise<SearchEpisodeResults> {
-    const urlSuffix = seriesId ? "&sid=" + seriesId : seriesName ? "&sname=" + seriesName : "";
+export async function searchEpisode(
+    limit: number,
+    offset: number,
+    episodeId?: string,
+    seriesId?: string,
+    seriesName?: string): Promise<SearchEpisodeResults> {
+    let urlSuffix = "";
+    if (seriesId !== undefined)
+        urlSuffix += "&sid=" + seriesId;
+    if (seriesName !== undefined)
+        urlSuffix += "&sname=" + seriesName;
+    if (episodeId !== undefined)
+        urlSuffix += "&id=" + episodeId;
     const response = await axios.get(hostAndPort() + "/search/episode.json?limit=" + limit + "&offset=" + offset + urlSuffix);
     const resultsRaw = response.data["search-results"]["result"];
     const results = Array.isArray(resultsRaw) ? resultsRaw : resultsRaw !== undefined ? [resultsRaw] : [];
@@ -65,7 +78,10 @@ export async function searchEpisode(limit: number, offset: number, seriesId?: st
             id: result.id,
             dcTitle: result.dcTitle,
             dcCreated: result.dcCreated,
+            languageShortCode: result.dcLanguage,
+            licenseKey: result.dcLicense,
             mediapackage: {
+                creators: result.mediapackage.creators !== undefined ? result.mediapackage.creators.creator : [],
                 attachments: result.mediapackage.attachments.attachment.map((attachment: any) => ({
                     type: attachment.type,
                     url: attachment.url
