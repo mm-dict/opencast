@@ -27,6 +27,7 @@ export interface JobResult {
 
 export interface MediaPackage {
     readonly attachments: Attachment[];
+    readonly creators: string[];
 }
 
 export interface SearchEpisodeResult {
