@@ -77,7 +77,15 @@ class TranslatedEditForm extends React.Component<EditFormProps> {
         return this.props.data.languages.map((l) => ({ value: l.shortCode, label: this.props.t(l.translationCode) }));
     }
 
-    licenseOptions() {
+    currentLanguage(): OptionType | undefined {
+        return this.languageOptions().find((l) => l.value === this.props.data.language);
+    }
+
+    currentLicense(): OptionType | undefined {
+        return this.licenseOptions().find((l) => l.value === this.props.data.license);
+    }
+
+    licenseOptions(): OptionType[] {
         return this.props.data.licenses.map((l) => ({ value: l.key, label: this.props.t(l.label) }));
     }
 
@@ -103,6 +111,7 @@ class TranslatedEditForm extends React.Component<EditFormProps> {
                 <Select
                     id="license"
                     onChange={this.onChangeLicense.bind(this)}
+                    value={this.currentLicense()}
                     options={this.licenseOptions()}
                     placeholder={this.props.t("SELECT_LICENSE")} />
             </div>
@@ -113,6 +122,7 @@ class TranslatedEditForm extends React.Component<EditFormProps> {
                     id="language"
                     onChange={this.onChangeLanguage.bind(this)}
                     options={this.languageOptions()}
+                    value={this.currentLanguage()}
                     placeholder={this.props.t("SELECT_LANGUAGE")} />
             </div>
 

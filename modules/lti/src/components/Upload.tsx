@@ -2,7 +2,7 @@ import { Loading } from "./Loading";
 import Helmet from "react-helmet";
 import React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
-import { getJobs, JobResult, uploadFile, getEditMetadata, EditMetadata } from "../OpencastRest";
+import { getJobs, JobResult, uploadFile, getEditMetadata, EditMetadata, searchEpisode } from "../OpencastRest";
 import { parsedQueryString } from "../utils";
 import { EditForm, EditFormData } from "./EditForm";
 
@@ -61,16 +61,46 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
 
     componentDidMount() {
         this.retrieveJobs();
-        getEditMetadata().then((metadata) => this.setState({
-            ...this.state,
-            editMetadata: metadata,
-            formData: {
-                title: "",
-                presenters: [],
-                licenses: metadata.licenses,
-                languages: metadata.languages,
-            }
-        }));
+        getEditMetadata().then((metadata) => {
+            this.setState({
+                ...this.state,
+                editMetadata: metadata,
+                formData: {
+                    title: "",
+                    presenters: [],
+                    licenses: metadata.licenses,
+                    languages: metadata.languages,
+                }
+            });
+            const qs = parsedQueryString();
+            if (typeof qs.episode_id === "string")
+                searchEpisode(
+                    1,
+                    0,
+                    qs.episode_id,
+                    undefined,
+                    undefined).then((result) => result.results).then((results) => {
+                        if (results.length !== 1) {
+                            console.log("TODO!");
+                        }
+                        if (this.state.formData === undefined) {
+                            return;
+                        }
+                        this.setState({
+                            ...this.state,
+                            formData: {
+                                title: results[0].dcTitle,
+                                presenters: results[0].mediapackage.creators,
+                                licenses: this.state.formData.licenses,
+                                languages: this.state.formData.languages,
+                                license: results[0].licenseKey,
+                                language: results[0].languageShortCode
+
+                            }
+                        });
+                    });
+        });
+
         this.setState({
             ...this.state,
             jobsTimerId: setInterval(this.jobsTimer.bind(this), 1000),
