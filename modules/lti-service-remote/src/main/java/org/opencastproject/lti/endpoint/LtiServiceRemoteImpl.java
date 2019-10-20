@@ -21,6 +21,7 @@
 package org.opencastproject.lti.endpoint;
 
 import org.opencastproject.lti.service.api.LtiEditMetadata;
+import org.opencastproject.lti.service.api.LtiFileUpload;
 import org.opencastproject.lti.service.api.LtiJob;
 import org.opencastproject.lti.service.api.LtiService;
 import org.opencastproject.serviceregistry.api.RemoteBase;
@@ -36,7 +37,6 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.InputStreamBody;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -71,14 +71,19 @@ public class LtiServiceRemoteImpl extends RemoteBase implements LtiService {
   }
 
   @Override
-  public void upload(InputStream file, String captions, String sourceName, String seriesId, String seriesName,
+  public void upsertEvent(
+          String eventId,
+          LtiFileUpload file,
+          String captions,
+          String seriesId,
+          String seriesName,
           Map<String, String> metadata) {
     MultipartEntityBuilder entity = MultipartEntityBuilder.create();
     entity.addTextBody("isPartOf", seriesId);
     entity.addTextBody("seriesName", seriesName);
     entity.addTextBody("captions", captions);
     metadata.forEach(entity::addTextBody);
-    entity.addPart(sourceName, new InputStreamBody(file, sourceName));
+    entity.addPart(file.getSourceName(), new InputStreamBody(file.getStream(), file.getSourceName()));
     HttpPost post = new HttpPost("/");
     post.setEntity(entity.build());
     closeConnection(getResponse(post));

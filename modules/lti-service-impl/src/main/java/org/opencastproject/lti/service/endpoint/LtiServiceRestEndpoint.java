@@ -23,6 +23,7 @@ package org.opencastproject.lti.service.endpoint;
 import static org.opencastproject.util.doc.rest.RestParameter.Type.STRING;
 
 import org.opencastproject.lti.service.api.LtiEditMetadata;
+import org.opencastproject.lti.service.api.LtiFileUpload;
 import org.opencastproject.lti.service.api.LtiJob;
 import org.opencastproject.lti.service.api.LtiService;
 import org.opencastproject.util.doc.rest.RestParameter;
@@ -110,6 +111,7 @@ public class LtiServiceRestEndpoint {
     Map<String, String> metadata = new HashMap<>();
     try {
       String captions = null;
+      String eventId = null;
       for (FileItemIterator iter = new ServletFileUpload().getItemIterator(request); iter.hasNext();) {
         final FileItemStream item = iter.next();
         final String fieldName = item.getFieldName();
@@ -126,14 +128,26 @@ public class LtiServiceRestEndpoint {
           metadata.put(fieldName, fieldValue);
         } else if ("captions".equals(fieldName)) {
           captions = Streams.asString(item.openStream());
+        } else if ("eventId".equals(fieldName)) {
+          eventId = Streams.asString(item.openStream());
         } else {
           final InputStream stream = item.openStream();
           final String streamName = item.getName();
-          service.upload(stream, captions, streamName, seriesId, seriesName, metadata);
+          service.upsertEvent(
+                  eventId,
+                  new LtiFileUpload(stream, streamName),
+                  captions,
+                  seriesId,
+                  seriesName,
+                  metadata);
           return Response.ok().build();
         }
       }
-      return Response.status(Status.BAD_REQUEST).entity("No file given").build();
+      if (eventId == null) {
+        return Response.status(Status.BAD_REQUEST).entity("No file given").build();
+      }
+      service.upsertEvent(eventId, null, captions, seriesId, seriesName, metadata);
+      return Response.ok().build();
     } catch (FileUploadException | IOException e) {
       return Response.status(Status.INTERNAL_SERVER_ERROR).entity("error while uploading").build();
     }

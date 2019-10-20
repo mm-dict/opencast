@@ -59,6 +59,11 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
         this.retrieveJobs();
     }
 
+    episodeId(): string | undefined {
+        const qs = parsedQueryString();
+        return typeof qs.episode_id === "string" ? qs.episode_id : undefined;
+    }
+
     componentDidMount() {
         this.retrieveJobs();
         getEditMetadata().then((metadata) => {
@@ -72,12 +77,12 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                     languages: metadata.languages,
                 }
             });
-            const qs = parsedQueryString();
-            if (typeof qs.episode_id === "string")
+            const eid = this.episodeId();
+            if (eid !== undefined)
                 searchEpisode(
                     1,
                     0,
-                    qs.episode_id,
+                    eid,
                     undefined,
                     undefined).then((result) => result.results).then((results) => {
                         if (results.length !== 1) {
@@ -116,7 +121,7 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
         if (this.state.formData === undefined)
             return;
         const formData = this.state.formData;
-        if (formData.selectedFile === undefined)
+        if (this.episodeId() === undefined && formData.selectedFile === undefined)
             return;
         const qs = parsedQueryString();
         this.setState({
@@ -124,9 +129,10 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
             uploadState: "pending"
         });
         uploadFile(
-            formData.selectedFile,
             formData.title,
             formData.presenters,
+            formData.selectedFile,
+            this.episodeId(),
             formData.selectedCaption,
             formData.license,
             formData.language,
@@ -137,13 +143,19 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                 return;
             this.setState({
                 ...this.state,
-                formData: {
-                    title: "",
-                    presenters: [],
-                    licenses: this.state.editMetadata.licenses,
-                    languages: this.state.editMetadata.languages,
-                }
+                uploadState: "success"
             });
+            if (this.episodeId() === undefined) {
+                this.setState({
+                    ...this.state,
+                    formData: {
+                        title: "",
+                        presenters: [],
+                        licenses: this.state.editMetadata.licenses,
+                        languages: this.state.editMetadata.languages,
+                    },
+                });
+            }
         }).catch((_) => {
             this.setState({
                 ...this.state,
@@ -164,9 +176,9 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
             return <Loading />;
         return <>
             <Helmet>
-                <title>{this.props.t("UPLOAD_TITLE")}</title>
+                <title>{this.props.t(this.episodeId() === undefined ? "UPLOAD_TITLE" : "EDIT_TITLE")}</title>
             </Helmet>
-            <h2>{this.props.t("NEW_UPLOAD")}</h2>
+            <h2>{this.props.t(this.episodeId() === undefined ? "NEW_UPLOAD" : "EDIT_UPLOAD")}</h2>
             {this.state.uploadState === "success" && <div className="alert alert-success">
                 {this.props.t("UPLOAD_SUCCESS")}<br />
             </div>}
@@ -175,6 +187,7 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                 <div className="text-muted">{this.props.t("UPLOAD_FAILURE_DESCRIPTION")}</div>
             </div>}
             <EditForm
+                withUpload={this.episodeId() === undefined}
                 data={this.state.formData}
                 onDataChange={this.onDataChange.bind(this)}
                 onSubmit={this.onSubmit.bind(this)} pending={this.state.uploadState === "pending"} />
