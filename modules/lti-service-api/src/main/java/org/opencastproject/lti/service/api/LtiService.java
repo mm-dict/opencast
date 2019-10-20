@@ -20,7 +20,6 @@
  */
 package org.opencastproject.lti.service.api;
 
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -36,18 +35,18 @@ public interface LtiService {
   List<LtiJob> listJobs(String seriesName, String seriesId);
 
   /**
-   * Upload a new video
+   * Upload a new event or update existing event's metadata
+   * @param eventId Event to edit (can be <code>null</code> to upload new events)
    * @param file File to upload
    * @param captions Subtitles file
-   * @param sourceName Name of the source
    * @param seriesId ID of the series (optional only if the name is specified instead)
    * @param seriesName Name of the series (optional)
    * @param metadata Metadata for the event
    */
-  void upload(
-          InputStream file,
+  void upsertEvent(
+          String eventId,
+          LtiFileUpload file,
           String captions,
-          String sourceName,
           String seriesId,
           String seriesName,
           Map<String, String> metadata);

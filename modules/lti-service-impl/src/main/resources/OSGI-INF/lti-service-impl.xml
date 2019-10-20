@@ -36,4 +36,6 @@
              name="ListProvidersService"/>
   <reference name="workspace" interface="org.opencastproject.workspace.api.Workspace"
              bind="setWorkspace"/>
+  <reference name="asset-manager" interface="org.opencastproject.assetmanager.api.AssetManager"
+             bind="setAssetManager"/>
 </scr:component>

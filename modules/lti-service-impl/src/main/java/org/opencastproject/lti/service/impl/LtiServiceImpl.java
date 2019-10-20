@@ -22,7 +22,10 @@ package org.opencastproject.lti.service.impl;
 
 import static org.opencastproject.util.MimeType.mimeType;
 
+import org.opencastproject.assetmanager.api.AssetManager;
 import org.opencastproject.index.service.api.IndexService;
+import org.opencastproject.index.service.catalog.adapter.MetadataList;
+import org.opencastproject.index.service.exception.IndexServiceException;
 import org.opencastproject.index.service.exception.ListProviderException;
 import org.opencastproject.index.service.impl.index.AbstractSearchIndex;
 import org.opencastproject.index.service.impl.index.event.Event;
@@ -31,6 +34,7 @@ import org.opencastproject.index.service.resources.list.api.ListProvidersService
 import org.opencastproject.index.service.resources.list.query.ResourceListQueryImpl;
 import org.opencastproject.ingest.api.IngestService;
 import org.opencastproject.lti.service.api.LtiEditMetadata;
+import org.opencastproject.lti.service.api.LtiFileUpload;
 import org.opencastproject.lti.service.api.LtiJob;
 import org.opencastproject.lti.service.api.LtiLanguage;
 import org.opencastproject.lti.service.api.LtiLicense;
@@ -70,7 +74,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.osgi.service.cm.ManagedService;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
@@ -88,6 +91,7 @@ public class LtiServiceImpl implements LtiService, ManagedService {
   private IngestService ingestService;
   private SecurityService securityService;
   private ListProvidersService listProvidersService;
+  private AssetManager assetManager;
   private SeriesService seriesService;
   private Workspace workspace;
   private AbstractSearchIndex searchIndex;
@@ -95,6 +99,10 @@ public class LtiServiceImpl implements LtiService, ManagedService {
   private String workflowConfiguration;
   private String retractWorkflowId;
   private final List<EventCatalogUIAdapter> catalogUIAdapters = new ArrayList<>();
+
+  public void setAssetManager(AssetManager assetManager) {
+    this.assetManager = assetManager;
+  }
 
   public void setWorkspace(Workspace workspace) {
     this.workspace = workspace;
@@ -174,13 +182,17 @@ public class LtiServiceImpl implements LtiService, ManagedService {
   }
 
   @Override
-  public void upload(
-          final InputStream file,
+  public void upsertEvent(
+          final String eventId,
+          final LtiFileUpload file,
           final String captions,
-          final String sourceName,
           String seriesId,
           final String seriesName,
           final Map<String, String> metadata) {
+    if (eventId != null) {
+      updateEvent(eventId, metadata);
+      return;
+    }
     if (workflow == null || workflowConfiguration == null) {
       throw new RuntimeException("no workflow configured, cannot upload");
     }
@@ -197,26 +209,26 @@ public class LtiServiceImpl implements LtiService, ManagedService {
         captionsMpe.setMimeType(mimeType("text", "vtt"));
         captionsMpe.addTag("lang:en");
         mp.add(captionsMpe);
-        final URI captionsUri = workspace.put(mp.getIdentifier().toString(), captionsMpe.getIdentifier(), "captions.vtt", new ByteArrayInputStream(captions.getBytes(StandardCharsets.UTF_8)));
+        final URI captionsUri = workspace
+                .put(
+                        mp.getIdentifier().toString(),
+                        captionsMpe.getIdentifier(),
+                        "captions.vtt",
+                        new ByteArrayInputStream(captions.getBytes(StandardCharsets.UTF_8)));
         captionsMpe.setURI(captionsUri);
       }
 
-      final MediaPackageElementFlavor flavor = new MediaPackageElementFlavor("dublincore", "episode");
-      final EventCatalogUIAdapter adapter = catalogUIAdapters.stream().filter(e -> e.getFlavor().equals(flavor))
-              .findAny().orElse(null);
-      if (adapter == null) {
-        throw new RuntimeException("no adapter found");
-      }
-      final MetadataCollection collection = adapter.getRawFields();
       if (StringUtils.trimToNull(seriesId) == null) {
         seriesId = resolveSeriesName(seriesName);
       }
-      mp = ingestService.addTrack(file, sourceName, MediaPackageElements.PRESENTER_SOURCE, mp);
       metadata.put("duration", "6000");
       metadata.put("isPartOf", seriesId);
+      final EventCatalogUIAdapter adapter = getEventCatalogUIAdapter();
+      final MetadataCollection collection = adapter.getRawFields();
       metadata.forEach((k, v) -> replaceField(collection, k, v));
-
       adapter.storeFields(mp, collection);
+
+      mp = ingestService.addTrack(file.getStream(), file.getSourceName(), MediaPackageElements.PRESENTER_SOURCE, mp);
 /*
       r.setAcl(new AccessControlList(new AccessControlEntry("ROLE_ADMIN", "write", true),
               new AccessControlEntry("ROLE_ADMIN", "read", true),
@@ -229,6 +241,29 @@ public class LtiServiceImpl implements LtiService, ManagedService {
       ingestService.ingest(mp, workflow, configuration);
     } catch (Exception e) {
       throw new RuntimeException("unable to create event", e);
+    }
+  }
+
+  private EventCatalogUIAdapter getEventCatalogUIAdapter() {
+    final MediaPackageElementFlavor flavor = new MediaPackageElementFlavor("dublincore", "episode");
+    final EventCatalogUIAdapter adapter = catalogUIAdapters.stream().filter(e -> e.getFlavor().equals(flavor)).findAny()
+            .orElse(null);
+    if (adapter == null) {
+      throw new RuntimeException("no adapter found");
+    }
+    return adapter;
+  }
+
+  private void updateEvent(final String eventId, final Map<String, String> metadata) {
+    final EventCatalogUIAdapter adapter = getEventCatalogUIAdapter();
+    final MetadataCollection collection = adapter.getRawFields();
+    metadata.forEach((k, v) -> replaceField(collection, k, v));
+    try {
+      final MetadataList metadataList = new MetadataList();
+      metadataList.add(adapter, collection);
+      this.indexService.updateEventMetadata(eventId, metadataList, searchIndex);
+    } catch (IndexServiceException | SearchIndexException | NotFoundException | UnauthorizedException e) {
+      throw new RuntimeException(e);
     }
   }
 

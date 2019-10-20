@@ -24,6 +24,7 @@ export interface EditFormData {
 
 interface EditFormProps extends WithTranslation {
     readonly data: EditFormData;
+    readonly withUpload: boolean;
     readonly onDataChange: (newData: EditFormData) => void;
     readonly onSubmit: () => void;
     readonly pending: boolean;
@@ -93,19 +94,23 @@ class TranslatedEditForm extends React.Component<EditFormProps> {
         return <form>
             <div className="form-group">
                 <label htmlFor="title">{this.props.t("TITLE")}</label>
-                <input type="text" className="form-control" value={this.props.data.title} onChange={(e) => this.setState({ ...this.props.data, title: e.target.value })} />
+                <input type="text" className="form-control" value={this.props.data.title} onChange={(e) => this.props.onDataChange({ ...this.props.data, title: e.currentTarget.value })} />
                 <small className="form-text text-muted">{this.props.t("TITLE_DESCRIPTION")}</small>
             </div>
-            <div className="form-group">
-                <label htmlFor="presenter">{this.props.t("PRESENTER")}</label>
-                <input type="file" className="form-control-file" onChange={this.onChangeFile.bind(this)} />
-                <small className="form-text text-muted">{this.props.t("PRESENTER_DESCRIPTION")}</small>
-            </div>
-            <div className="form-group">
-                <label htmlFor="caption">{this.props.t("CAPTION")}</label>
-                <input type="file" className="form-control-file" onChange={this.onChangeCaption.bind(this)} />
-                <small className="form-text text-muted">{this.props.t("CAPTION_DESCRIPTION")}</small>
-            </div>
+            {this.props.withUpload &&
+                <div className="form-group">
+                    <label htmlFor="presenter">{this.props.t("PRESENTER")}</label>
+                    <input type="file" className="form-control-file" onChange={this.onChangeFile.bind(this)} />
+                    <small className="form-text text-muted">{this.props.t("PRESENTER_DESCRIPTION")}</small>
+                </div>
+            }
+            {this.props.withUpload &&
+                <div className="form-group">
+                    <label htmlFor="caption">{this.props.t("CAPTION")}</label>
+                    <input type="file" className="form-control-file" onChange={this.onChangeCaption.bind(this)} />
+                    <small className="form-text text-muted">{this.props.t("CAPTION_DESCRIPTION")}</small>
+                </div>
+            }
             <div className="form-group">
                 <label htmlFor="license">{this.props.t("LICENSE")}</label>
                 <Select

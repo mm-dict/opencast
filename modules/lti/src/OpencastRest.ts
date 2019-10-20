@@ -118,15 +118,20 @@ export async function getJobs(seriesId?: string, seriesName?: string): Promise<J
 }
 
 export async function uploadFile(
-    file: Blob,
     title: string,
     presenters: string[],
+    file?: Blob,
+    episodeId?: string,
     captions?: Blob,
     license?: string,
     language?: string,
     seriesId?: string,
     seriesName?: string): Promise<{}> {
     const data = new FormData();
+    if (episodeId !== undefined) {
+        data.append("eventId", episodeId)
+    }
+    data.append("seriesName", seriesName === undefined ? "" : seriesName);
     data.append("seriesName", seriesName === undefined ? "" : seriesName);
     data.append("isPartOf", seriesId === undefined ? "" : seriesId);
     data.append("title", title);
@@ -138,6 +143,7 @@ export async function uploadFile(
         data.append("presenterNames[]", presenters[i]);
     if (captions !== undefined)
         data.append("captions", captions);
-    data.append("presenter", file);
+    if (file !== undefined)
+        data.append("presenter", file);
     return axios.post(hostAndPort() + "/lti-service-gui", data);
 }
