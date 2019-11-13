@@ -3,19 +3,16 @@ import Helmet from "react-helmet";
 import React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 import {
-    getJobs,
-    JobResult,
     uploadFile,
     getEventMetadata,
     EventMetadataContainer
 } from "../OpencastRest";
 import { parsedQueryString } from "../utils";
 import { EditForm } from "./EditForm";
+import { JobList } from "./JobList";
 
 interface UploadState {
-    readonly jobs: JobResult[] | string;
     readonly uploadState: "success" | "error" | "pending" | "none";
-    readonly jobsTimerId?: ReturnType<typeof setTimeout>;
     readonly initialMetadata?: EventMetadataContainer;
     readonly editMetadata?: EventMetadataContainer;
     readonly presenterFile?: Blob;
@@ -29,27 +26,8 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
     constructor(props: UploadProps) {
         super(props);
         this.state = {
-            jobs: [],
             uploadState: "none",
         };
-    }
-
-    retrieveJobs() {
-        const qs = parsedQueryString();
-        getJobs(
-            typeof qs.series === "string" ? qs.series : undefined,
-            typeof qs.seriesName === "string" ? qs.seriesName : undefined
-        ).then((jobs) => this.setState({
-            ...this.state,
-            jobs: jobs
-        })).catch((error) => this.setState({
-            ...this.state,
-            jobs: error.message
-        }));
-    }
-
-    jobsTimer() {
-        this.retrieveJobs();
     }
 
     episodeId(): string | undefined {
@@ -58,7 +36,6 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
     }
 
     componentDidMount() {
-        this.retrieveJobs();
         getEventMetadata(this.episodeId()).then((metadataCollection) => {
             if (metadataCollection.length > 0) {
                 const metadata = metadataCollection[0];
@@ -69,16 +46,6 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                 });
             }
         });
-
-        this.setState({
-            ...this.state,
-            jobsTimerId: setInterval(this.jobsTimer.bind(this), 1000),
-        });
-    }
-
-    componentWillUnmount() {
-        if (this.state.jobsTimerId !== undefined)
-            clearInterval(this.state.jobsTimerId);
     }
 
     onSubmit() {
@@ -106,7 +73,6 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                 uploadState: "success"
             });
             if (this.episodeId() === undefined) {
-                console.log("episode undefined, setting metadata to " + JSON.stringify(this.state.initialMetadata))
                 this.setState({
                     ...this.state,
                     editMetadata: this.state.initialMetadata,
@@ -144,6 +110,7 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
     render() {
         if (this.state.editMetadata === undefined)
             return <Loading />;
+        const qs = parsedQueryString();
         return <>
             <Helmet>
                 <title>{this.props.t(this.episodeId() === undefined ? "UPLOAD_TITLE" : "EDIT_TITLE")}</title>
@@ -165,22 +132,9 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                 onSubmit={this.onSubmit.bind(this)}
                 pending={this.state.uploadState === "pending"} />
             <h2>{this.props.t("CURRENT_JOBS")}</h2>
-            {typeof this.state.jobs !== "string" &&
-                <table className="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>{this.props.t("TITLE")}</th>
-                            <th>{this.props.t("STATUS")}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {this.state.jobs.map((job) => <tr key={job.title}>
-                            <td>{job.title}</td>
-                            <td>{this.props.t(job.status)}</td>
-                        </tr>)}
-                    </tbody>
-                </table>
-            }
+            <JobList
+                seriesId={typeof qs.series === "string" ? qs.series : undefined}
+                seriesName={typeof qs.seriesName === "string" ? qs.seriesName : undefined} />
         </>;
     }
 }
