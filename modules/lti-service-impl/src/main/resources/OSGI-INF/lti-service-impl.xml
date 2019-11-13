@@ -31,6 +31,12 @@
   <reference name="search-index"
              interface="org.opencastproject.external.index.ExternalIndex"
              bind="setSearchIndex"/>
+  <reference name="asset-manager"
+             interface="org.opencastproject.assetmanager.api.AssetManager"
+             bind="setAssetManager"/>
+  <reference name="workflow-service"
+             interface="org.opencastproject.workflow.api.WorkflowService"
+             bind="setWorkflowService"/>
   <reference name="workspace" interface="org.opencastproject.workspace.api.Workspace"
              bind="setWorkspace"/>
 </scr:component>

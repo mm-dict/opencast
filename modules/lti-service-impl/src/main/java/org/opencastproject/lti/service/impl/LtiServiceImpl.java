@@ -21,7 +21,10 @@
 package org.opencastproject.lti.service.impl;
 
 import static org.opencastproject.util.MimeType.mimeType;
+import static org.opencastproject.workflow.api.ConfiguredWorkflow.workflow;
 
+import org.opencastproject.assetmanager.api.AssetManager;
+import org.opencastproject.assetmanager.util.Workflows;
 import org.opencastproject.index.service.api.IndexService;
 import org.opencastproject.index.service.catalog.adapter.MetadataList;
 import org.opencastproject.index.service.exception.IndexServiceException;
@@ -58,8 +61,11 @@ import org.opencastproject.series.api.SeriesQuery;
 import org.opencastproject.series.api.SeriesService;
 import org.opencastproject.util.ConfigurationException;
 import org.opencastproject.util.NotFoundException;
+import org.opencastproject.workflow.api.ConfiguredWorkflow;
 import org.opencastproject.workflow.api.WorkflowDatabaseException;
+import org.opencastproject.workflow.api.WorkflowDefinition;
 import org.opencastproject.workflow.api.WorkflowInstance;
+import org.opencastproject.workflow.api.WorkflowService;
 import org.opencastproject.workflow.api.WorkflowUtil;
 import org.opencastproject.workspace.api.Workspace;
 
@@ -69,6 +75,8 @@ import com.google.gson.JsonSyntaxException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.osgi.service.cm.ManagedService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;
@@ -77,6 +85,7 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.List;
@@ -84,17 +93,31 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class LtiServiceImpl implements LtiService, ManagedService {
+  private static final Logger logger = LoggerFactory.getLogger(LtiServiceImpl.class);
+
   private static final Gson gson = new Gson();
   private IndexService indexService;
   private IngestService ingestService;
   private SecurityService securityService;
   private SeriesService seriesService;
+  private WorkflowService workflowService;
+  private AssetManager assetManager;
   private Workspace workspace;
   private AbstractSearchIndex searchIndex;
   private String workflow;
   private String workflowConfiguration;
   private String retractWorkflowId;
   private final List<EventCatalogUIAdapter> catalogUIAdapters = new ArrayList<>();
+
+  /** OSGi DI */
+  public void setAssetManager(AssetManager assetManager) {
+    this.assetManager = assetManager;
+  }
+
+  /** OSGi DI */
+  public void setWorkflowService(WorkflowService workflowService) {
+    this.workflowService = workflowService;
+  }
 
   /** OSGi DI */
   public void setWorkspace(Workspace workspace) {
@@ -244,7 +267,23 @@ public class LtiServiceImpl implements LtiService, ManagedService {
       metadataList.add(adapter, collection);
       metadataList.fromJSON(metadata);
       this.indexService.updateEventMetadata(eventId, metadataList, searchIndex);
+      republishMetadata(eventId);
     } catch (IndexServiceException | SearchIndexException | MetadataParsingException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private void republishMetadata(final String eventId) {
+    final String workflowId = "republish-metadata";
+    try {
+      final WorkflowDefinition wfd = workflowService.getWorkflowDefinitionById(workflowId);
+      final Workflows workflows = new Workflows(assetManager, workflowService);
+      final ConfiguredWorkflow workflow = workflow(wfd, Collections.emptyMap());
+      if (workflows.applyWorkflowToLatestVersion(Collections.singleton(eventId), workflow).isEmpty()) {
+        throw new RuntimeException(String.format("couldn't start workflow '%s' for event %s", workflowId, eventId));
+      }
+    } catch (WorkflowDatabaseException | NotFoundException e) {
+      logger.error("unable to get workflow definition {}", workflowId, e);
       throw new RuntimeException(e);
     }
   }
