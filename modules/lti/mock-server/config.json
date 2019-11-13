@@ -18,8 +18,12 @@
       "mockFile": "jobs.json",
       "verbs": ["get"]
     },
-    "lti-service-gui/editMetadata": {
-      "mockFile": "editMetadata.json",
+    "lti-service-gui/new/metadata": {
+      "mockFile": "new-metadata.json",
+      "verbs": ["get"]
+    },
+    "lti-service-gui/existing-event/metadata": {
+      "mockFile": "existing-metadata.json",
       "verbs": ["get"]
     }
   }

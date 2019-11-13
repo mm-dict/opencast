@@ -47,14 +47,84 @@ export interface SearchEpisodeResults {
     readonly offset: number;
 }
 
+export type EventMetadataCollection = {
+    [name: string]: string
+};
+
+export interface EventMetadataField {
+    readonly readOnly: boolean;
+    readonly id: string;
+    readonly label: string;
+    readonly type: "text" | "text_long" | "ordered_text" | "mixed_text" | "date";
+    readonly value: string | string[];
+    readonly required: boolean;
+    readonly collection?: EventMetadataCollection;
+}
+
+export interface EventMetadataContainer {
+    readonly flavor: string;
+    readonly title: string;
+    readonly fields: EventMetadataField[];
+}
+
 export interface LtiData {
     readonly roles: string[];
+}
+
+export function findField(
+    id: string,
+    metadata: EventMetadataContainer): EventMetadataField | undefined {
+    return metadata.fields.find((f: EventMetadataField) => f.id === id);
+}
+
+export function findFieldValue(
+    id: string,
+    metadata: EventMetadataContainer): string | string[] | undefined {
+    const result = findField(id, metadata);
+    return result && result.value;
+}
+
+export function findFieldSingleValue(
+    id: string,
+    metadata: EventMetadataContainer): string | undefined {
+    const result = findFieldValue(id, metadata);
+    if (result === undefined)
+        return;
+    return typeof result === "string" ? result : undefined;
+}
+
+function isMultiValue(v: string | string[]): v is string[] {
+    return v.length !== undefined;
+}
+
+export function findFieldMultiValue(
+    id: string,
+    metadata: EventMetadataContainer): string[] | undefined {
+    const result = findFieldValue(id, metadata);
+    if (result === undefined)
+        return;
+    if (!isMultiValue(result))
+        return;
+    return result;
+}
+
+export function findFieldCollection(
+    id: string,
+    metadata: EventMetadataContainer): EventMetadataCollection | undefined {
+    const field = findField(id, metadata);
+    return (field && field.collection) || undefined;
 }
 
 const debug = window.location.search.indexOf("&debug=true") !== -1;
 
 function hostAndPort() {
     return debug ? "http://localhost:7878" : "";
+}
+
+export async function getEventMetadata(eventId?: string): Promise<EventMetadataContainer[]> {
+    const useEventId = eventId === undefined ? "new" : eventId;
+    const response = await axios.get(hostAndPort() + "/lti-service-gui/" + useEventId + "/metadata");
+    return response.data;
 }
 
 export async function searchEpisode(

@@ -22,22 +22,16 @@ package org.opencastproject.lti.service.impl;
 
 import static org.opencastproject.util.MimeType.mimeType;
 
-import org.opencastproject.assetmanager.api.AssetManager;
 import org.opencastproject.index.service.api.IndexService;
 import org.opencastproject.index.service.catalog.adapter.MetadataList;
 import org.opencastproject.index.service.exception.IndexServiceException;
-import org.opencastproject.index.service.exception.ListProviderException;
 import org.opencastproject.index.service.impl.index.AbstractSearchIndex;
 import org.opencastproject.index.service.impl.index.event.Event;
 import org.opencastproject.index.service.impl.index.event.EventSearchQuery;
-import org.opencastproject.index.service.resources.list.api.ListProvidersService;
-import org.opencastproject.index.service.resources.list.query.ResourceListQueryImpl;
+import org.opencastproject.index.service.impl.index.event.EventUtils;
 import org.opencastproject.ingest.api.IngestService;
-import org.opencastproject.lti.service.api.LtiEditMetadata;
 import org.opencastproject.lti.service.api.LtiFileUpload;
 import org.opencastproject.lti.service.api.LtiJob;
-import org.opencastproject.lti.service.api.LtiLanguage;
-import org.opencastproject.lti.service.api.LtiLicense;
 import org.opencastproject.lti.service.api.LtiService;
 import org.opencastproject.matterhorn.search.SearchIndexException;
 import org.opencastproject.matterhorn.search.SearchResult;
@@ -64,6 +58,8 @@ import org.opencastproject.series.api.SeriesService;
 import org.opencastproject.util.ConfigurationException;
 import org.opencastproject.util.NotFoundException;
 import org.opencastproject.workflow.api.WorkflowDatabaseException;
+import org.opencastproject.workflow.api.WorkflowInstance;
+import org.opencastproject.workflow.api.WorkflowUtil;
 import org.opencastproject.workspace.api.Workspace;
 
 import com.entwinemedia.fn.data.Opt;
@@ -81,6 +77,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -90,8 +87,6 @@ public class LtiServiceImpl implements LtiService, ManagedService {
   private IndexService indexService;
   private IngestService ingestService;
   private SecurityService securityService;
-  private ListProvidersService listProvidersService;
-  private AssetManager assetManager;
   private SeriesService seriesService;
   private Workspace workspace;
   private AbstractSearchIndex searchIndex;
@@ -100,17 +95,9 @@ public class LtiServiceImpl implements LtiService, ManagedService {
   private String retractWorkflowId;
   private final List<EventCatalogUIAdapter> catalogUIAdapters = new ArrayList<>();
 
-  public void setAssetManager(AssetManager assetManager) {
-    this.assetManager = assetManager;
-  }
-
+  /** OSGi DI */
   public void setWorkspace(Workspace workspace) {
     this.workspace = workspace;
-  }
-
-  /** OSGi DI */
-  public void setListProvidersService(ListProvidersService listProvidersService) {
-    this.listProvidersService = listProvidersService;
   }
 
   /** OSGi DI */
@@ -268,18 +255,96 @@ public class LtiServiceImpl implements LtiService, ManagedService {
   }
 
   @Override
-  public LtiEditMetadata editMetadata() {
-    final ResourceListQueryImpl query = new ResourceListQueryImpl();
+  public MetadataList getEventMetadata(final String eventId) throws NotFoundException, UnauthorizedException {
+    final Opt<Event> optEvent;
     try {
-      return new LtiEditMetadata(listProvidersService.getList("LANGUAGES", query, false).entrySet().stream()
-              .map(e -> new LtiLanguage(e.getKey(), e.getValue())).collect(Collectors.toList()),
-              listProvidersService.getList("LICENSES", query, false)
-                      .entrySet()
-                      .stream()
-                      .map(entry -> new LtiLicense((String)gson.fromJson(entry.getValue(), Map.class).get("label"), entry.getKey()))
-                      .collect(Collectors.toList()));
-    } catch (ListProviderException e) {
-      throw new RuntimeException("unable to retrieve language list", e);
+      optEvent = indexService.getEvent(eventId, searchIndex);
+    } catch (SearchIndexException e) {
+      throw new RuntimeException(e);
+    }
+
+    if (optEvent.isNone())
+      throw new NotFoundException("cannot find event with id '" + eventId + "'");
+
+    final Event event = optEvent.get();
+
+    final MetadataList metadataList = new MetadataList();
+    final List<EventCatalogUIAdapter> catalogUIAdapters = this.indexService.getEventCatalogUIAdapters();
+    catalogUIAdapters.remove(this.indexService.getCommonEventCatalogUIAdapter());
+    final MediaPackage mediaPackage;
+    try {
+      mediaPackage = this.indexService.getEventMediapackage(event);
+    } catch (IndexServiceException e) {
+      if (e.getCause() instanceof NotFoundException) {
+        throw new NotFoundException("cannot retrieve metadata for event with id '" + eventId + "'");
+      } else if (e.getCause() instanceof UnauthorizedException) {
+        throw new UnauthorizedException("not authorized to access event with id '" + eventId + "'");
+      }
+      throw new RuntimeException(e);
+    }
+    for (EventCatalogUIAdapter catalogUIAdapter : catalogUIAdapters) {
+      metadataList.add(catalogUIAdapter, catalogUIAdapter.getFields(mediaPackage));
+    }
+
+    final MetadataCollection metadataCollection;
+    try {
+      metadataCollection = EventUtils.getEventMetadata(event, this.indexService.getCommonEventCatalogUIAdapter());
+    } catch (final Exception e) {
+      throw new RuntimeException(e);
+    }
+    metadataList.add(this.indexService.getCommonEventCatalogUIAdapter(), metadataCollection);
+
+    final String wfState = event.getWorkflowState();
+    if (wfState != null && WorkflowUtil.isActive(WorkflowInstance.WorkflowState.valueOf(wfState)))
+      metadataList.setLocked(MetadataList.Locked.WORKFLOW_RUNNING);
+
+    return metadataList;
+  }
+
+  @Override
+  public MetadataList getNewEventMetadata() {
+    final MetadataList metadataList = this.indexService.getMetadataListWithAllEventCatalogUIAdapters();
+    final Opt<MetadataCollection> optMetadataByAdapter = metadataList
+            .getMetadataByAdapter(this.indexService.getCommonEventCatalogUIAdapter());
+    if (optMetadataByAdapter.isSome()) {
+      final MetadataCollection collection = optMetadataByAdapter.get();
+      if (collection.getOutputFields().containsKey(DublinCore.PROPERTY_CREATED.getLocalName()))
+        collection.removeField(collection.getOutputFields().get(DublinCore.PROPERTY_CREATED.getLocalName()));
+      if (collection.getOutputFields().containsKey("duration"))
+        collection.removeField(collection.getOutputFields().get("duration"));
+      if (collection.getOutputFields().containsKey(DublinCore.PROPERTY_IDENTIFIER.getLocalName()))
+        collection.removeField(collection.getOutputFields().get(DublinCore.PROPERTY_IDENTIFIER.getLocalName()));
+      if (collection.getOutputFields().containsKey(DublinCore.PROPERTY_SOURCE.getLocalName()))
+        collection.removeField(collection.getOutputFields().get(DublinCore.PROPERTY_SOURCE.getLocalName()));
+      if (collection.getOutputFields().containsKey("startDate"))
+        collection.removeField(collection.getOutputFields().get("startDate"));
+      if (collection.getOutputFields().containsKey("startTime"))
+        collection.removeField(collection.getOutputFields().get("startTime"));
+      if (collection.getOutputFields().containsKey("location"))
+        collection.removeField(collection.getOutputFields().get("location"));
+
+      if (collection.getOutputFields().containsKey(DublinCore.PROPERTY_PUBLISHER.getLocalName())) {
+        final MetadataField<String> publisher = (MetadataField<String>) collection.getOutputFields().get(DublinCore.PROPERTY_PUBLISHER.getLocalName());
+        final Map<String, String> users = publisher.getCollection().getOr(new HashMap<>());
+        final String loggedInUser = this.securityService.getUser().getName();
+        if (!users.containsKey(loggedInUser)) {
+          users.put(loggedInUser, loggedInUser);
+        }
+        publisher.setValue(loggedInUser);
+      }
+
+      metadataList.add(this.indexService.getCommonEventCatalogUIAdapter(), collection);
+    }
+    return metadataList;
+  }
+
+  @Override
+  public void setEventMetadataJson(final String eventId, final String metadataJson)
+          throws NotFoundException, UnauthorizedException {
+    try {
+      this.indexService.updateAllEventMetadata(eventId, metadataJson, this.searchIndex);
+    } catch (IndexServiceException | SearchIndexException e) {
+      throw new RuntimeException(e);
     }
   }
 

@@ -134,7 +134,6 @@ class TranslatedSeries extends React.Component<SeriesProps, SeriesState> {
         if (this.state.httpErrors.length > 0)
             return <div>{this.props.t("GENERIC_ERROR", { message: this.state.httpErrors[0] })}</div>;
         if (this.state.searchResults !== undefined && this.state.ltiRoles !== undefined) {
-            console.log(JSON.stringify(this.state.searchResults));
             const sr = this.state.searchResults;
             const headingOpts = {
                 range: {

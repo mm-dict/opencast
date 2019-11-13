@@ -2,7 +2,18 @@ import { Loading } from "./Loading";
 import Helmet from "react-helmet";
 import React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
-import { getJobs, JobResult, uploadFile, getEditMetadata, EditMetadata, searchEpisode } from "../OpencastRest";
+import {
+    Language,
+    License,
+    getJobs,
+    JobResult,
+    uploadFile,
+    getEventMetadata,
+    findFieldSingleValue,
+    findFieldMultiValue,
+    findFieldCollection,
+    EventMetadataContainer
+} from "../OpencastRest";
 import { parsedQueryString } from "../utils";
 import { EditForm, EditFormData } from "./EditForm";
 
@@ -10,13 +21,60 @@ interface UploadState {
     readonly jobs: JobResult[] | string;
     readonly uploadState: "success" | "error" | "pending" | "none";
     readonly jobsTimerId?: ReturnType<typeof setTimeout>;
-    readonly editMetadata?: EditMetadata;
+    readonly editMetadata?: EventMetadataContainer;
     readonly formData?: EditFormData;
 }
 
 interface UploadProps extends WithTranslation {
 }
 
+function languageOptions(metadata: EventMetadataContainer) {
+    const languages = findFieldCollection("language", metadata);
+    if (languages === undefined) {
+        return [];
+    }
+    const result: Language[] = [];
+    Object.keys(languages).forEach((k) => result.push({
+        shortCode: languages[k],
+        translationCode: k
+    }));
+    return result;
+}
+
+function presenters(metadata: EventMetadataContainer): string[] {
+    const collection = findFieldMultiValue("creator", metadata);
+    if (collection === undefined) {
+        return [];
+    }
+    return collection;
+}
+
+function licenseOptions(metadata: EventMetadataContainer) {
+    const licenses = findFieldCollection("license", metadata);
+    if (licenses === undefined) {
+        return [];
+    }
+    const result: License[] = [];
+    Object.keys(licenses).forEach((k) => result.push({
+        key: licenses[k],
+        label: JSON.parse(k).label
+    }));
+    return result;
+}
+
+
+function formDataFromMetadata(metadata: EventMetadataContainer): EditFormData {
+    const license = findFieldSingleValue("license", metadata);
+    const language = findFieldSingleValue("language", metadata);
+    return {
+        title: findFieldSingleValue("title", metadata) || "",
+        presenters: presenters(metadata),
+        licenses: licenseOptions(metadata),
+        languages: languageOptions(metadata),
+        license: license !== "" ? license : undefined,
+        language: language !== "" ? language : undefined,
+    };
+}
 
 class TranslatedUpload extends React.Component<UploadProps, UploadState> {
     constructor(props: UploadProps) {
@@ -25,20 +83,6 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
             jobs: [],
             uploadState: "none",
         };
-    }
-
-    languageOptions() {
-        if (this.state.editMetadata === undefined) {
-            return [];
-        }
-        return this.state.editMetadata.languages.map((l) => ({ value: l.shortCode, label: this.props.t(l.translationCode) }));
-    }
-
-    licenseOptions() {
-        if (this.state.editMetadata === undefined) {
-            return [];
-        }
-        return this.state.editMetadata.licenses.map((l) => ({ value: l.key, label: this.props.t(l.label) }));
     }
 
     retrieveJobs() {
@@ -66,44 +110,15 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
 
     componentDidMount() {
         this.retrieveJobs();
-        getEditMetadata().then((metadata) => {
-            this.setState({
-                ...this.state,
-                editMetadata: metadata,
-                formData: {
-                    title: "",
-                    presenters: [],
-                    licenses: metadata.licenses,
-                    languages: metadata.languages,
-                }
-            });
-            const eid = this.episodeId();
-            if (eid !== undefined)
-                searchEpisode(
-                    1,
-                    0,
-                    eid,
-                    undefined,
-                    undefined).then((result) => result.results).then((results) => {
-                        if (results.length !== 1) {
-                            console.log("TODO!");
-                        }
-                        if (this.state.formData === undefined) {
-                            return;
-                        }
-                        this.setState({
-                            ...this.state,
-                            formData: {
-                                title: results[0].dcTitle,
-                                presenters: results[0].mediapackage.creators,
-                                licenses: this.state.formData.licenses,
-                                languages: this.state.formData.languages,
-                                license: results[0].licenseKey,
-                                language: results[0].languageShortCode
-
-                            }
-                        });
-                    });
+        getEventMetadata(this.episodeId()).then((metadataCollection) => {
+            if (metadataCollection.length > 0) {
+                const metadata = metadataCollection[0];
+                this.setState({
+                    ...this.state,
+                    editMetadata: metadata,
+                    formData: formDataFromMetadata(metadata)
+                });
+            }
         });
 
         this.setState({
@@ -151,8 +166,8 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                     formData: {
                         title: "",
                         presenters: [],
-                        licenses: this.state.editMetadata.licenses,
-                        languages: this.state.editMetadata.languages,
+                        licenses: licenseOptions(this.state.editMetadata),
+                        languages: languageOptions(this.state.editMetadata),
                     },
                 });
             }

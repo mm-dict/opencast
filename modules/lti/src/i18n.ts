@@ -4,8 +4,6 @@ import { initReactI18next } from "react-i18next";
 import deJson from "./i18n/de-DE.json";
 import enJson from "./i18n/en-US.json";
 
-console.log(JSON.stringify(enJson));
-
 i18n
     .use(LanguageDetector)
     .use(initReactI18next)

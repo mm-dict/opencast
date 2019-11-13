@@ -20,7 +20,6 @@
  */
 package org.opencastproject.lti.endpoint;
 
-import org.opencastproject.lti.service.api.LtiEditMetadata;
 import org.opencastproject.lti.service.api.LtiFileUpload;
 import org.opencastproject.lti.service.api.LtiJob;
 import org.opencastproject.lti.service.api.LtiService;
@@ -88,25 +87,6 @@ public class LtiServiceRemoteImpl extends RemoteBase implements LtiService {
     post.setEntity(entity.build());
     closeConnection(getResponse(post));
     throw new RuntimeException("Unable to put file");
-  }
-
-  @Override
-  public LtiEditMetadata editMetadata() {
-    HttpResponse response = null;
-    try {
-      HttpGet get = new HttpGet("/editMetadata");
-      response = getResponse(get);
-      if (response == null) {
-        throw new RuntimeException("No response from service");
-      }
-      return gson.fromJson(
-              new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8),
-              new TypeToken<LtiEditMetadata>(){}.getType());
-    } catch (IOException e) {
-      throw new RuntimeException("failed retrieving jobs", e);
-    } finally {
-      closeConnection(response);
-    }
   }
 
   @Override

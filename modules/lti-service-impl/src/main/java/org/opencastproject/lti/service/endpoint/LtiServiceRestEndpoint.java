@@ -22,7 +22,6 @@ package org.opencastproject.lti.service.endpoint;
 
 import static org.opencastproject.util.doc.rest.RestParameter.Type.STRING;
 
-import org.opencastproject.lti.service.api.LtiEditMetadata;
 import org.opencastproject.lti.service.api.LtiFileUpload;
 import org.opencastproject.lti.service.api.LtiJob;
 import org.opencastproject.lti.service.api.LtiService;
@@ -83,13 +82,6 @@ public class LtiServiceRestEndpoint {
     return Response.status(Status.OK)
             .entity(gson.toJson(service.listJobs(seriesName, seriesId), new TypeToken<List<LtiJob>>() {
             }.getType())).build();
-  }
-
-  @GET
-  @Path("/editMetadata")
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response listJobs() {
-    return Response.status(Status.OK).entity(gson.toJson(service.editMetadata(), LtiEditMetadata.class)).build();
   }
 
   @POST

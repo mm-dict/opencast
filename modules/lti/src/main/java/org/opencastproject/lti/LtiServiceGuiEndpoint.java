@@ -20,9 +20,11 @@
  */
 package org.opencastproject.lti;
 
-import org.opencastproject.lti.service.api.LtiEditMetadata;
+import org.opencastproject.index.service.util.RestUtils;
 import org.opencastproject.lti.service.api.LtiFileUpload;
 import org.opencastproject.lti.service.api.LtiService;
+import org.opencastproject.security.api.UnauthorizedException;
+import org.opencastproject.util.NotFoundException;
 import org.opencastproject.util.doc.rest.RestParameter;
 import org.opencastproject.util.doc.rest.RestParameter.Type;
 import org.opencastproject.util.doc.rest.RestQuery;
@@ -48,6 +50,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
@@ -74,25 +77,37 @@ public class LtiServiceGuiEndpoint {
   }
 
   @GET
-  @Path("/editMetadata")
+  @Path("/new/metadata")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response editMetadata() {
-    final LtiEditMetadata metadata = service.editMetadata();
-    final Map<String, Object> metadataMap = new HashMap<>();
-    metadataMap.put("languages", metadata.getLanguages().stream()
-            .map(e -> {
-              final Map<String, String> result = new HashMap<>();
-              result.put("shortCode", e.getShortCode());
-              result.put("translationCode", e.getTranslationCode());
-              return result;
-            }).collect(Collectors.toList()));
-    metadataMap.put("licenses", metadata.getLicenses().stream().map(l -> {
-      final Map<String, String> result = new HashMap<>();
-      result.put("key", l.getKey());
-      result.put("label", l.getLabel());
-      return result;
-    }).collect(Collectors.toList()));
-    return Response.status(Status.OK).entity(new Gson().toJson(metadataMap, Map.class)).build();
+  public Response getNewEventMetadata() {
+    return RestUtils.okJson(this.service.getNewEventMetadata().toJSON());
+  }
+
+  @GET
+  @Path("/{eventId}/metadata")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getEventMetadata(@PathParam("eventId") final String eventId) {
+    try {
+      return RestUtils.okJson(this.service.getEventMetadata(eventId).toJSON());
+    } catch (NotFoundException e) {
+      return Response.status(Status.NOT_FOUND).build();
+    } catch (UnauthorizedException e) {
+      return Response.status(Status.UNAUTHORIZED).build();
+    }
+  }
+
+  @POST
+  @Path("/{eventId}/metadata")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response setEventMetadata(@PathParam("eventId") final String eventId, @FormParam("metadataJson") final String metadataJson) {
+    try {
+      this.service.setEventMetadataJson(eventId, metadataJson);
+      return Response.ok().build();
+    } catch (NotFoundException e) {
+      return Response.status(Status.NOT_FOUND).build();
+    } catch (UnauthorizedException e) {
+      return Response.status(Status.UNAUTHORIZED).build();
+    }
   }
 
   @GET

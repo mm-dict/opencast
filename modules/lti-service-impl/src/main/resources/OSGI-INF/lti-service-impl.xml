@@ -31,11 +31,6 @@
   <reference name="search-index"
              interface="org.opencastproject.external.index.ExternalIndex"
              bind="setSearchIndex"/>
-  <reference bind="setListProvidersService"
-             interface="org.opencastproject.index.service.resources.list.api.ListProvidersService"
-             name="ListProvidersService"/>
   <reference name="workspace" interface="org.opencastproject.workspace.api.Workspace"
              bind="setWorkspace"/>
-  <reference name="asset-manager" interface="org.opencastproject.assetmanager.api.AssetManager"
-             bind="setAssetManager"/>
 </scr:component>

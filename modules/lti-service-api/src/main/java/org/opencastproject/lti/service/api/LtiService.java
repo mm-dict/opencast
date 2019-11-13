@@ -20,6 +20,10 @@
  */
 package org.opencastproject.lti.service.api;
 
+import org.opencastproject.index.service.catalog.adapter.MetadataList;
+import org.opencastproject.security.api.UnauthorizedException;
+import org.opencastproject.util.NotFoundException;
+
 import java.util.List;
 import java.util.Map;
 
@@ -51,7 +55,29 @@ public interface LtiService {
           String seriesName,
           Map<String, String> metadata);
 
-  LtiEditMetadata editMetadata();
+  /**
+   * Returns the event metadata for a specific event
+   * @param eventId ID of the event
+   * @return The event metadata list
+   * @throws NotFoundException If the event doesn't exist
+   * @throws UnauthorizedException If the user cannot access the event
+   */
+  MetadataList getEventMetadata(String eventId) throws NotFoundException, UnauthorizedException;
+
+  /**
+   * Returns the event metadata for a new event
+   * @return The event metadata list
+   */
+  MetadataList getNewEventMetadata();
+
+  /**
+   * Set the event metadata
+   * @param eventId ID of the event
+   * @param metadataJson New metadata of the event as JSON
+   * @throws NotFoundException If the event doesn't exist
+   * @throws UnauthorizedException If the user cannot access the event
+   */
+  void setEventMetadataJson(String eventId, String metadataJson) throws NotFoundException, UnauthorizedException;
 
   /**
    * Deletes the specified event
