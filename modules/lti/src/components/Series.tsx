@@ -7,7 +7,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 import Pagination from "react-js-pagination";
 import Helmet from "react-helmet";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faTrash, faEdit } from "@fortawesome/free-solid-svg-icons";
 import i18next from "i18next";
 import { parsedQueryString } from "../utils";
 
@@ -25,10 +25,11 @@ interface SeriesProps extends WithTranslation {
 interface EpisodeProps {
     readonly episode: SearchEpisodeResult;
     readonly deleteCallback?: (episodeId: string) => void;
+    readonly editCallback?: (episodeId: string) => void;
     readonly t: i18next.TFunction;
 }
 
-const SeriesEpisode: React.StatelessComponent<EpisodeProps> = ({ episode, deleteCallback, t }) => {
+const SeriesEpisode: React.StatelessComponent<EpisodeProps> = ({ episode, deleteCallback, editCallback, t }) => {
     const attachments = episode.mediapackage.attachments;
     const imageAttachment = attachments.find((a) => a.type.endsWith("/search+preview"));
     const image = imageAttachment !== undefined ? imageAttachment.url : "";
@@ -45,11 +46,16 @@ const SeriesEpisode: React.StatelessComponent<EpisodeProps> = ({ episode, delete
             </p>}
             <p className="text-muted">{new Date(episode.dcCreated).toLocaleString()}</p>
         </div>
-        {deleteCallback !== undefined &&
+        {(deleteCallback !== undefined || editCallback !== undefined) &&
             <div className="ml-auto">
-                <button onClick={(e) => { deleteCallback(episode.id); e.stopPropagation(); }}>
-                    <FontAwesomeIcon icon={faTrash} />
-                </button>
+                {deleteCallback !== undefined &&
+                    <button onClick={(e) => { deleteCallback(episode.id); e.stopPropagation(); }}>
+                        <FontAwesomeIcon icon={faTrash} />
+                    </button>}
+                {editCallback !== undefined &&
+                    <button onClick={(e) => { editCallback(episode.id); e.stopPropagation(); }}>
+                        <FontAwesomeIcon icon={faEdit} />
+                    </button>}
             </div>}
     </div>;
 }
@@ -96,6 +102,15 @@ class TranslatedSeries extends React.Component<SeriesProps, SeriesState> {
         });
     }
 
+    editEpisodeCallback(id: string) {
+        const qs = parsedQueryString();
+        let seriesSuffix = typeof qs.series === "string" ? "&series=" + qs.series : "";
+        if (typeof qs.series_name === "string")
+            seriesSuffix = "&seriesName=" + qs.series_name;
+        const debugSuffix = typeof qs.debug === "string" ? "&debug=" + qs.debug : "";
+        window.location.href = "/ltitools/index.html?tool=upload&debug=true&episode_id=" + id + seriesSuffix + debugSuffix;
+    }
+
     deleteEpisodeCallback(id: string) {
         this.unsetDeletionState();
         deleteEpisode(id).then((_) => {
@@ -113,6 +128,10 @@ class TranslatedSeries extends React.Component<SeriesProps, SeriesState> {
 
     hasDeletion() {
         return parsedQueryString().deletion === "true";
+    }
+
+    hasEdit() {
+        return parsedQueryString().edit === "true";
     }
 
     componentDidMount() {
@@ -162,6 +181,7 @@ class TranslatedSeries extends React.Component<SeriesProps, SeriesState> {
                         key={episode.id}
                         episode={episode}
                         deleteCallback={this.isInstructor() && this.hasDeletion() ? this.deleteEpisodeCallback.bind(this) : undefined}
+                        editCallback={this.isInstructor() && this.hasEdit() ? this.editEpisodeCallback.bind(this) : undefined}
                         t={this.props.t} />)}
                 </div>
                 <div>

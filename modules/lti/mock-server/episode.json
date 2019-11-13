@@ -7,11 +7,11 @@
     "query": "*:* AND oc_organization:mh_default_org AND (oc_acl_read:ROLE_USER OR oc_acl_read:ROLE_GROUP_MH_DEFAULT_ORG_SYSTEM_ADMINS OR oc_acl_read:ROLE_ADMIN OR oc_acl_read:ROLE_SUDO OR oc_acl_read:ROLE_USER_ADMIN OR oc_acl_read:ROLE_ANONYMOUS OR oc_acl_read:ROLE_OAUTH_USER) AND -oc_mediatype:Series AND -oc_deleted:[* TO *]",
     "result": [
       {
-        "id": "678f8f92-6307-4ef0-90a2-dfcd0820002b",
+        "id": "existing-event",
         "org": "mh_default_org",
         "mediapackage": {
           "duration": 75334,
-          "id": "678f8f92-6307-4ef0-90a2-dfcd0820002b",
+          "id": "existing-event",
           "start": "2019-09-19T07:51:00Z",
           "title": "first video",
           "media": {
