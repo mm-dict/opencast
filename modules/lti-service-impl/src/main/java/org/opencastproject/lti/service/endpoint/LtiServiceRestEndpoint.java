@@ -25,6 +25,8 @@ import static org.opencastproject.util.doc.rest.RestParameter.Type.STRING;
 import org.opencastproject.lti.service.api.LtiFileUpload;
 import org.opencastproject.lti.service.api.LtiJob;
 import org.opencastproject.lti.service.api.LtiService;
+import org.opencastproject.security.api.UnauthorizedException;
+import org.opencastproject.util.NotFoundException;
 import org.opencastproject.util.doc.rest.RestParameter;
 import org.opencastproject.util.doc.rest.RestParameter.Type;
 import org.opencastproject.util.doc.rest.RestQuery;
@@ -42,9 +44,7 @@ import org.apache.commons.fileupload.util.Streams;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -100,10 +100,10 @@ public class LtiServiceRestEndpoint {
   public Response createNewEvent(@HeaderParam("Accept") String acceptHeader, @Context HttpServletRequest request) {
     String seriesName = "";
     String seriesId = "";
-    Map<String, String> metadata = new HashMap<>();
     try {
       String captions = null;
       String eventId = null;
+      String metadataJson = null;
       for (FileItemIterator iter = new ServletFileUpload().getItemIterator(request); iter.hasNext();) {
         final FileItemStream item = iter.next();
         final String fieldName = item.getFieldName();
@@ -113,11 +113,9 @@ public class LtiServiceRestEndpoint {
           final String fieldValue = Streams.asString(item.openStream());
           if (!fieldValue.isEmpty()) {
             seriesId = fieldValue;
-            metadata.put(fieldName, fieldValue);
           }
-        } else if (item.isFormField()) {
-          final String fieldValue = Streams.asString(item.openStream());
-          metadata.put(fieldName, fieldValue);
+        } else if ("metadata".equals(fieldName)) {
+          metadataJson = Streams.asString(item.openStream());
         } else if ("captions".equals(fieldName)) {
           captions = Streams.asString(item.openStream());
         } else if ("eventId".equals(fieldName)) {
@@ -126,22 +124,26 @@ public class LtiServiceRestEndpoint {
           final InputStream stream = item.openStream();
           final String streamName = item.getName();
           service.upsertEvent(
-                  eventId,
                   new LtiFileUpload(stream, streamName),
                   captions,
+                  eventId,
                   seriesId,
                   seriesName,
-                  metadata);
+                  metadataJson);
           return Response.ok().build();
         }
       }
       if (eventId == null) {
         return Response.status(Status.BAD_REQUEST).entity("No file given").build();
       }
-      service.upsertEvent(eventId, null, captions, seriesId, seriesName, metadata);
+      service.upsertEvent(null, captions, eventId, seriesId, seriesName, metadataJson);
       return Response.ok().build();
     } catch (FileUploadException | IOException e) {
       return Response.status(Status.INTERNAL_SERVER_ERROR).entity("error while uploading").build();
+    } catch (NotFoundException e) {
+      return Response.status(Status.NOT_FOUND).build();
+    } catch (UnauthorizedException e) {
+      return Response.status(Status.UNAUTHORIZED).build();
     }
   }
 

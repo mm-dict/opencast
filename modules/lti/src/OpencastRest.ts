@@ -1,20 +1,5 @@
 import axios from "axios";
 
-export interface Language {
-    readonly shortCode: string;
-    readonly translationCode: string;
-}
-
-export interface License {
-    readonly key: string;
-    readonly label: string;
-}
-
-export interface EditMetadata {
-    readonly languages: Language[];
-    readonly licenses: License[];
-}
-
 export interface Attachment {
     readonly type: string;
     readonly url: string;
@@ -53,6 +38,7 @@ export type EventMetadataCollection = {
 
 export interface EventMetadataField {
     readonly readOnly: boolean;
+    readonly translatable: boolean;
     readonly id: string;
     readonly label: string;
     readonly type: "text" | "text_long" | "ordered_text" | "mixed_text" | "date";
@@ -176,11 +162,6 @@ export async function getLti(): Promise<LtiData> {
     }
 }
 
-export async function getEditMetadata(): Promise<EditMetadata> {
-    const response = await axios.get(hostAndPort() + "/lti-service-gui/editMetadata");
-    return response.data;
-}
-
 export async function getJobs(seriesId?: string, seriesName?: string): Promise<JobResult[]> {
     const urlSuffix = seriesId ? "series=" + seriesId : seriesName ? "series_name=" + seriesName : "";
     const response = await axios.get(hostAndPort() + "/lti-service-gui/jobs?" + urlSuffix);
@@ -188,32 +169,21 @@ export async function getJobs(seriesId?: string, seriesName?: string): Promise<J
 }
 
 export async function uploadFile(
-    title: string,
-    presenters: string[],
-    file?: Blob,
-    episodeId?: string,
-    captions?: Blob,
-    license?: string,
-    language?: string,
+    metadata: EventMetadataContainer,
+    eventId?: string,
+    presenterFile?: Blob,
+    captionFile?: Blob,
     seriesId?: string,
     seriesName?: string): Promise<{}> {
     const data = new FormData();
-    if (episodeId !== undefined) {
-        data.append("eventId", episodeId)
-    }
+    data.append("metadata", JSON.stringify([metadata]));
+    if (eventId !== undefined)
+        data.append("eventId", eventId);
     data.append("seriesName", seriesName === undefined ? "" : seriesName);
-    data.append("seriesName", seriesName === undefined ? "" : seriesName);
-    data.append("isPartOf", seriesId === undefined ? "" : seriesId);
-    data.append("title", title);
-    if (license !== undefined)
-        data.append("license", license);
-    if (language !== undefined)
-        data.append("language", language);
-    for (var i = 0; i < presenters.length; i++)
-        data.append("presenterNames[]", presenters[i]);
-    if (captions !== undefined)
-        data.append("captions", captions);
-    if (file !== undefined)
-        data.append("presenter", file);
+    data.append("seriesId", seriesId === undefined ? "" : seriesId);
+    if (captionFile !== undefined)
+        data.append("captions", captionFile);
+    if (presenterFile !== undefined)
+        data.append("presenter", presenterFile);
     return axios.post(hostAndPort() + "/lti-service-gui", data);
 }

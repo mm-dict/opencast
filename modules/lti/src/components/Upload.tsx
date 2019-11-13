@@ -3,77 +3,26 @@ import Helmet from "react-helmet";
 import React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 import {
-    Language,
-    License,
     getJobs,
     JobResult,
     uploadFile,
     getEventMetadata,
-    findFieldSingleValue,
-    findFieldMultiValue,
-    findFieldCollection,
     EventMetadataContainer
 } from "../OpencastRest";
 import { parsedQueryString } from "../utils";
-import { EditForm, EditFormData } from "./EditForm";
+import { EditForm } from "./EditForm";
 
 interface UploadState {
     readonly jobs: JobResult[] | string;
     readonly uploadState: "success" | "error" | "pending" | "none";
     readonly jobsTimerId?: ReturnType<typeof setTimeout>;
+    readonly initialMetadata?: EventMetadataContainer;
     readonly editMetadata?: EventMetadataContainer;
-    readonly formData?: EditFormData;
+    readonly presenterFile?: Blob;
+    readonly captionFile?: Blob;
 }
 
 interface UploadProps extends WithTranslation {
-}
-
-function languageOptions(metadata: EventMetadataContainer) {
-    const languages = findFieldCollection("language", metadata);
-    if (languages === undefined) {
-        return [];
-    }
-    const result: Language[] = [];
-    Object.keys(languages).forEach((k) => result.push({
-        shortCode: languages[k],
-        translationCode: k
-    }));
-    return result;
-}
-
-function presenters(metadata: EventMetadataContainer): string[] {
-    const collection = findFieldMultiValue("creator", metadata);
-    if (collection === undefined) {
-        return [];
-    }
-    return collection;
-}
-
-function licenseOptions(metadata: EventMetadataContainer) {
-    const licenses = findFieldCollection("license", metadata);
-    if (licenses === undefined) {
-        return [];
-    }
-    const result: License[] = [];
-    Object.keys(licenses).forEach((k) => result.push({
-        key: licenses[k],
-        label: JSON.parse(k).label
-    }));
-    return result;
-}
-
-
-function formDataFromMetadata(metadata: EventMetadataContainer): EditFormData {
-    const license = findFieldSingleValue("license", metadata);
-    const language = findFieldSingleValue("language", metadata);
-    return {
-        title: findFieldSingleValue("title", metadata) || "",
-        presenters: presenters(metadata),
-        licenses: licenseOptions(metadata),
-        languages: languageOptions(metadata),
-        license: license !== "" ? license : undefined,
-        language: language !== "" ? language : undefined,
-    };
 }
 
 class TranslatedUpload extends React.Component<UploadProps, UploadState> {
@@ -115,8 +64,8 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                 const metadata = metadataCollection[0];
                 this.setState({
                     ...this.state,
+                    initialMetadata: metadata,
                     editMetadata: metadata,
-                    formData: formDataFromMetadata(metadata)
                 });
             }
         });
@@ -133,10 +82,9 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
     }
 
     onSubmit() {
-        if (this.state.formData === undefined)
+        if (this.state.editMetadata === undefined)
             return;
-        const formData = this.state.formData;
-        if (this.episodeId() === undefined && formData.selectedFile === undefined)
+        if (this.episodeId() === undefined && this.state.presenterFile === undefined)
             return;
         const qs = parsedQueryString();
         this.setState({
@@ -144,13 +92,10 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
             uploadState: "pending"
         });
         uploadFile(
-            formData.title,
-            formData.presenters,
-            formData.selectedFile,
+            this.state.editMetadata,
             this.episodeId(),
-            formData.selectedCaption,
-            formData.license,
-            formData.language,
+            this.state.presenterFile,
+            this.state.captionFile,
             typeof qs.series === "string" ? qs.series : undefined,
             typeof qs.seriesName === "string" ? qs.seriesName : undefined
         ).then((_) => {
@@ -161,14 +106,10 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                 uploadState: "success"
             });
             if (this.episodeId() === undefined) {
+                console.log("episode undefined, setting metadata to " + JSON.stringify(this.state.initialMetadata))
                 this.setState({
                     ...this.state,
-                    formData: {
-                        title: "",
-                        presenters: [],
-                        licenses: licenseOptions(this.state.editMetadata),
-                        languages: languageOptions(this.state.editMetadata),
-                    },
+                    editMetadata: this.state.initialMetadata,
                 });
             }
         }).catch((_) => {
@@ -179,15 +120,29 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
         });
     }
 
-    onDataChange(newData: EditFormData) {
+    onCaptionFileChange(newFile: Blob) {
         this.setState({
             ...this.state,
-            formData: newData
+            captionFile: newFile
+        });
+    }
+
+    onPresenterFileChange(newFile: Blob) {
+        this.setState({
+            ...this.state,
+            presenterFile: newFile
+        });
+    }
+
+    onDataChange(newData: EventMetadataContainer) {
+        this.setState({
+            ...this.state,
+            editMetadata: newData
         });
     }
 
     render() {
-        if (this.state.editMetadata === undefined || this.state.formData === undefined)
+        if (this.state.editMetadata === undefined)
             return <Loading />;
         return <>
             <Helmet>
@@ -203,9 +158,12 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
             </div>}
             <EditForm
                 withUpload={this.episodeId() === undefined}
-                data={this.state.formData}
+                data={this.state.editMetadata}
                 onDataChange={this.onDataChange.bind(this)}
-                onSubmit={this.onSubmit.bind(this)} pending={this.state.uploadState === "pending"} />
+                onPresenterFileChange={this.onPresenterFileChange.bind(this)}
+                onCaptionFileChange={this.onCaptionFileChange.bind(this)}
+                onSubmit={this.onSubmit.bind(this)}
+                pending={this.state.uploadState === "pending"} />
             <h2>{this.props.t("CURRENT_JOBS")}</h2>
             {typeof this.state.jobs !== "string" &&
                 <table className="table table-striped">

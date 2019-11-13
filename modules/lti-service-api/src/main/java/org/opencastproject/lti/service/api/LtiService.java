@@ -25,7 +25,6 @@ import org.opencastproject.security.api.UnauthorizedException;
 import org.opencastproject.util.NotFoundException;
 
 import java.util.List;
-import java.util.Map;
 
 public interface LtiService {
   String JOB_TYPE = "org.opencastproject.lti.service";
@@ -40,20 +39,20 @@ public interface LtiService {
 
   /**
    * Upload a new event or update existing event's metadata
-   * @param eventId Event to edit (can be <code>null</code> to upload new events)
    * @param file File to upload
    * @param captions Subtitles file
+   * @param eventId ID of the event (can be <code>null</code> for new events)
    * @param seriesId ID of the series (optional only if the name is specified instead)
    * @param seriesName Name of the series (optional)
-   * @param metadata Metadata for the event
+   * @param metadataJson Metadata for the event as JSON string
    */
   void upsertEvent(
-          String eventId,
           LtiFileUpload file,
           String captions,
+          String eventId,
           String seriesId,
           String seriesName,
-          Map<String, String> metadata);
+          String metadataJson) throws UnauthorizedException, NotFoundException;
 
   /**
    * Returns the event metadata for a specific event

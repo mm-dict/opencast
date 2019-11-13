@@ -49,6 +49,7 @@ import org.opencastproject.metadata.dublincore.DublinCoreValue;
 import org.opencastproject.metadata.dublincore.EventCatalogUIAdapter;
 import org.opencastproject.metadata.dublincore.MetadataCollection;
 import org.opencastproject.metadata.dublincore.MetadataField;
+import org.opencastproject.metadata.dublincore.MetadataParsingException;
 import org.opencastproject.security.api.SecurityService;
 import org.opencastproject.security.api.UnauthorizedException;
 import org.opencastproject.security.api.User;
@@ -139,7 +140,7 @@ public class LtiServiceImpl implements LtiService, ManagedService {
     return new ArrayList<>(getEventCatalogUIAdapters(securityService.getOrganization().getId()));
   }
 
-  public List<EventCatalogUIAdapter> getEventCatalogUIAdapters(String organization) {
+  private List<EventCatalogUIAdapter> getEventCatalogUIAdapters(String organization) {
     List<EventCatalogUIAdapter> adapters = new ArrayList<>();
     for (EventCatalogUIAdapter adapter : catalogUIAdapters) {
       if (organization.equals(adapter.getOrganization())) {
@@ -170,14 +171,14 @@ public class LtiServiceImpl implements LtiService, ManagedService {
 
   @Override
   public void upsertEvent(
-          final String eventId,
           final LtiFileUpload file,
           final String captions,
+          final String eventId,
           String seriesId,
           final String seriesName,
-          final Map<String, String> metadata) {
+          final String metadataJson) throws UnauthorizedException, NotFoundException {
     if (eventId != null) {
-      updateEvent(eventId, metadata);
+      updateEvent(eventId, metadataJson);
       return;
     }
     if (workflow == null || workflowConfiguration == null) {
@@ -208,20 +209,13 @@ public class LtiServiceImpl implements LtiService, ManagedService {
       if (StringUtils.trimToNull(seriesId) == null) {
         seriesId = resolveSeriesName(seriesName);
       }
-      metadata.put("duration", "6000");
-      metadata.put("isPartOf", seriesId);
       final EventCatalogUIAdapter adapter = getEventCatalogUIAdapter();
       final MetadataCollection collection = adapter.getRawFields();
-      metadata.forEach((k, v) -> replaceField(collection, k, v));
+      new MetadataList(collection, metadataJson);
+      replaceField(collection, "isPartOf", seriesId);
       adapter.storeFields(mp, collection);
 
       mp = ingestService.addTrack(file.getStream(), file.getSourceName(), MediaPackageElements.PRESENTER_SOURCE, mp);
-/*
-      r.setAcl(new AccessControlList(new AccessControlEntry("ROLE_ADMIN", "write", true),
-              new AccessControlEntry("ROLE_ADMIN", "read", true),
-              new AccessControlEntry("ROLE_OAUTH_USER", "write", true),
-              new AccessControlEntry("ROLE_OAUTH_USER", "read", true)));
-*/
 
       final Map<String, String> configuration = gson.fromJson(workflowConfiguration, Map.class);
       configuration.put("workflowDefinitionId", workflow);
@@ -241,15 +235,16 @@ public class LtiServiceImpl implements LtiService, ManagedService {
     return adapter;
   }
 
-  private void updateEvent(final String eventId, final Map<String, String> metadata) {
+  private void updateEvent(final String eventId, final String metadata)
+          throws NotFoundException, UnauthorizedException {
     final EventCatalogUIAdapter adapter = getEventCatalogUIAdapter();
     final MetadataCollection collection = adapter.getRawFields();
-    metadata.forEach((k, v) -> replaceField(collection, k, v));
     try {
       final MetadataList metadataList = new MetadataList();
       metadataList.add(adapter, collection);
+      metadataList.fromJSON(metadata);
       this.indexService.updateEventMetadata(eventId, metadataList, searchIndex);
-    } catch (IndexServiceException | SearchIndexException | NotFoundException | UnauthorizedException e) {
+    } catch (IndexServiceException | SearchIndexException | MetadataParsingException e) {
       throw new RuntimeException(e);
     }
   }

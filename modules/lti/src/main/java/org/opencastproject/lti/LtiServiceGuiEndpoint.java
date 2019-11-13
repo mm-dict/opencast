@@ -40,7 +40,6 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.fileupload.util.Streams;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,8 +67,6 @@ import javax.ws.rs.core.Response.Status;
 public class LtiServiceGuiEndpoint {
   /* OSGi service references */
   private LtiService service;
-
-  private static final Gson gson = new Gson();
 
   /** OSGi DI */
   public void setService(LtiService service) {
@@ -138,10 +135,9 @@ public class LtiServiceGuiEndpoint {
   public Response createNewEvent(@HeaderParam("Accept") String acceptHeader, @Context HttpServletRequest request) {
     String seriesName = "";
     String seriesId = "";
-    Map<String, String> metadata = new HashMap<>();
     try {
-      final List<String> presenterNames = new ArrayList<>();
       String captions = null;
+      String metadata = null;
       String eventId = null;
       for (FileItemIterator iter = new ServletFileUpload().getItemIterator(request); iter.hasNext();) {
         final FileItemStream item = iter.next();
@@ -150,38 +146,40 @@ public class LtiServiceGuiEndpoint {
           seriesName = Streams.asString(item.openStream());
         } else if ("eventId".equals(fieldName)) {
           eventId = Streams.asString(item.openStream());
-        } else if ("presenterNames[]".equals(fieldName)) {
-          presenterNames.add(Streams.asString(item.openStream()));
+        } else if ("metadata".equals(fieldName)) {
+          metadata = Streams.asString(item.openStream());
         } else if ("captions".equals(fieldName)) {
           captions = Streams.asString(item.openStream());
-        } else if ("isPartOf".equals(fieldName)) {
+        } else if ("seriesId".equals(fieldName)) {
           final String fieldValue = Streams.asString(item.openStream());
           if (!fieldValue.isEmpty()) {
             seriesId = fieldValue;
-            metadata.put(fieldName, fieldValue);
           }
-        } else if (item.isFormField()) {
-          final String fieldValue = Streams.asString(item.openStream());
-          metadata.put(fieldName, fieldValue);
         } else {
-          metadata.put("creator", gson.toJson(presenterNames, List.class));
           service.upsertEvent(
-                  eventId,
                   new LtiFileUpload(item.openStream(), item.getName()),
                   captions,
+                  eventId,
                   seriesId,
-                  seriesName, metadata);
+                  seriesName,
+                  metadata);
           return Response.ok().build();
         }
       }
-      if (eventId == null) {
-        return Response.status(Status.BAD_REQUEST).entity("No file given").build();
-      }
-      metadata.put("creator", gson.toJson(presenterNames, List.class));
-      service.upsertEvent(eventId, null, captions, seriesId, seriesName, metadata);
+      service.upsertEvent(
+              null,
+              captions,
+              eventId,
+              seriesId,
+              seriesName,
+              metadata);
       return Response.ok().build();
     } catch (FileUploadException | IOException e) {
       return Response.status(Status.INTERNAL_SERVER_ERROR).entity("error while uploading").build();
+    } catch (NotFoundException e) {
+      return Response.status(Status.NOT_FOUND).build();
+    } catch (UnauthorizedException e) {
+      return Response.status(Status.UNAUTHORIZED).build();
     }
   }
 
