@@ -42,8 +42,7 @@ public interface LtiService {
    * @param file File to upload
    * @param captions Subtitles file
    * @param eventId ID of the event (can be <code>null</code> for new events)
-   * @param seriesId ID of the series (optional only if the name is specified instead)
-   * @param seriesName Name of the series (optional)
+   * @param seriesId ID of the series
    * @param metadataJson Metadata for the event as JSON string
    */
   void upsertEvent(
@@ -51,7 +50,6 @@ public interface LtiService {
           String captions,
           String eventId,
           String seriesId,
-          String seriesName,
           String metadataJson) throws UnauthorizedException, NotFoundException;
 
   /**

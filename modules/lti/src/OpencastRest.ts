@@ -178,16 +178,14 @@ export async function getJobs(seriesId?: string, seriesName?: string): Promise<J
 
 export async function uploadFile(
     metadata: EventMetadataContainer,
+    seriesId: string,
     eventId?: string,
     presenterFile?: Blob,
-    captionFile?: Blob,
-    seriesId?: string,
-    seriesName?: string): Promise<{}> {
+    captionFile?: Blob): Promise<{}> {
     const data = new FormData();
     data.append("metadata", JSON.stringify([metadata]));
     if (eventId !== undefined)
         data.append("eventId", eventId);
-    data.append("seriesName", seriesName === undefined ? "" : seriesName);
     data.append("seriesId", seriesId === undefined ? "" : seriesId);
     if (captionFile !== undefined)
         data.append("captions", captionFile);

@@ -21,15 +21,25 @@ interface OptionType {
     label: string;
 }
 
+interface MetadataResult {
+    readonly initial: EventMetadataContainer;
+    readonly edited: EventMetadataContainer;
+    readonly seriesId: string;
+}
+
 interface UploadState {
     readonly episodeId?: string;
     readonly uploadState: "success" | "error" | "pending" | "none";
-    readonly initialMetadata?: EventMetadataContainer;
-    readonly editMetadata?: EventMetadataContainer;
+    readonly metadata: MetadataResult | "error" | undefined;
     readonly presenterFile?: Blob;
     readonly captionFile?: Blob;
     readonly copyState: "success" | "error" | "pending" | "none";
     readonly copySeries?: OptionType;
+}
+
+function isMetadata(
+    metadata: MetadataResult | "error" | undefined): metadata is MetadataResult {
+    return metadata !== undefined && typeof metadata !== "string";
 }
 
 interface UploadProps extends WithTranslation {
@@ -43,41 +53,70 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
             episodeId: typeof qs.episode_id === "string" ? qs.episode_id : undefined,
             uploadState: "none",
             copyState: "none",
+            metadata: undefined,
         };
+    }
+
+    resolveSeries(metadata: EventMetadataContainer): string | undefined {
+        const qs = parsedQueryString();
+        if (typeof qs.series === "string")
+            return qs.series;
+        if (typeof qs.seriesName !== "string")
+            return;
+        const seriesCollection = findFieldCollection("isPartOf", metadata);
+        if (seriesCollection === undefined)
+            return;
+        const pairs = collectionToPairs(seriesCollection);
+        return pairs
+            .filter(([k, _]) => k === qs.seriesName)
+            .map(([_, v]) => v)
+            .pop();
     }
 
     componentDidMount() {
         getEventMetadata(this.state.episodeId).then((metadataCollection) => {
             if (metadataCollection.length > 0) {
                 const metadata = metadataCollection[0];
-                this.setState({
-                    ...this.state,
-                    initialMetadata: metadata,
-                    editMetadata: metadata,
-                });
+                const seriesId = this.resolveSeries(metadata)
+                if (seriesId === undefined) {
+                    this.setState({
+                        ...this.state,
+                        metadata: "error"
+                    });
+                } else {
+                    this.setState({
+                        ...this.state,
+                        metadata: {
+                            initial: metadata,
+                            edited: metadata,
+                            seriesId: seriesId
+                        },
+                    });
+                }
             }
-        });
+        }).catch((_) => this.setState({
+            ...this.state,
+            metadata: "error"
+        }));
     }
 
     onSubmit() {
-        if (this.state.editMetadata === undefined)
+        if (!isMetadata(this.state.metadata))
             return;
         if (this.state.episodeId === undefined && this.state.presenterFile === undefined)
             return;
-        const qs = parsedQueryString();
         this.setState({
             ...this.state,
             uploadState: "pending"
         });
         uploadFile(
-            this.state.editMetadata,
+            this.state.metadata.edited,
+            this.state.metadata.seriesId,
             this.state.episodeId,
             this.state.presenterFile,
             this.state.captionFile,
-            typeof qs.series === "string" ? qs.series : undefined,
-            typeof qs.seriesName === "string" ? qs.seriesName : undefined
         ).then((_) => {
-            if (this.state.editMetadata === undefined)
+            if (!isMetadata(this.state.metadata))
                 return;
             this.setState({
                 ...this.state,
@@ -86,7 +125,10 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
             if (this.state.episodeId === undefined) {
                 this.setState({
                     ...this.state,
-                    editMetadata: this.state.initialMetadata,
+                    metadata: {
+                        ...this.state.metadata,
+                        edited: this.state.metadata.initial
+                    }
                 });
             }
         }).catch((_) => {
@@ -112,20 +154,28 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
     }
 
     onDataChange(newData: EventMetadataContainer) {
+        if (!isMetadata(this.state.metadata))
+            return;
         this.setState({
             ...this.state,
-            editMetadata: newData
+            metadata: {
+                ...this.state.metadata,
+                edited: newData
+            }
         });
     }
 
     seriesItems(): OptionType[] {
-        if (this.state.editMetadata === undefined)
+        const metadata = this.state.metadata;
+        if (!isMetadata(metadata))
             return [];
-        const seriesCollection = findFieldCollection("isPartOf", this.state.editMetadata);
+        const seriesCollection = findFieldCollection("isPartOf", metadata.edited);
         if (seriesCollection === undefined)
             return [];
         const pairs = collectionToPairs(seriesCollection);
-        return pairs.map(([k, v]) => ({ value: v, label: k }));
+        return pairs
+            .filter(([_, v]) => v !== metadata.seriesId)
+            .map(([k, v]) => ({ value: v, label: k }));
     }
 
     onMoveToSeries(_: any) {
@@ -154,8 +204,10 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
     }
 
     render() {
-        if (this.state.editMetadata === undefined)
+        if (this.state.metadata === undefined)
             return <Loading />;
+        if (this.state.metadata === "error")
+            return <div>Error loading metadata</div>;
         const qs = parsedQueryString();
         return <>
             <Helmet>
@@ -179,7 +231,7 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
             </div>}
             <EditForm
                 withUpload={this.state.episodeId === undefined}
-                data={this.state.editMetadata}
+                data={this.state.metadata.edited}
                 onDataChange={this.onDataChange.bind(this)}
                 onPresenterFileChange={this.onPresenterFileChange.bind(this)}
                 onCaptionFileChange={this.onCaptionFileChange.bind(this)}

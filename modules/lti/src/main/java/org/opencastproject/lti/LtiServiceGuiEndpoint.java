@@ -141,7 +141,6 @@ public class LtiServiceGuiEndpoint {
                   @RestResponse(description = "The event could not be created due to a scheduling conflict.", responseCode = HttpServletResponse.SC_CONFLICT),
                   @RestResponse(description = "The request is invalid or inconsistent..", responseCode = HttpServletResponse.SC_BAD_REQUEST) })
   public Response createNewEvent(@HeaderParam("Accept") String acceptHeader, @Context HttpServletRequest request) {
-    String seriesName = "";
     String seriesId = "";
     try {
       String captions = null;
@@ -150,9 +149,7 @@ public class LtiServiceGuiEndpoint {
       for (FileItemIterator iter = new ServletFileUpload().getItemIterator(request); iter.hasNext();) {
         final FileItemStream item = iter.next();
         final String fieldName = item.getFieldName();
-        if ("seriesName".equals(fieldName)) {
-          seriesName = Streams.asString(item.openStream());
-        } else if ("eventId".equals(fieldName)) {
+        if ("eventId".equals(fieldName)) {
           eventId = Streams.asString(item.openStream());
         } else if ("metadata".equals(fieldName)) {
           metadata = Streams.asString(item.openStream());
@@ -169,7 +166,6 @@ public class LtiServiceGuiEndpoint {
                   captions,
                   eventId,
                   seriesId,
-                  seriesName,
                   metadata);
           return Response.ok().build();
         }
@@ -179,7 +175,6 @@ public class LtiServiceGuiEndpoint {
               captions,
               eventId,
               seriesId,
-              seriesName,
               metadata);
       return Response.ok().build();
     } catch (FileUploadException | IOException e) {

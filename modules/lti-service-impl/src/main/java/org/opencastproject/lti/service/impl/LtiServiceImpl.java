@@ -46,9 +46,6 @@ import org.opencastproject.mediapackage.MediaPackageElementBuilderFactory;
 import org.opencastproject.mediapackage.MediaPackageElementFlavor;
 import org.opencastproject.mediapackage.MediaPackageElements;
 import org.opencastproject.metadata.dublincore.DublinCore;
-import org.opencastproject.metadata.dublincore.DublinCoreCatalog;
-import org.opencastproject.metadata.dublincore.DublinCoreCatalogList;
-import org.opencastproject.metadata.dublincore.DublinCoreValue;
 import org.opencastproject.metadata.dublincore.EventCatalogUIAdapter;
 import org.opencastproject.metadata.dublincore.MetadataCollection;
 import org.opencastproject.metadata.dublincore.MetadataField;
@@ -56,9 +53,6 @@ import org.opencastproject.metadata.dublincore.MetadataParsingException;
 import org.opencastproject.security.api.SecurityService;
 import org.opencastproject.security.api.UnauthorizedException;
 import org.opencastproject.security.api.User;
-import org.opencastproject.series.api.SeriesException;
-import org.opencastproject.series.api.SeriesQuery;
-import org.opencastproject.series.api.SeriesService;
 import org.opencastproject.util.ConfigurationException;
 import org.opencastproject.util.NotFoundException;
 import org.opencastproject.workflow.api.ConfiguredWorkflow;
@@ -99,7 +93,6 @@ public class LtiServiceImpl implements LtiService, ManagedService {
   private IndexService indexService;
   private IngestService ingestService;
   private SecurityService securityService;
-  private SeriesService seriesService;
   private WorkflowService workflowService;
   private AssetManager assetManager;
   private Workspace workspace;
@@ -127,11 +120,6 @@ public class LtiServiceImpl implements LtiService, ManagedService {
   /** OSGi DI */
   public void setSearchIndex(AbstractSearchIndex searchIndex) {
     this.searchIndex = searchIndex;
-  }
-
-  /** OSGi DI */
-  public void setSeriesService(SeriesService seriesService) {
-    this.seriesService = seriesService;
   }
 
   /** OSGi DI */
@@ -197,8 +185,7 @@ public class LtiServiceImpl implements LtiService, ManagedService {
           final LtiFileUpload file,
           final String captions,
           final String eventId,
-          String seriesId,
-          final String seriesName,
+          final String seriesId,
           final String metadataJson) throws UnauthorizedException, NotFoundException {
     if (eventId != null) {
       updateEvent(eventId, metadataJson);
@@ -229,9 +216,6 @@ public class LtiServiceImpl implements LtiService, ManagedService {
         captionsMpe.setURI(captionsUri);
       }
 
-      if (StringUtils.trimToNull(seriesId) == null) {
-        seriesId = resolveSeriesName(seriesName);
-      }
       final EventCatalogUIAdapter adapter = getEventCatalogUIAdapter();
       final MetadataCollection collection = adapter.getRawFields();
       new MetadataList(collection, metadataJson);
@@ -410,23 +394,6 @@ public class LtiServiceImpl implements LtiService, ManagedService {
     final MetadataField<?> field = collection.getOutputFields().get(fieldName);
     collection.removeField(field);
     collection.addField(MetadataField.copyMetadataFieldWithValue(field, fieldValue));
-  }
-
-  private String resolveSeriesName(String seriesName) throws SeriesException, UnauthorizedException {
-    DublinCoreCatalogList result;
-    result = seriesService.getSeries(new SeriesQuery().setSeriesTitle(seriesName));
-    if (result.getTotalCount() == 0) {
-      throw new IllegalArgumentException("series with given name doesn't exist");
-    }
-    if (result.getTotalCount() > 1) {
-      throw new IllegalArgumentException("more than one series matches given series name");
-    }
-    DublinCoreCatalog seriesResult = result.getCatalogList().get(0);
-    final List<DublinCoreValue> identifiers = seriesResult.get(DublinCore.PROPERTY_IDENTIFIER);
-    if (identifiers.size() != 1) {
-      throw new IllegalArgumentException("more than one identifier in dublin core catalog for series");
-    }
-    return identifiers.get(0).getValue();
   }
 
   @Override
