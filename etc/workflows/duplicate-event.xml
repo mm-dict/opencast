@@ -24,6 +24,8 @@
             max="25"
             />
           <label for="numberOfEvents">Number of Events</label>
+          <input type="hidden" id="noSuffix" class="configField" value="false" />
+          <input type="hidden" id="setSeriesId" class="configField" value="" />
         </fieldset>
       </div>
 
@@ -54,6 +56,8 @@
         <configuration key="target-tags"></configuration>
         <configuration key="property-namespaces">org.opencastproject.assetmanager.security,org.opencastproject.workflow.configuration</configuration>
         <configuration key="copy-number-prefix">copy</configuration>
+        <configuration key="no-suffix">${noSuffix}</configuration>
+        <configuration key="set-series-id">${setSeriesId}</configuration>
       </configurations>
     </operation>
 
