@@ -118,8 +118,8 @@ public class LtiServiceGuiEndpoint {
   @GET
   @Path("/jobs")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response listJobs(@QueryParam("series_name") final String seriesName, @QueryParam("series") String seriesId) {
-    final List<Map<String, String>> results = service.listJobs(seriesName, seriesId).stream().map(e -> {
+  public Response listJobs(@QueryParam("series") String seriesId) {
+    final List<Map<String, String>> results = service.listJobs(seriesId).stream().map(e -> {
       Map<String, String> eventMap = new HashMap<>();
       eventMap.put("title", e.getTitle());
       eventMap.put("status", e.getStatus());

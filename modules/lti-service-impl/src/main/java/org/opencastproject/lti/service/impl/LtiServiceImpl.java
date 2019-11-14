@@ -147,33 +147,18 @@ public class LtiServiceImpl implements LtiService, ManagedService {
     catalogUIAdapters.remove(catalogUIAdapter);
   }
 
-  private List<EventCatalogUIAdapter> getEventCatalogUIAdapters() {
-    return new ArrayList<>(getEventCatalogUIAdapters(securityService.getOrganization().getId()));
-  }
-
-  private List<EventCatalogUIAdapter> getEventCatalogUIAdapters(String organization) {
-    List<EventCatalogUIAdapter> adapters = new ArrayList<>();
-    for (EventCatalogUIAdapter adapter : catalogUIAdapters) {
-      if (organization.equals(adapter.getOrganization())) {
-        adapters.add(adapter);
-      }
-    }
-    return adapters;
-  }
-
   @Override
-  public List<LtiJob> listJobs(String seriesName, String seriesId) {
+  public List<LtiJob> listJobs(String seriesId) {
     final User user = securityService.getUser();
     final EventSearchQuery query = new EventSearchQuery(securityService.getOrganization().getId(), user)
-            .withCreator(user.getName()).withSeriesId(StringUtils.trimToNull(seriesId))
-            .withSeriesName(StringUtils.trimToNull(seriesName));
+            .withCreator(user.getName()).withSeriesId(StringUtils.trimToNull(seriesId));
     try {
       SearchResult<Event> results = this.searchIndex.getByQuery(query);
       ZonedDateTime startOfDay = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS);
       return Arrays.stream(results.getItems())
               .map(SearchResultItem::getSource)
               .filter(e -> ZonedDateTime.parse(e.getCreated()).compareTo(startOfDay) > 0)
-              .map(e -> new LtiJob(e.getTitle(), e.getEventStatus()))
+              .map(e -> new LtiJob(e.getTitle(), e.getDisplayableStatus(workflowService.getWorkflowStateMappings())))
               .collect(Collectors.toList());
     } catch (SearchIndexException e) {
       throw new RuntimeException("search index exception", e);

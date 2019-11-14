@@ -78,9 +78,9 @@ public class LtiServiceRestEndpoint {
   @GET
   @Path("/jobs")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response listJobs(@QueryParam("series_name") final String seriesName, @QueryParam("series") String seriesId) {
+  public Response listJobs(@QueryParam("series") String seriesId) {
     return Response.status(Status.OK)
-            .entity(gson.toJson(service.listJobs(seriesName, seriesId), new TypeToken<List<LtiJob>>() {
+            .entity(gson.toJson(service.listJobs(seriesId), new TypeToken<List<LtiJob>>() {
             }.getType())).build();
   }
 

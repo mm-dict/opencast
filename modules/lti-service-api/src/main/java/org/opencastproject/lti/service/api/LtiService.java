@@ -31,11 +31,10 @@ public interface LtiService {
 
   /**
    * List currently running jobs for the series
-   * @param seriesId ID of the series (optional only if the name is specified instead)
-   * @param seriesName Name of the series (optional)
+   * @param seriesId ID of the series
    * @return A list of jobs
    */
-  List<LtiJob> listJobs(String seriesName, String seriesId);
+  List<LtiJob> listJobs(String seriesId);
 
   /**
    * Upload a new event or update existing event's metadata

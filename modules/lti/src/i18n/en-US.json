@@ -43,6 +43,15 @@
       "GPL": "GPL"
     },
     "EVENTS": {
+       "STATE_MAPPING":{
+         "RETRACTING": "Retracting",
+         "DELETING": "Deleting",
+         "DUPLICATING": "Duplicating",
+         "PUBLISHING": "Publishing",
+         "IMPORTING": "Importing",
+         "REPUBLISHING_METADATA": "Republishing metadata",
+         "UPDATING_PREVIEWS": "Updating previews"
+       },
       "STATUS": {
         "PENDING": "Pending",
         "PROCESSING": "Running",
