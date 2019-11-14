@@ -93,7 +93,22 @@
           "id": "isPartOf",
           "label": "EVENTS.EVENTS.DETAILS.METADATA.SERIES",
           "collection": {
-            "series": "bfad4385-a980-4269-b645-a129c4edd1be"
+            "series": "bfad4385-a980-4269-b645-a129c4edd1be",
+            "series2": "bfad4385-a980-4269-b645-a129c4edd1be",
+            "series3": "bfad4385-a980-4269-b645-a129c4edd1be",
+            "series4": "bfad4385-a980-4269-b645-a129c4edd1be",
+            "series5": "bfad4385-a980-4269-b645-a129c4edd1be",
+            "series6": "bfad4385-a980-4269-b645-a129c4edd1be",
+            "series7": "bfad4385-a980-4269-b645-a129c4edd1be",
+            "series8": "bfad4385-a980-4269-b645-a129c4edd1be",
+            "series9": "bfad4385-a980-4269-b645-a129c4edd1be",
+            "series10": "bfad4385-a980-4269-b645-a129c4edd1be",
+            "series11": "bfad4385-a980-4269-b645-a129c4edd1be",
+            "series12": "bfad4385-a980-4269-b645-a129c4edd1be",
+            "series13": "bfad4385-a980-4269-b645-a129c4edd1be",
+            "series14": "bfad4385-a980-4269-b645-a129c4edd1be",
+            "series15": "bfad4385-a980-4269-b645-a129c4edd1be",
+            "series16": "bfad4385-a980-4269-b645-a129c4edd1be"
           },
           "type": "text",
           "value": "bfad4385-a980-4269-b645-a129c4edd1be",

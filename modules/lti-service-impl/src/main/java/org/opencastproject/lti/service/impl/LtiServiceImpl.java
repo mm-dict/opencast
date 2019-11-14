@@ -248,6 +248,30 @@ public class LtiServiceImpl implements LtiService, ManagedService {
     }
   }
 
+  private static Map<String, String> createCopyWorkflowConfig(final String seriesId) {
+    final Map<String, String> result = new HashMap<>();
+    result.put("numberOfEvents", "1");
+    result.put("noSuffix", "true");
+    result.put("setSeriesId", seriesId);
+    return result;
+  }
+
+  @Override
+  public void copyEventToSeries(final String eventId, final String seriesId) {
+    final String workflowId = "duplicate-event";
+    try {
+      final WorkflowDefinition wfd = workflowService.getWorkflowDefinitionById(workflowId);
+      final Workflows workflows = new Workflows(assetManager, workflowService);
+      final ConfiguredWorkflow workflow = workflow(wfd, createCopyWorkflowConfig(seriesId));
+      if (workflows.applyWorkflowToLatestVersion(Collections.singleton(eventId), workflow).isEmpty()) {
+        throw new RuntimeException(String.format("couldn't start workflow '%s' for event %s", workflowId, eventId));
+      }
+    } catch (WorkflowDatabaseException | NotFoundException e) {
+      logger.error("unable to get workflow definition {}", workflowId, e);
+      throw new RuntimeException(e);
+    }
+  }
+
   private EventCatalogUIAdapter getEventCatalogUIAdapter() {
     final MediaPackageElementFlavor flavor = new MediaPackageElementFlavor("dublincore", "episode");
     final EventCatalogUIAdapter adapter = catalogUIAdapters.stream().filter(e -> e.getFlavor().equals(flavor)).findAny()

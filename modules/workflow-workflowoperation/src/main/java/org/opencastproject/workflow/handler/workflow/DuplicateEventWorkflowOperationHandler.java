@@ -98,6 +98,12 @@ public class DuplicateEventWorkflowOperationHandler extends AbstractWorkflowOper
   /** Name of the configuration option that provides the maximum number of events to create */
   public static final String MAX_NUMBER_PROPERTY = "max-number-of-events";
 
+  /** Whether to actually use the number suffix */
+  public static final String NO_SUFFIX = "no-suffix";
+
+  /** The series ID that should be set on the copies */
+  public static final String SET_SERIES_ID = "set-series-id";
+
   /** The default maximum number of events to create. Can be overridden. */
   public static final int MAX_NUMBER_DEFAULT = 25;
 
@@ -155,6 +161,9 @@ public class DuplicateEventWorkflowOperationHandler extends AbstractWorkflowOper
     final String configuredSourceFlavors = trimToEmpty(operation.getConfiguration(SOURCE_FLAVORS_PROPERTY));
     final String configuredSourceTags = trimToEmpty(operation.getConfiguration(SOURCE_TAGS_PROPERTY));
     final String configuredTargetTags = trimToEmpty(operation.getConfiguration(TARGET_TAGS_PROPERTY));
+    final boolean noSuffix = Boolean.parseBoolean(trimToEmpty(operation.getConfiguration(NO_SUFFIX)));
+    final String seriesIdStr = operation.getConfiguration(SET_SERIES_ID);
+    final String seriesId = "false".equals(seriesIdStr) ? "" : trimToEmpty(seriesIdStr);
     final int numberOfEvents = Integer.parseInt(operation.getConfiguration(NUMBER_PROPERTY));
     final String configuredPropertyNamespaces = trimToEmpty(operation.getConfiguration(PROPERTY_NAMESPACES_PROPERTY));
     int maxNumberOfEvents = MAX_NUMBER_DEFAULT;
@@ -228,10 +237,10 @@ public class DuplicateEventWorkflowOperationHandler extends AbstractWorkflowOper
 
       try {
         // Clone the media package (without its elements)
-        newMp = copyMediaPackage(mediaPackage, i + 1, copyNumberPrefix);
+        newMp = copyMediaPackage(mediaPackage, seriesId, noSuffix, i + 1, copyNumberPrefix);
 
         // Create and add new episode dublin core with changed title
-        newMp = copyDublinCore(mediaPackage, originalEpisodeDc[0], newMp, removeTags, addTags, overrideTags,
+        newMp = copyDublinCore(mediaPackage, originalEpisodeDc[0], newMp, seriesId, removeTags, addTags, overrideTags,
                 temporaryFiles);
 
         // Clone regular elements
@@ -306,6 +315,8 @@ public class DuplicateEventWorkflowOperationHandler extends AbstractWorkflowOper
 
   private MediaPackage copyMediaPackage(
       MediaPackage source,
+      String seriesId,
+      boolean noSuffix,
       long copyNumber,
       String copyNumberPrefix) throws WorkflowOperationException {
     // We are not using MediaPackage.clone() here, since it does "too much" for us (e.g. copies all the attachments)
@@ -318,12 +329,18 @@ public class DuplicateEventWorkflowOperationHandler extends AbstractWorkflowOper
     }
     logger.info("Created mediapackage {}", destination);
     destination.setDate(source.getDate());
-    destination.setSeries(source.getSeries());
-    destination.setSeriesTitle(source.getSeriesTitle());
+    if (seriesId != null && !seriesId.isEmpty()) {
+      destination.setSeries(seriesId);
+    } else {
+      destination.setSeries(source.getSeries());
+      destination.setSeriesTitle(source.getSeriesTitle());
+    }
     destination.setDuration(source.getDuration());
     destination.setLanguage(source.getLanguage());
     destination.setLicense(source.getLicense());
-    destination.setTitle(source.getTitle() + " (" + copyNumberPrefix + " " + copyNumber + ")");
+    final String newTitle = noSuffix ?
+            source.getTitle() : String.format("%s (%s %d)", source.getTitle(), copyNumberPrefix, copyNumber);
+    destination.setTitle(newTitle);
     return destination;
   }
 
@@ -385,6 +402,7 @@ public class DuplicateEventWorkflowOperationHandler extends AbstractWorkflowOper
       MediaPackage source,
       MediaPackageElement sourceDublinCore,
       MediaPackage destination,
+      String seriesId,
       List<String> removeTags,
       List<String> addTags,
       List<String> overrideTags,
@@ -393,6 +411,9 @@ public class DuplicateEventWorkflowOperationHandler extends AbstractWorkflowOper
     destinationDublinCore.setIdentifier(null);
     destinationDublinCore.setURI(sourceDublinCore.getURI());
     destinationDublinCore.set(DublinCore.PROPERTY_TITLE, destination.getTitle());
+    if (seriesId != null && !seriesId.isEmpty()) {
+      destinationDublinCore.set(DublinCore.PROPERTY_IS_PART_OF, seriesId);
+    }
     try (InputStream inputStream = IOUtils.toInputStream(destinationDublinCore.toXmlString(), "UTF-8")) {
       final String elementId = UUID.randomUUID().toString();
       final URI newUrl = workspace.put(destination.getIdentifier().compact(), elementId, "dublincore.xml",

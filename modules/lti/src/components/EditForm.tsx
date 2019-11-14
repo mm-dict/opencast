@@ -3,7 +3,8 @@ import { withTranslation, WithTranslation } from "react-i18next";
 import {
     EventMetadataField,
     EventMetadataContainer,
-    EventMetadataCollection
+    EventMetadataCollection,
+    collectionToPairs
 } from "../OpencastRest";
 import Select from "react-select";
 import i18next from "i18next";
@@ -47,17 +48,10 @@ function parseMetadataCollectionKey(s: string): MetadataCollectionKey {
 }
 
 function collectionToOptions(collection: EventMetadataCollection, translatable: boolean, t: i18next.TFunction): OptionType[] {
-    const options: OptionType[] = [];
-    Object.keys(collection).forEach((k) => {
-        const label = parseMetadataCollectionKey(k).label;
-        if (collection !== undefined)
-            options.push({
-                value: collection[k],
-                label: translatable ? t(label) : label,
-            });
-    });
-    return options;
-
+    return collectionToPairs(collection)
+        .map(([k, v]) => [parseMetadataCollectionKey(k).label, v])
+        .map(([k, v]) => [translatable ? t(k) : k, v])
+        .map(([k, v]) => ({ value: v, label: k }));
 }
 
 function MetadataFieldInner(props: MetadataFieldProps) {
@@ -88,7 +82,6 @@ function MetadataFieldInner(props: MetadataFieldProps) {
     if (field.collection !== undefined) {
         const options: OptionType[] = collectionToOptions(field.collection, field.translatable, t);
         const currentValue = options.find((o: OptionType) => o.value === field.value);
-        console.log("current value " + currentValue)
         return <Select
             id={field.id}
             onChange={(value: ValueType<OptionType>, _: ActionMeta) =>

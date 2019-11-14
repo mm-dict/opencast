@@ -55,6 +55,13 @@ public interface LtiService {
           String metadataJson) throws UnauthorizedException, NotFoundException;
 
   /**
+   * Copy an event to a different series
+   * @param eventId Event ID to copy
+   * @param seriesId Series ID to copy into
+   */
+  void copyEventToSeries(String eventId, String seriesId);
+
+  /**
    * Returns the event metadata for a specific event
    * @param eventId ID of the event
    * @return The event metadata list

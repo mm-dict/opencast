@@ -107,6 +107,14 @@ public class LtiServiceGuiEndpoint {
     }
   }
 
+  @POST
+  @Path("/{eventId}/copy")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response copyEventToSeries(@PathParam("eventId") final String eventId, @QueryParam("target_series") final String targetSeries) {
+    this.service.copyEventToSeries(eventId, targetSeries);
+    return Response.ok().build();
+  }
+
   @GET
   @Path("/jobs")
   @Produces(MediaType.APPLICATION_JSON)

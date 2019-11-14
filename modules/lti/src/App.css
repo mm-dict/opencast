@@ -73,3 +73,11 @@ header {
 .episode-item {
     cursor: pointer;
 }
+
+.series-table-even {
+    background-color: #f2f2f2;
+}
+
+.series-table-odd {
+    background-color: #ffffff;
+}

@@ -101,6 +101,10 @@ export function findFieldCollection(
     return (field && field.collection) || undefined;
 }
 
+export function collectionToPairs(c: EventMetadataCollection): [string, string][] {
+    return Object.keys(c).map((k) => [k, c[k]]);
+}
+
 const debug = window.location.search.indexOf("&debug=true") !== -1;
 
 function hostAndPort() {
@@ -111,6 +115,10 @@ export async function getEventMetadata(eventId?: string): Promise<EventMetadataC
     const useEventId = eventId === undefined ? "new" : eventId;
     const response = await axios.get(hostAndPort() + "/lti-service-gui/" + useEventId + "/metadata");
     return response.data;
+}
+
+export async function copyEventToSeries(eventId: string, targetSeries: string): Promise<{}> {
+    return await axios.post(hostAndPort() + "/lti-service-gui/" + eventId + "/copy?target_series=" + targetSeries);
 }
 
 export async function searchEpisode(
