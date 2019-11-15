@@ -27,15 +27,28 @@ public final class LtiJob {
   private final String title;
   private final String status;
 
-  public LtiJob(String title, String status) {
+  /**
+   * Construct a job
+   * @param title The job title
+   * @param status The job status
+   */
+  public LtiJob(final String title, final String status) {
     this.title = title;
     this.status = status;
   }
 
+  /**
+   * Get the job title
+   * @return The job title
+   */
   public String getTitle() {
     return title;
   }
 
+  /**
+   * Get the job status
+   * @return The job status
+   */
   public String getStatus() {
     return status;
   }

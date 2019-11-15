@@ -22,19 +22,35 @@ package org.opencastproject.lti.service.api;
 
 import java.io.InputStream;
 
+/**
+ * A tuple consisting of a file name and the file data
+ */
 public final class LtiFileUpload {
   private final InputStream stream;
   private final String sourceName;
 
-  public LtiFileUpload(InputStream stream, String sourceName) {
+  /**
+   * Construct a file upload object
+   * @param stream The file data
+   * @param sourceName The file (or source) name
+   */
+  public LtiFileUpload(final InputStream stream, final String sourceName) {
     this.stream = stream;
     this.sourceName = sourceName;
   }
 
+  /**
+   * Get the file data
+   * @return The file data
+   */
   public InputStream getStream() {
     return stream;
   }
 
+  /**
+   * Get the source (file) name
+   * @return The source (file) name
+   */
   public String getSourceName() {
     return sourceName;
   }

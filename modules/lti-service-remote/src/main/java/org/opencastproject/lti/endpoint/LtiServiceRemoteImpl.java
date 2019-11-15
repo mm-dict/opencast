@@ -48,6 +48,9 @@ import java.util.List;
 
 import javax.ws.rs.core.Response;
 
+/**
+ * The service calling the LTI REST endpoint (for multi-node setups with LTI)
+ */
 public class LtiServiceRemoteImpl extends RemoteBase implements LtiService {
   private static final Gson gson = new Gson();
 

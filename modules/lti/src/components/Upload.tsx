@@ -28,7 +28,7 @@ interface MetadataResult {
 }
 
 interface UploadState {
-    readonly episodeId?: string;
+    readonly eventId?: string;
     readonly uploadState: "success" | "error" | "pending" | "none";
     readonly metadata: MetadataResult | "error" | undefined;
     readonly presenterFile?: Blob;
@@ -51,7 +51,7 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
         super(props);
         const qs = parsedQueryString();
         this.state = {
-            episodeId: typeof qs.episode_id === "string" ? qs.episode_id : undefined,
+            eventId: typeof qs.episode_id === "string" ? qs.episode_id : undefined,
             uploadState: "none",
             copyState: "none",
             metadata: undefined,
@@ -75,7 +75,7 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
     }
 
     componentDidMount() {
-        getEventMetadata(this.state.episodeId).then((metadataCollection) => {
+        getEventMetadata(this.state.eventId).then((metadataCollection) => {
             if (metadataCollection.length > 0) {
                 const metadata = metadataCollection[0];
                 const seriesId = this.resolveSeries(metadata)
@@ -112,7 +112,7 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
     }
 
     refreshTimer() {
-        getEventMetadata(this.state.episodeId).then((metadataCollection) => {
+        getEventMetadata(this.state.eventId).then((metadataCollection) => {
             if (this.state.metadata === undefined || this.state.metadata === "error" || metadataCollection.length === 0)
                 return;
 
@@ -135,7 +135,7 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
     onSubmit() {
         if (!isMetadata(this.state.metadata))
             return;
-        if (this.state.episodeId === undefined && this.state.presenterFile === undefined)
+        if (this.state.eventId === undefined && this.state.presenterFile === undefined)
             return;
         this.setState({
             ...this.state,
@@ -144,7 +144,7 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
         uploadFile(
             this.state.metadata.edited,
             this.state.metadata.seriesId,
-            this.state.episodeId,
+            this.state.eventId,
             this.state.presenterFile,
             this.state.captionFile,
         ).then((_) => {
@@ -154,7 +154,7 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                 ...this.state,
                 uploadState: "success"
             });
-            if (this.state.episodeId === undefined) {
+            if (this.state.eventId === undefined) {
                 this.setState({
                     ...this.state,
                     metadata: {
@@ -211,10 +211,10 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
     }
 
     onMoveToSeries(_: any) {
-        const episodeId = this.state.episodeId;
-        if (episodeId === undefined || this.state.copySeries === undefined)
+        const eventId = this.state.eventId;
+        if (eventId === undefined || this.state.copySeries === undefined)
             return;
-        copyEventToSeries(episodeId, this.state.copySeries.value).then((_) => {
+        copyEventToSeries(eventId, this.state.copySeries.value).then((_) => {
             this.setState({
                 ...this.state,
                 copyState: "success"
@@ -236,15 +236,15 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
 
     render() {
         if (this.state.metadata === undefined)
-            return <Loading />;
+            return <Loading t={this.props.t} />;
         if (this.state.metadata === "error")
             return <div>this.props.t("LTI.ERROR_LOADING_METADATA")</div>;
         const qs = parsedQueryString();
         return <>
             <Helmet>
-                <title>{this.props.t("LTI." + (this.state.episodeId === undefined ? "UPLOAD_TITLE" : "EDIT_TITLE"))}</title>
+                <title>{this.props.t("LTI." + (this.state.eventId === undefined ? "UPLOAD_TITLE" : "EDIT_TITLE"))}</title>
             </Helmet>
-            <h2>{this.props.t("LTI." + (this.state.episodeId === undefined ? "NEW_UPLOAD" : "EDIT_UPLOAD"))}</h2>
+            <h2>{this.props.t("LTI." + (this.state.eventId === undefined ? "NEW_UPLOAD" : "EDIT_UPLOAD"))}</h2>
             {this.state.metadata.edited.locked !== undefined && <div className="alert alert-secondary">
                 {this.props.t(this.state.metadata.edited.locked)}<br />
             </div>}
@@ -264,7 +264,7 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                 <div className="text-muted">{this.props.t("LTI.COPY_FAILURE_DESCRIPTION")}</div>
             </div>}
             <EditForm
-                withUpload={this.state.episodeId === undefined}
+                withUpload={this.state.eventId === undefined}
                 data={this.state.metadata.edited}
                 onDataChange={this.onDataChange.bind(this)}
                 onPresenterFileChange={this.onPresenterFileChange.bind(this)}
@@ -272,7 +272,7 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                 onSubmit={this.onSubmit.bind(this)}
                 hasSubmit={this.state.metadata.edited.locked === undefined}
                 pending={this.state.uploadState === "pending"} />
-            {this.state.episodeId !== undefined && this.state.metadata.edited.locked === undefined &&
+            {this.state.eventId !== undefined && this.state.metadata.edited.locked === undefined &&
                 <>
                     <h2>{this.props.t("LTI.COPY_TO_SERIES")}</h2>
                     <form>

@@ -1,5 +1,5 @@
 import React from "react";
-import { SearchEpisodeResults, searchEpisode, getLti, SearchEpisodeResult, deleteEpisode } from "../OpencastRest";
+import { SearchEpisodeResults, searchEpisode, getLti, SearchEpisodeResult, deleteEvent } from "../OpencastRest";
 import { Loading } from "./Loading";
 import { withTranslation, WithTranslation } from "react-i18next";
 import "../App.css";
@@ -111,9 +111,9 @@ class TranslatedSeries extends React.Component<SeriesProps, SeriesState> {
         window.location.href = "/ltitools/index.html?tool=upload&episode_id=" + id + seriesSuffix + debugSuffix;
     }
 
-    deleteEpisodeCallback(id: string) {
+    deleteEventCallback(id: string) {
         this.unsetDeletionState();
-        deleteEpisode(id).then((_) => {
+        deleteEvent(id).then((_) => {
             this.setState({
                 ...this.state,
                 deleteSuccess: true
@@ -180,7 +180,7 @@ class TranslatedSeries extends React.Component<SeriesProps, SeriesState> {
                     {sr.results.map((episode) => <SeriesEpisode
                         key={episode.id}
                         episode={episode}
-                        deleteCallback={this.isInstructor() && this.hasDeletion() ? this.deleteEpisodeCallback.bind(this) : undefined}
+                        deleteCallback={this.isInstructor() && this.hasDeletion() ? this.deleteEventCallback.bind(this) : undefined}
                         editCallback={this.isInstructor() && this.hasEdit() ? this.editEpisodeCallback.bind(this) : undefined}
                         t={this.props.t} />)}
                 </div>
@@ -198,7 +198,7 @@ class TranslatedSeries extends React.Component<SeriesProps, SeriesState> {
                 </div>
             </>
         }
-        return <Loading />;
+        return <Loading t={this.props.t} />;
     }
 };
 

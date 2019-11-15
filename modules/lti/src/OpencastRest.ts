@@ -160,8 +160,8 @@ export async function searchEpisode(
     }
 }
 
-export function deleteEpisode(episodeId: string): Promise<void> {
-    return axios.delete(hostAndPort() + "/lti-service-gui/" + episodeId);
+export function deleteEvent(eventId: string): Promise<void> {
+    return axios.delete(hostAndPort() + "/lti-service-gui/" + eventId);
 }
 
 export async function getLti(): Promise<LtiData> {

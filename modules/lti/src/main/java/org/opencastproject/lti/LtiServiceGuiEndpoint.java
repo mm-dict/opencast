@@ -62,6 +62,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+/**
+ * The endpoint for the LTI gui
+ */
 @Path("/")
 @RestService(name = "ltirestserviceendpoint", title = "LTI Service", notes = {}, abstractText = "Provides operations to LTI clients")
 public class LtiServiceGuiEndpoint {

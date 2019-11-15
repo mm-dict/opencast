@@ -26,6 +26,9 @@ import org.opencastproject.util.NotFoundException;
 
 import java.util.List;
 
+/**
+ * Interface for implementing functionality available in the LTI GUI
+ */
 public interface LtiService {
   String JOB_TYPE = "org.opencastproject.lti.service";
 

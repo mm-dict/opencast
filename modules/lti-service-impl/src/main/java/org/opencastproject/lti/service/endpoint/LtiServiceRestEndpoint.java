@@ -64,6 +64,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+/**
+ * The REST endpoint for the remote LTI service (for multi-node setups with LTI)
+ */
 @Path("/")
 @RestService(name = "ltirestservice", title = "LTI Service", notes = {}, abstractText = "Provides operations to LTI clients")
 public class LtiServiceRestEndpoint {

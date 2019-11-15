@@ -86,6 +86,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * The LTI service implementation
+ */
 public class LtiServiceImpl implements LtiService, ManagedService {
   private static final Logger logger = LoggerFactory.getLogger(LtiServiceImpl.class);
 
