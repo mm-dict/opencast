@@ -23,6 +23,7 @@
     "typescript": "3.6.3"
   },
   "scripts": {
+    "i18n": "./i18n.js",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",

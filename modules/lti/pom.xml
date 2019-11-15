@@ -176,7 +176,18 @@
               </execution>
 
               <execution>
-                <phase>validate</phase>
+                <phase>compile</phase>
+                <id>i18n</id>
+                <goals>
+                  <goal>npm</goal>
+                </goals>
+                <configuration>
+                  <arguments>run i18n</arguments>
+                </configuration>
+              </execution>
+
+              <execution>
+                <phase>compile</phase>
                 <id>npm run build</id>
                 <goals>
                   <goal>npm</goal>

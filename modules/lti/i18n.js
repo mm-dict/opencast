@@ -3,19 +3,22 @@
 
 const fs = require('fs');
 
-let i18n = {},
-    inpath = './src/i18n/',
-    toolprefix = './target/classes/tools/',
-    outpaths = [toolprefix+'series/', toolprefix+'upload/'],
-    files = fs.readdirSync(inpath);
+const i18n = {},
+      inpath = '../admin-ui/src/main/resources/public/org/opencastproject/adminui/languages',
+      outpath = './src/i18n';
 
-files.forEach(file => {
-  if (file.endsWith('.json')) {
-    let lang = file.split('.')[0],
-        data = fs.readFileSync(inpath + file);
-    i18n[lang] = JSON.parse(data);
+fs.mkdir("src/i18n", { recursive: true}, (err) => {
+  if (err) {
+    throw err;
   }
 });
-outpaths.forEach(outpath => {
-  fs.writeFileSync(outpath + 'i18n-data.js', 'var i18ndata = ' + JSON.stringify(i18n));
+
+fs.readdirSync(inpath).filter(file => file.endsWith(".json")).forEach(file => {
+  fs.copyFile(inpath + "/" + file, outpath + "/" + file, (err) => {
+    if (err) {
+      throw err;
+    }
+  });
 });
+
+console.log("Copied i18n files from Admin UI.");
