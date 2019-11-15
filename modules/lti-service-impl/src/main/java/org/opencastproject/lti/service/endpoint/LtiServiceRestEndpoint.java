@@ -20,6 +20,7 @@
  */
 package org.opencastproject.lti.service.endpoint;
 
+import static org.opencastproject.index.service.util.RestUtils.okJson;
 import static org.opencastproject.util.doc.rest.RestParameter.Type.STRING;
 
 import org.opencastproject.lti.service.api.LtiFileUpload;
@@ -50,6 +51,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
@@ -78,7 +80,7 @@ public class LtiServiceRestEndpoint {
   @GET
   @Path("/jobs")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response listJobs(@QueryParam("series") String seriesId) {
+  public Response listJobs(@QueryParam("seriesId") String seriesId) {
     return Response.status(Status.OK)
             .entity(gson.toJson(service.listJobs(seriesId), new TypeToken<List<LtiJob>>() {
             }.getType())).build();
@@ -143,13 +145,66 @@ public class LtiServiceRestEndpoint {
     }
   }
 
+  @POST
+  @Path("{eventId}/copy")
+  @RestQuery(name = "copyeventtoseries", description = "Copy an event to a different series", returnDescription = "", pathParameters = {
+          @RestParameter(name = "eventId", description = "The event (id) to copy", isRequired = true, type = STRING),
+          @RestParameter(name = "seriesId", description = "The series (id) to copy into", isRequired = true, type = STRING) }, reponses = {
+          @RestResponse(description = "The event has been deleted.", responseCode = HttpServletResponse.SC_NO_CONTENT),
+          @RestResponse(description = "The specified event does not exist.", responseCode = HttpServletResponse.SC_NOT_FOUND) })
+  public Response copyEventToSeries(@PathParam("eventId") final String eventId,
+          @QueryParam("seriesId") final String seriesId) {
+    service.copyEventToSeries(eventId, seriesId);
+    return Response.noContent().build();
+  }
+
+  @POST
+  @Path("{eventId}/metadata")
+  public Response setEventMetadataJson(@PathParam("eventId") final String eventId,
+          @FormParam("metadataJson") final String metadataJson) {
+    try {
+      this.service.setEventMetadataJson(eventId, metadataJson);
+      return Response.ok().build();
+    } catch (NotFoundException e) {
+      return Response.status(Status.NOT_FOUND).build();
+    } catch (UnauthorizedException e) {
+      return Response.status(Status.UNAUTHORIZED).build();
+    }
+  }
+
+  @GET
+  @Path("new/metadata")
+  @Produces(MediaType.APPLICATION_JSON)
+  @RestQuery(name = "geteventmetadata", description = "Get the metadata of an existing event", returnDescription = "The metadata of an existing event", pathParameters = {
+          @RestParameter(name = "eventId", description = "The event id", isRequired = true, type = STRING) }, reponses = { })
+  public Response getNewEventMetadata() {
+    return okJson(service.getNewEventMetadata().toJSON());
+  }
+
+  @GET
+  @Path("{eventId}/metadata")
+  @Produces(MediaType.APPLICATION_JSON)
+  @RestQuery(name = "geteventmetadata", description = "Get the metadata of an existing event", returnDescription = "The metadata of an existing event", pathParameters = {
+          @RestParameter(name = "eventId", description = "The event id", isRequired = true, type = STRING) }, reponses = {
+          @RestResponse(description = "The event has been deleted.", responseCode = HttpServletResponse.SC_NO_CONTENT),
+          @RestResponse(description = "The specified event does not exist.", responseCode = HttpServletResponse.SC_NOT_FOUND) })
+  public Response getEventMetadata(@PathParam("eventId") final String eventId) {
+    try {
+      return okJson(service.getEventMetadata(eventId).toJSON());
+    } catch (NotFoundException e) {
+      return Response.status(Status.NOT_FOUND).build();
+    } catch (UnauthorizedException e) {
+      return Response.status(Status.UNAUTHORIZED).build();
+    }
+  }
+
   @DELETE
   @Path("{eventId}")
   @RestQuery(name = "deleteevent", description = "Deletes an event.", returnDescription = "", pathParameters = {
           @RestParameter(name = "eventId", description = "The event id", isRequired = true, type = STRING) }, reponses = {
           @RestResponse(description = "The event has been deleted.", responseCode = HttpServletResponse.SC_NO_CONTENT),
           @RestResponse(description = "The specified event does not exist.", responseCode = HttpServletResponse.SC_NOT_FOUND) })
-  public Response deleteEvent(@HeaderParam("Accept") String acceptHeader, @PathParam("eventId") String id) {
+  public Response deleteEvent(@PathParam("eventId") final String id) {
     service.delete(id);
     return Response.noContent().build();
   }

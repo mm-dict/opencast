@@ -238,30 +238,30 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
         if (this.state.metadata === undefined)
             return <Loading />;
         if (this.state.metadata === "error")
-            return <div>Error loading metadata</div>;
+            return <div>this.props.t("LTI.ERROR_LOADING_METADATA")</div>;
         const qs = parsedQueryString();
         return <>
             <Helmet>
-                <title>{this.props.t(this.state.episodeId === undefined ? "UPLOAD_TITLE" : "EDIT_TITLE")}</title>
+                <title>{this.props.t("LTI." + (this.state.episodeId === undefined ? "UPLOAD_TITLE" : "EDIT_TITLE"))}</title>
             </Helmet>
-            <h2>{this.props.t(this.state.episodeId === undefined ? "NEW_UPLOAD" : "EDIT_UPLOAD")}</h2>
+            <h2>{this.props.t("LTI." + (this.state.episodeId === undefined ? "NEW_UPLOAD" : "EDIT_UPLOAD"))}</h2>
             {this.state.metadata.edited.locked !== undefined && <div className="alert alert-secondary">
                 {this.props.t(this.state.metadata.edited.locked)}<br />
             </div>}
             {this.state.uploadState === "success" && <div className="alert alert-success">
-                {this.props.t("UPLOAD_SUCCESS")}<br />
+                {this.props.t("LTI.UPLOAD_SUCCESS")}<br />
             </div>}
             {this.state.uploadState === "error" && <div className="alert alert-danger">
-                {this.props.t("UPLOAD_FAILURE")}<br />
-                <div className="text-muted">{this.props.t("UPLOAD_FAILURE_DESCRIPTION")}</div>
+                {this.props.t("LTI.UPLOAD_FAILURE")}<br />
+                <div className="text-muted">{this.props.t("LTI.UPLOAD_FAILURE_DESCRIPTION")}</div>
             </div>}
             {this.state.copyState === "success" && <div className="alert alert-success">
-                {this.props.t("COPY_SUCCESS")}<br />
-                <div className="text-muted">{this.props.t("COPY_SUCCESS_DESCRIPTION")}</div>
+                {this.props.t("LTI.COPY_SUCCESS")}<br />
+                <div className="text-muted">{this.props.t("LTI.COPY_SUCCESS_DESCRIPTION")}</div>
             </div>}
             {this.state.copyState === "error" && <div className="alert alert-danger">
-                {this.props.t("COPY_FAILURE")}<br />
-                <div className="text-muted">{this.props.t("COPY_FAILURE_DESCRIPTION")}</div>
+                {this.props.t("LTI.COPY_FAILURE")}<br />
+                <div className="text-muted">{this.props.t("LTI.COPY_FAILURE_DESCRIPTION")}</div>
             </div>}
             <EditForm
                 withUpload={this.state.episodeId === undefined}
@@ -274,7 +274,7 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                 pending={this.state.uploadState === "pending"} />
             {this.state.episodeId !== undefined && this.state.metadata.edited.locked === undefined &&
                 <>
-                    <h2>{this.props.t("COPY_TO_SERIES")}</h2>
+                    <h2>{this.props.t("LTI.COPY_TO_SERIES")}</h2>
                     <form>
                         <div className="form-group">
                             <Select
@@ -282,19 +282,19 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                                 isSearchable={true}
                                 value={this.state.copySeries}
                                 onChange={(value: ValueType<OptionType>, _: ActionMeta) => this.onChangeCopyTarget(value as OptionType)}
-                                placeholder={this.props.t("SELECT_COPY_TARGET")} />
+                                placeholder={this.props.t("LTI.SELECT_COPY_TARGET")} />
                         </div>
                         <button
                             type="button"
                             className="btn btn-primary"
                             onClick={this.onMoveToSeries.bind(this)}
                             disabled={this.state.copyState === "pending" || this.state.copySeries === undefined}>
-                            {this.props.t(this.state.copyState === "pending" ? "COPY_IN_PROGRESS" : "COPY")}
+                            {this.props.t(this.state.copyState === "pending" ? "LTI.COPY_IN_PROGRESS" : "COPY")}
                         </button>
                     </form>
                 </>
             }
-            <h2>{this.props.t("CURRENT_JOBS")}</h2>
+            <h2>{this.props.t("LTI.CURRENT_JOBS")}</h2>
             <JobList
                 seriesId={typeof qs.series === "string" ? qs.series : undefined}
                 seriesName={typeof qs.seriesName === "string" ? qs.seriesName : undefined} />
