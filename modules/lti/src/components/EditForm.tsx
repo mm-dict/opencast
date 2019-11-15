@@ -27,6 +27,7 @@ interface EditFormProps extends WithTranslation {
     readonly onCaptionFileChange: (file: Blob) => void;
     readonly onSubmit: () => void;
     readonly pending: boolean;
+    readonly hasSubmit: boolean;
 }
 
 interface MetadataFieldProps {
@@ -58,8 +59,13 @@ function MetadataFieldInner(props: MetadataFieldProps) {
     const field = props.field;
     const t = props.t;
     const valueChange = props.valueChange;
-    if (field.type === "text" && field.collection === undefined && field.readOnly === true)
+    if (field.readOnly === true) {
+        if (Array.isArray(field.value))
+            return <div>{field.value.join(", ")}</div>
+        if (field.collection !== undefined)
+            return <div>{t("LTI.NO_OPTION_SELECTED")}</div>;
         return <div>{field.value}</div>;
+    }
     if (field.type === "text" && field.collection === undefined)
         return <input
             type="text"
@@ -150,13 +156,14 @@ class TranslatedEditForm extends React.Component<EditFormProps> {
                     <small className="form-text text-muted">{this.props.t("CAPTION_DESCRIPTION")}</small>
                 </div>
             }
-            <button
-                type="button"
-                className="btn btn-primary"
-                onClick={(_: any) => this.props.onSubmit()}
-                disabled={this.props.pending}>
-                {this.props.t(this.props.pending ? "UPLOADING" : "UPLOAD")}
-            </button>
+            {this.props.hasSubmit &&
+                <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={(_: any) => this.props.onSubmit()}
+                    disabled={this.props.pending}>
+                    {this.props.t(this.props.pending ? "UPLOADING" : "UPLOAD")}
+                </button>}
         </form>
     }
 }

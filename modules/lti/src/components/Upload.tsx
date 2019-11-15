@@ -35,6 +35,7 @@ interface UploadState {
     readonly captionFile?: Blob;
     readonly copyState: "success" | "error" | "pending" | "none";
     readonly copySeries?: OptionType;
+    readonly refreshTimerId?: ReturnType<typeof setTimeout>;
 }
 
 function isMetadata(
@@ -92,12 +93,43 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                             seriesId: seriesId
                         },
                     });
+
+                    this.setState({
+                        ...this.state,
+                        refreshTimerId: setInterval(this.refreshTimer.bind(this), 1000),
+                    });
                 }
             }
         }).catch((_) => this.setState({
             ...this.state,
             metadata: "error"
         }));
+    }
+
+    componentWillUnmount() {
+        if (this.state.refreshTimerId !== undefined)
+            clearInterval(this.state.refreshTimerId);
+    }
+
+    refreshTimer() {
+        getEventMetadata(this.state.episodeId).then((metadataCollection) => {
+            if (this.state.metadata === undefined || this.state.metadata === "error" || metadataCollection.length === 0)
+                return;
+
+            const metadata = metadataCollection[0];
+            const lockedBefore = this.state.metadata.edited.locked !== undefined;
+            const lockedAfter = metadata.locked !== undefined;
+            if (lockedBefore !== lockedAfter) {
+                this.setState({
+                    ...this.state,
+                    metadata: {
+                        ...this.state.metadata,
+                        initial: metadata,
+                        edited: metadata,
+                    },
+                });
+            }
+        });
     }
 
     onSubmit() {
@@ -196,7 +228,6 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
     }
 
     onChangeCopyTarget(v: OptionType) {
-        console.log("new value " + JSON.stringify(v));
         this.setState({
             ...this.state,
             copySeries: v
@@ -214,6 +245,9 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                 <title>{this.props.t(this.state.episodeId === undefined ? "UPLOAD_TITLE" : "EDIT_TITLE")}</title>
             </Helmet>
             <h2>{this.props.t(this.state.episodeId === undefined ? "NEW_UPLOAD" : "EDIT_UPLOAD")}</h2>
+            {this.state.metadata.edited.locked !== undefined && <div className="alert alert-secondary">
+                {this.props.t(this.state.metadata.edited.locked)}<br />
+            </div>}
             {this.state.uploadState === "success" && <div className="alert alert-success">
                 {this.props.t("UPLOAD_SUCCESS")}<br />
             </div>}
@@ -236,8 +270,9 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                 onPresenterFileChange={this.onPresenterFileChange.bind(this)}
                 onCaptionFileChange={this.onCaptionFileChange.bind(this)}
                 onSubmit={this.onSubmit.bind(this)}
+                hasSubmit={this.state.metadata.edited.locked === undefined}
                 pending={this.state.uploadState === "pending"} />
-            {this.state.episodeId !== undefined &&
+            {this.state.episodeId !== undefined && this.state.metadata.edited.locked === undefined &&
                 <>
                     <h2>{this.props.t("COPY_TO_SERIES")}</h2>
                     <form>

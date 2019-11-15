@@ -49,6 +49,7 @@ export interface EventMetadataField {
 
 export interface EventMetadataContainer {
     readonly flavor: string;
+    readonly locked?: string;
     readonly title: string;
     readonly fields: EventMetadataField[];
 }

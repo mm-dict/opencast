@@ -124,7 +124,7 @@
             "System User": "System User"
           },
           "type": "mixed_text",
-          "value": ["test"],
+          "value": ["test", "x"],
           "required": false
         },
         {
