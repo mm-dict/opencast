@@ -203,6 +203,10 @@ public class LtiServiceImpl implements LtiService, ManagedService {
 
       final EventCatalogUIAdapter adapter = getEventCatalogUIAdapter();
       final MetadataCollection collection = adapter.getRawFields();
+      // What we _really_ want to call is MetadataCollection.fromJSON, but this needs some JSON destructuring first.
+      // We _could_ take a different JSON format, but that would mean we cannot easily call updateEventMetadata on
+      // the index service (see above). So either destructure it ourself here, or just call the MetadataList
+      // constructor.
       new MetadataList(collection, metadataJson);
       replaceField(collection, "isPartOf", seriesId);
       adapter.storeFields(mp, collection);
