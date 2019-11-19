@@ -155,7 +155,7 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                 return;
             this.setState({
                 ...this.state,
-                uploadState: "success"
+                uploadState: this.state.eventId === undefined ? "success" : "none"
             });
             if (this.state.eventId === undefined) {
                 this.setState({
@@ -243,19 +243,20 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
         if (this.state.metadata === "error")
             return <div>{this.props.t("LTI.ERROR_LOADING_METADATA")}</div>;
         const qs = parsedQueryString();
+        const lockedString = this.state.metadata.edited.locked !== undefined ? "LTI.EVENT_LOCKED" : undefined;
         return <>
             <Helmet>
                 <title>{this.props.t("LTI." + (this.state.eventId === undefined ? "UPLOAD_TITLE" : "EDIT_TITLE"))}</title>
             </Helmet>
             <h2>{this.props.t("LTI." + (this.state.eventId === undefined ? "NEW_UPLOAD" : "EDIT_UPLOAD"))}</h2>
-            {this.state.metadata.edited.locked !== undefined && <div className="alert alert-secondary">
-                {this.props.t(this.state.metadata.edited.locked)}<br />
+            {lockedString !== undefined && <div className="alert alert-secondary">
+                {this.props.t(lockedString)}<br />
             </div>}
             {this.state.uploadState === "success" && <div className="alert alert-success">
-                {this.props.t("LTI.UPLOAD_SUCCESS")}<br />
+                {this.props.t(this.state.eventId === undefined ? "LTI.UPLOAD_SUCCESS" : "LTI.EDIT_SUCCESS")}<br />
             </div>}
             {this.state.uploadState === "error" && <div className="alert alert-danger">
-                {this.props.t("LTI.UPLOAD_FAILURE")}<br />
+                {this.props.t(this.state.eventId === undefined ? "LTI.UPLOAD_FAILURE" : "LTI.EDIT_FAILURE")}<br />
                 <div className="text-muted">{this.props.t("LTI.UPLOAD_FAILURE_DESCRIPTION")}</div>
             </div>}
             {this.state.copyState === "success" && <div className="alert alert-success">
@@ -292,7 +293,7 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                             className="btn btn-primary"
                             onClick={this.onMoveToSeries.bind(this)}
                             disabled={this.state.copyState === "pending" || this.state.copySeries === undefined}>
-                            {this.props.t(this.state.copyState === "pending" ? "LTI.COPY_IN_PROGRESS" : "COPY")}
+                            {this.props.t(this.state.copyState === "pending" ? "LTI.COPY_IN_PROGRESS" : "LTI.COPY")}
                         </button>
                     </form>
                 </>

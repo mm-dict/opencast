@@ -55,16 +55,30 @@ function collectionToOptions(collection: EventMetadataCollection, translatable: 
         .map(([k, v]) => ({ value: v, label: k }));
 }
 
+function MetadataFieldReadOnly(props: MetadataFieldProps) {
+    const field = props.field;
+    const t = props.t;
+    const style = { fontStyle: "italics" };
+    if (Array.isArray(field.value))
+        return <div style={style}>{field.value.join(", ")}</div>
+    if (field.value === "")
+        return <div style={style}>{t("LTI.NO_OPTION_SELECTED")}</div>;
+    if (field.collection !== undefined) {
+        const options: OptionType[] = collectionToOptions(field.collection, field.translatable, t);
+        const currentValue = options.find((o: OptionType) => o.value === field.value);
+        if (currentValue === undefined)
+            return <div style={style}>{t("LTI.NO_OPTION_SELECTED")}</div>;
+        return <div style={style}>{currentValue.label}</div>;
+    }
+    return <div style={style}>{field.value}</div>;
+}
+
 function MetadataFieldInner(props: MetadataFieldProps) {
     const field = props.field;
     const t = props.t;
     const valueChange = props.valueChange;
     if (field.readOnly === true) {
-        if (Array.isArray(field.value))
-            return <div>{field.value.join(", ")}</div>
-        if (field.collection !== undefined)
-            return <div>{t("LTI.NO_OPTION_SELECTED")}</div>;
-        return <div>{field.value}</div>;
+        return <MetadataFieldReadOnly {...props} />;
     }
     if (field.type === "text" && field.collection === undefined)
         return <input
