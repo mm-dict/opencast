@@ -59,8 +59,8 @@ class TranslatedJobList extends React.Component<JobListProps, JobListState> {
         return <table className="table table-striped">
             <thead>
                 <tr>
-                    <th>{this.props.t("TITLE")}</th>
-                    <th>{this.props.t("STATUS")}</th>
+                    <th>{this.props.t("LTI.JOB_TITLE")}</th>
+                    <th>{this.props.t("LTI.JOB_STATUS")}</th>
                 </tr>
             </thead>
             <tbody>

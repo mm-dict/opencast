@@ -176,7 +176,7 @@
               </execution>
 
               <execution>
-                <phase>compile</phase>
+                <phase>initialize</phase>
                 <id>i18n</id>
                 <goals>
                   <goal>npm</goal>
@@ -187,7 +187,7 @@
               </execution>
 
               <execution>
-                <phase>compile</phase>
+                <phase>initialize</phase>
                 <id>npm run build</id>
                 <goals>
                   <goal>npm</goal>

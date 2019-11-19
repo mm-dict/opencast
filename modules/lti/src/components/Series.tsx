@@ -152,7 +152,7 @@ class TranslatedSeries extends React.Component<SeriesProps, SeriesState> {
 
     render() {
         if (this.state.httpErrors.length > 0)
-            return <div>{this.props.t("GENERIC_ERROR", { message: this.state.httpErrors[0] })}</div>;
+            return <div>{this.props.t("LTI.GENERIC_ERROR", { message: this.state.httpErrors[0] })}</div>;
         if (this.state.searchResults !== undefined && this.state.ltiRoles !== undefined) {
             const sr = this.state.searchResults;
             const headingOpts = {
@@ -165,17 +165,17 @@ class TranslatedSeries extends React.Component<SeriesProps, SeriesState> {
             return <>
                 <header>
                     {this.state.deleteSuccess === true && <div className="alert alert-success">
-                        {this.props.t("DELETION_SUCCESS")}<br />
-                        <div className="text-muted">{this.props.t("DELETION_SUCCESS_DESCRIPTION")}</div>
+                        {this.props.t("LTI.DELETION_SUCCESS")}<br />
+                        <div className="text-muted">{this.props.t("LTI.DELETION_SUCCESS_DESCRIPTION")}</div>
                     </div>}
                     {this.state.deleteSuccess === false && <div className="alert alert-danger">
-                        {this.props.t("DELETION_FAILURE")}<br />
-                        <div className="text-muted">{this.props.t("DELETION_FAILURE_DESCRIPTION")}</div>
+                        {this.props.t("LTI.DELETION_FAILURE")}<br />
+                        <div className="text-muted">{this.props.t("LTI.DELETION_FAILURE_DESCRIPTION")}</div>
                     </div>}
-                    {this.props.t("RESULTS", headingOpts)}
+                    {this.props.t("LTI.RESULT_HEADING", headingOpts)}
                 </header>
                 <Helmet>
-                    <title>{this.props.t("SERIES_TITLE")}</title>
+                    <title>{this.props.t("LTI.SERIES_TITLE")}</title>
                 </Helmet>
                 <div className="list-group">
                     {sr.results.map((episode) => <SeriesEpisode
@@ -185,7 +185,7 @@ class TranslatedSeries extends React.Component<SeriesProps, SeriesState> {
                         editCallback={this.isInstructor() && this.hasEdit() ? this.editEpisodeCallback.bind(this) : undefined}
                         t={this.props.t} />)}
                 </div>
-                <div>
+                <footer className="mt-3">
                     <Pagination
                         activePage={this.state.currentPage}
                         itemsCountPerPage={sr.limit}
@@ -196,7 +196,7 @@ class TranslatedSeries extends React.Component<SeriesProps, SeriesState> {
                         innerClass="pagination justify-content-center"
                         onChange={this.handlePageChange.bind(this)}
                     />
-                </div>
+                </footer>
             </>
         }
         return <Loading t={this.props.t} />;

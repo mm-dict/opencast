@@ -43,7 +43,7 @@ interface MetadataCollectionKey {
 }
 
 function parseMetadataCollectionKey(s: string): MetadataCollectionKey {
-    if (s.startsWith("{"))
+    if (!s.startsWith("{"))
         return { label: s };
     return JSON.parse(s);
 }
@@ -96,7 +96,7 @@ function MetadataFieldInner(props: MetadataFieldProps) {
                     value === undefined || value === null || Array.isArray(value) ? "" : (value as OptionType).value)}
             value={currentValue}
             options={options}
-            placeholder={t("SELECT_OPTION")} />
+            placeholder={t("LTI.SELECT_OPTION")} />
     }
     return <div>Cannot display control of type {field.type}</div>
 }
@@ -144,16 +144,16 @@ class TranslatedEditForm extends React.Component<EditFormProps> {
                     valueChange={this.fieldValueChange.bind(this)} />)}
             {this.props.withUpload === true &&
                 <div className="form-group">
-                    <label htmlFor="presenter">{this.props.t("PRESENTER")}</label>
+                    <label htmlFor="presenter">{this.props.t("LTI.PRESENTER")}</label>
                     <input type="file" className="form-control-file" onChange={this.onChangePresenterFile.bind(this)} />
-                    <small className="form-text text-muted">{this.props.t("PRESENTER_DESCRIPTION")}</small>
+                    <small className="form-text text-muted">{this.props.t("LTI.PRESENTER_DESCRIPTION")}</small>
                 </div>
             }
             {this.props.withUpload === true &&
                 <div className="form-group">
-                    <label htmlFor="caption">{this.props.t("CAPTION")}</label>
+                    <label htmlFor="caption">{this.props.t("LTI.CAPTION")}</label>
                     <input type="file" className="form-control-file" onChange={this.onChangeCaptionFile.bind(this)} />
-                    <small className="form-text text-muted">{this.props.t("CAPTION_DESCRIPTION")}</small>
+                    <small className="form-text text-muted">{this.props.t("LTI.CAPTION_DESCRIPTION")}</small>
                 </div>
             }
             {this.props.hasSubmit === true &&
@@ -162,7 +162,8 @@ class TranslatedEditForm extends React.Component<EditFormProps> {
                     className="btn btn-primary"
                     onClick={(_: any) => this.props.onSubmit()}
                     disabled={this.props.pending}>
-                    {this.props.t(this.props.pending ? "UPLOADING" : "UPLOAD")}
+                    {this.props.withUpload === true && this.props.t(this.props.pending ? "LTI.UPLOADING" : "LTI.UPLOAD")}
+                    {this.props.withUpload === false && this.props.t(this.props.pending ? "LTI.EDITING" : "LTI.EDIT")}
                 </button>}
         </form>
     }
