@@ -39,8 +39,9 @@
      "DELETION_SUCCESS": "Event deletion successful",
      "DELETION_SUCCESS_DESCRIPTION": "The event will be removed from the list in a few moments…",
      "DELETION_FAILURE": "Event deletion failed",
-     "DELETION_FAULURE_DESCRIPTION": "Please try again later…",
+     "DELETION_FAILURE_DESCRIPTION": "Please try again later…",
      "RESULT_HEADING": "Results {{range.begin}}-{{range.end}} of {{total}}",
+     "CONFIRM_DELETION": "Really delete this event?",
      "SERIES_TITLE": "View Series"
    },
    "LANGUAGES": {

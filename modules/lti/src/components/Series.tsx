@@ -114,6 +114,8 @@ class TranslatedSeries extends React.Component<SeriesProps, SeriesState> {
 
     deleteEventCallback(id: string) {
         this.unsetDeletionState();
+        if (window.confirm(this.props.t("LTI.CONFIRM_DELETION")) === false)
+            return;
         deleteEvent(id).then((_) => {
             this.setState({
                 ...this.state,
