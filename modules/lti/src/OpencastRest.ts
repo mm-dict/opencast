@@ -68,7 +68,9 @@ export function findFieldValue(
     id: string,
     metadata: EventMetadataContainer): string | string[] | undefined {
     const result = findField(id, metadata);
-    return result && result.value;
+    if (result === undefined)
+         return undefined;
+    return result.value;
 }
 
 export function findFieldSingleValue(
@@ -99,14 +101,14 @@ export function findFieldCollection(
     id: string,
     metadata: EventMetadataContainer): EventMetadataCollection | undefined {
     const field = findField(id, metadata);
-    return (field && field.collection) || undefined;
+    return field === undefined ? undefined : field.collection;
 }
 
 export function collectionToPairs(c: EventMetadataCollection): [string, string][] {
     return Object.keys(c).map((k) => [k, c[k]]);
 }
 
-const debug = window.location.search.indexOf("&debug=true") !== -1;
+const debug = window.location.search.includes("&debug=true");
 
 function hostAndPort() {
     return debug ? "http://localhost:7878" : "";
@@ -119,7 +121,7 @@ export async function getEventMetadata(eventId?: string): Promise<EventMetadataC
 }
 
 export async function copyEventToSeries(eventId: string, targetSeries: string): Promise<{}> {
-    return await axios.post(hostAndPort() + "/lti-service-gui/" + eventId + "/copy?target_series=" + targetSeries);
+    return axios.post(hostAndPort() + "/lti-service-gui/" + eventId + "/copy?target_series=" + targetSeries);
 }
 
 export async function searchEpisode(
@@ -135,7 +137,7 @@ export async function searchEpisode(
         urlSuffix += "&sname=" + seriesName;
     if (episodeId !== undefined)
         urlSuffix += "&id=" + episodeId;
-    const response = await axios.get(hostAndPort() + "/search/episode.json?limit=" + limit + "&offset=" + offset + urlSuffix);
+    const response = await axios.get(`${hostAndPort()}/search/episode.json?limit=${limit}&offset=${offset}${urlSuffix}`);
     const resultsRaw = response.data["search-results"]["result"];
     const results = Array.isArray(resultsRaw) ? resultsRaw : resultsRaw !== undefined ? [resultsRaw] : [];
     return {
@@ -160,7 +162,7 @@ export async function searchEpisode(
     }
 }
 
-export function deleteEvent(eventId: string): Promise<void> {
+export async function deleteEvent(eventId: string): Promise<void> {
     return axios.delete(hostAndPort() + "/lti-service-gui/" + eventId);
 }
 
@@ -172,9 +174,9 @@ export async function getLti(): Promise<LtiData> {
 }
 
 export async function getJobs(seriesId?: string, seriesName?: string): Promise<JobResult[]> {
-    const urlSuffix = seriesId ? "series=" + seriesId : seriesName ? "series_name=" + seriesName : "";
+    const urlSuffix = seriesId !== undefined ? "series=" + seriesId : seriesName !== undefined ? "series_name=" + seriesName : "";
     const response = await axios.get(hostAndPort() + "/lti-service-gui/jobs?" + urlSuffix);
-    return response.data.map((response: any) => ({ title: response.title, status: response.status }));
+    return response.data.map((r: any) => ({ title: r.title, status: r.status }));
 }
 
 export async function uploadFile(

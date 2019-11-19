@@ -43,7 +43,7 @@ interface MetadataCollectionKey {
 }
 
 function parseMetadataCollectionKey(s: string): MetadataCollectionKey {
-    if (s[0] !== "{")
+    if (s.startsWith("{"))
         return { label: s };
     return JSON.parse(s);
 }
@@ -125,10 +125,10 @@ class TranslatedEditForm extends React.Component<EditFormProps> {
         this.props.onDataChange(
             {
                 ...this.props.data,
-                fields: this.props.data.fields.map((field) => field.id !== id ? field : ({
+                fields: this.props.data.fields.map((field) => field.id !== id ? field : {
                     ...field,
                     value: newValue
-                }))
+                })
             }
         );
     }
@@ -142,21 +142,21 @@ class TranslatedEditForm extends React.Component<EditFormProps> {
                     t={this.props.t}
                     field={field}
                     valueChange={this.fieldValueChange.bind(this)} />)}
-            {this.props.withUpload &&
+            {this.props.withUpload === true &&
                 <div className="form-group">
                     <label htmlFor="presenter">{this.props.t("PRESENTER")}</label>
                     <input type="file" className="form-control-file" onChange={this.onChangePresenterFile.bind(this)} />
                     <small className="form-text text-muted">{this.props.t("PRESENTER_DESCRIPTION")}</small>
                 </div>
             }
-            {this.props.withUpload &&
+            {this.props.withUpload === true &&
                 <div className="form-group">
                     <label htmlFor="caption">{this.props.t("CAPTION")}</label>
                     <input type="file" className="form-control-file" onChange={this.onChangeCaptionFile.bind(this)} />
                     <small className="form-text text-muted">{this.props.t("CAPTION_DESCRIPTION")}</small>
                 </div>
             }
-            {this.props.hasSubmit &&
+            {this.props.hasSubmit === true &&
                 <button
                     type="button"
                     className="btn btn-primary"

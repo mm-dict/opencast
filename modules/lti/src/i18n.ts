@@ -27,6 +27,6 @@ i18n
         interpolation: {
             escapeValue: false
         }
-    });
+    }).then((_) => console.log("i18n init complete"), (_) => console.log("i18n init failed"));
 
 export default i18n;

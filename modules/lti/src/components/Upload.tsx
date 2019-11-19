@@ -94,9 +94,10 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                         },
                     });
 
+                    const timerMillis = 1000;
                     this.setState({
                         ...this.state,
-                        refreshTimerId: setInterval(this.refreshTimer.bind(this), 1000),
+                        refreshTimerId: setInterval(this.refreshTimer.bind(this), timerMillis),
                     });
                 }
             }
@@ -129,6 +130,8 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                     },
                 });
             }
+        }).catch((_) => {
+            console.log("couldn't retrieve metadata at this time, ignoring...");
         });
     }
 
@@ -238,7 +241,7 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
         if (this.state.metadata === undefined)
             return <Loading t={this.props.t} />;
         if (this.state.metadata === "error")
-            return <div>this.props.t("LTI.ERROR_LOADING_METADATA")</div>;
+            return <div>{this.props.t("LTI.ERROR_LOADING_METADATA")}</div>;
         const qs = parsedQueryString();
         return <>
             <Helmet>

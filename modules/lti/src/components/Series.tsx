@@ -80,8 +80,9 @@ class TranslatedSeries extends React.Component<SeriesProps, SeriesState> {
 
     loadCurrentPage() {
         const qs = parsedQueryString();
+        const episodesPerPage = 15;
         searchEpisode(
-            15,
+            episodesPerPage,
             this.state.currentPage - 1,
             undefined,
             typeof qs.series === "string" ? qs.series : undefined,
@@ -141,12 +142,12 @@ class TranslatedSeries extends React.Component<SeriesProps, SeriesState> {
             ltiRoles: lti.roles
         })).catch((error) => this.setState({
             ...this.state,
-            httpErrors: this.state.httpErrors.concat(["LTI: " + error.message])
+            httpErrors: this.state.httpErrors.concat([`LTI: ${error.message}`])
         }))
     }
 
     isInstructor() {
-        return this.state.ltiRoles !== undefined && this.state.ltiRoles.indexOf("Instructor") >= 0;
+        return this.state.ltiRoles !== undefined && this.state.ltiRoles.includes("Instructor");
     }
 
     render() {
@@ -200,6 +201,6 @@ class TranslatedSeries extends React.Component<SeriesProps, SeriesState> {
         }
         return <Loading t={this.props.t} />;
     }
-};
+}
 
 export const Series = withTranslation()(TranslatedSeries);

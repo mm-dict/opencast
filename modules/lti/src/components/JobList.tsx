@@ -27,7 +27,7 @@ class TranslatedJobList extends React.Component<JobListProps, JobListState> {
             .then((jobs) => this.setState({
                 ...this.state,
                 jobs: jobs
-            })).catch((error) => this.setState({
+            })).catch((_) => this.setState({
                 ...this.state,
                 jobs: undefined
             }));
@@ -40,9 +40,11 @@ class TranslatedJobList extends React.Component<JobListProps, JobListState> {
     componentDidMount() {
         this.retrieveJobs();
 
+        const timerMillis = 1000;
+        /* eslint react/no-did-mount-set-state: "off" */
         this.setState({
             ...this.state,
-            jobsTimerId: setInterval(this.jobsTimer.bind(this), 1000),
+            jobsTimerId: setInterval(this.jobsTimer.bind(this), timerMillis),
         });
     }
 
@@ -53,7 +55,7 @@ class TranslatedJobList extends React.Component<JobListProps, JobListState> {
 
     render() {
         if (this.state.jobs === undefined)
-            return <Loading />;
+            return <Loading t={this.props.t} />;
         return <table className="table table-striped">
             <thead>
                 <tr>
