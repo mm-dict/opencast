@@ -338,8 +338,9 @@ public class DuplicateEventWorkflowOperationHandler extends AbstractWorkflowOper
     destination.setDuration(source.getDuration());
     destination.setLanguage(source.getLanguage());
     destination.setLicense(source.getLicense());
-    final String newTitle = noSuffix ?
-            source.getTitle() : String.format("%s (%s %d)", source.getTitle(), copyNumberPrefix, copyNumber);
+    final String newTitle = noSuffix
+            ? source.getTitle()
+            : String.format("%s (%s %d)", source.getTitle(), copyNumberPrefix, copyNumber);
     destination.setTitle(newTitle);
     return destination;
   }

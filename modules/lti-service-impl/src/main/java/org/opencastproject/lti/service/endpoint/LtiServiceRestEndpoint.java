@@ -163,6 +163,13 @@ public class LtiServiceRestEndpoint {
 
   @POST
   @Path("{eventId}/metadata")
+  @Produces(MediaType.APPLICATION_JSON)
+  @RestQuery(name = "seteventmetadata", description = "Set the metadata of an existing event", returnDescription = "", pathParameters = {
+          @RestParameter(name = "eventId", description = "The event id", isRequired = true, type = STRING) }, reponses = {
+          @RestResponse(description = "The event's metadata has been set", responseCode = HttpServletResponse.SC_OK),
+          @RestResponse(description = "The event doesn't exist", responseCode = HttpServletResponse.SC_NOT_FOUND),
+          @RestResponse(description = "The event cannot be accessed", responseCode = HttpServletResponse.SC_UNAUTHORIZED),
+  })
   public Response setEventMetadataJson(@PathParam("eventId") final String eventId,
           @FormParam("metadataJson") final String metadataJson) {
     try {
@@ -178,8 +185,9 @@ public class LtiServiceRestEndpoint {
   @GET
   @Path("new/metadata")
   @Produces(MediaType.APPLICATION_JSON)
-  @RestQuery(name = "geteventmetadata", description = "Get the metadata of an existing event", returnDescription = "The metadata of an existing event", pathParameters = {
-          @RestParameter(name = "eventId", description = "The event id", isRequired = true, type = STRING) }, reponses = { })
+  @RestQuery(name = "getneweventmetadata", description = "Get the metadata of a new event", returnDescription = "The metadata of a new event", reponses = {
+          @RestResponse(description = "A new event's metadata", responseCode = HttpServletResponse.SC_OK),
+  })
   public Response getNewEventMetadata() {
     return okJson(service.getNewEventMetadata().toJSON());
   }
