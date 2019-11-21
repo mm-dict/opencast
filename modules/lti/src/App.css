@@ -1,70 +1,3 @@
-.App {
-  text-align: center;
-}
-
-.App-logo {
-  animation: App-logo-spin infinite 20s linear;
-  height: 40vmin;
-  pointer-events: none;
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Begin customizations */
-div.episode {
-  display: inline-block;
-  text-decoration: none;
-  color: black;
-  background-color: #eee;
-  padding: 5px;
-  margin: 15px;
-  width: 100%;
-}
-
-div.episode a {
-    display: inline-block;
-}
-
-div.episode:hover {
-  background-color: #fafafa;
-}
-
-div.episode div {
-  display: inline-block;
-  padding: 20px;
-}
-
-div.episode div.preview {
-  width: 200px;
-}
-
-div.episode div.desc h2 {
-  margin: 0;
-  margin-bottom: 5px;
-}
-
 header {
   padding: 5px;
   margin: 15px;
@@ -72,12 +5,4 @@ header {
 
 .episode-item {
     cursor: pointer;
-}
-
-.series-table-even {
-    background-color: #f2f2f2;
-}
-
-.series-table-odd {
-    background-color: #ffffff;
 }
