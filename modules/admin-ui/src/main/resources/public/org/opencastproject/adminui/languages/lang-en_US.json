@@ -53,7 +53,8 @@
      "COPY_TO_SERIES": "Copy event to series",
      "SELECT_COPY_TARGET": "Select destination series",
      "COPY": "Copy",
-     "COPY_IN_PROGRESS": "Starting copy…"
+     "COPY_IN_PROGRESS": "Starting copy…",
+     "CREATOR": "by {{creator}}"
    },
    "LANGUAGES": {
       "ARABIC":"Arabic",

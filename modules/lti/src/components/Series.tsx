@@ -42,7 +42,7 @@ const SeriesEpisode: React.StatelessComponent<EpisodeProps> = ({ episode, delete
         <div className="ml-3">
             <h4>{episode.dcTitle}</h4>
             {episode.dcCreator !== undefined && <p className="text-muted">
-                {t("CREATOR", { creator: episode.dcCreator })}
+                {t("LTI.CREATOR", { creator: episode.dcCreator })}
             </p>}
             <p className="text-muted">{new Date(episode.dcCreated).toLocaleString()}</p>
         </div>

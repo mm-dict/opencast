@@ -20,7 +20,6 @@
  */
 package org.opencastproject.lti;
 
-import org.opencastproject.index.service.util.RestUtils;
 import org.opencastproject.lti.service.api.LtiFileUpload;
 import org.opencastproject.lti.service.api.LtiService;
 import org.opencastproject.security.api.UnauthorizedException;
@@ -80,7 +79,7 @@ public class LtiServiceGuiEndpoint {
   @Path("/new/metadata")
   @Produces(MediaType.APPLICATION_JSON)
   public Response getNewEventMetadata() {
-    return RestUtils.okJson(this.service.getNewEventMetadata().toJSON());
+    return Response.ok(this.service.getNewEventMetadata(), MediaType.APPLICATION_JSON).build();
   }
 
   @GET
@@ -88,7 +87,7 @@ public class LtiServiceGuiEndpoint {
   @Produces(MediaType.APPLICATION_JSON)
   public Response getEventMetadata(@PathParam("eventId") final String eventId) {
     try {
-      return RestUtils.okJson(this.service.getEventMetadata(eventId).toJSON());
+      return Response.ok(this.service.getEventMetadata(eventId), MediaType.APPLICATION_JSON).build();
     } catch (NotFoundException e) {
       return Response.status(Status.NOT_FOUND).build();
     } catch (UnauthorizedException e) {
@@ -121,7 +120,7 @@ public class LtiServiceGuiEndpoint {
   @GET
   @Path("/jobs")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response listJobs(@QueryParam("series") String seriesId) {
+  public Response listJobs(@QueryParam("seriesId") String seriesId) {
     final List<Map<String, String>> results = service.listJobs(seriesId).stream().map(e -> {
       Map<String, String> eventMap = new HashMap<>();
       eventMap.put("title", e.getTitle());

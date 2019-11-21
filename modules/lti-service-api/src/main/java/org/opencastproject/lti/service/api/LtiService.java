@@ -20,7 +20,6 @@
  */
 package org.opencastproject.lti.service.api;
 
-import org.opencastproject.index.service.catalog.adapter.MetadataList;
 import org.opencastproject.security.api.UnauthorizedException;
 import org.opencastproject.util.NotFoundException;
 
@@ -68,13 +67,13 @@ public interface LtiService {
    * @throws NotFoundException If the event doesn't exist
    * @throws UnauthorizedException If the user cannot access the event
    */
-  MetadataList getEventMetadata(String eventId) throws NotFoundException, UnauthorizedException;
+  String getEventMetadata(String eventId) throws NotFoundException, UnauthorizedException;
 
   /**
    * Returns the event metadata for a new event
    * @return The event metadata list
    */
-  MetadataList getNewEventMetadata();
+  String getNewEventMetadata();
 
   /**
    * Set the event metadata

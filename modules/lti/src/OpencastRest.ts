@@ -69,7 +69,7 @@ export function findFieldValue(
     metadata: EventMetadataContainer): string | string[] | undefined {
     const result = findField(id, metadata);
     if (result === undefined)
-         return undefined;
+        return undefined;
     return result.value;
 }
 
@@ -82,8 +82,12 @@ export function findFieldSingleValue(
     return typeof result === "string" ? result : undefined;
 }
 
-function isMultiValue(v: string | string[]): v is string[] {
+export function isMultiValue(v: string | string[]): v is string[] {
     return v.length !== undefined;
+}
+
+export function isSingleValue(v: string | string[]): v is string {
+    return v.length === undefined;
 }
 
 export function findFieldMultiValue(
@@ -173,9 +177,8 @@ export async function getLti(): Promise<LtiData> {
     }
 }
 
-export async function getJobs(seriesId?: string, seriesName?: string): Promise<JobResult[]> {
-    const urlSuffix = seriesId !== undefined ? "series=" + seriesId : seriesName !== undefined ? "series_name=" + seriesName : "";
-    const response = await axios.get(hostAndPort() + "/lti-service-gui/jobs?" + urlSuffix);
+export async function getJobs(seriesId: string): Promise<JobResult[]> {
+    const response = await axios.get(hostAndPort() + "/lti-service-gui/jobs?seriesId=" + seriesId);
     return response.data.map((r: any) => ({ title: r.title, status: r.status }));
 }
 
@@ -189,7 +192,7 @@ export async function uploadFile(
     data.append("metadata", JSON.stringify([metadata]));
     if (eventId !== undefined)
         data.append("eventId", eventId);
-    data.append("seriesId", seriesId === undefined ? "" : seriesId);
+    data.append("seriesId", seriesId);
     if (captionFile !== undefined)
         data.append("captions", captionFile);
     if (presenterFile !== undefined)

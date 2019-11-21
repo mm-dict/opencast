@@ -7,8 +7,7 @@ import {
 } from "../OpencastRest";
 
 interface JobListProps extends WithTranslation {
-    readonly seriesId?: string;
-    readonly seriesName?: string;
+    readonly seriesId: string;
 }
 
 interface JobListState {
@@ -23,7 +22,7 @@ class TranslatedJobList extends React.Component<JobListProps, JobListState> {
     }
 
     retrieveJobs() {
-        getJobs(this.props.seriesId, this.props.seriesName)
+        getJobs(this.props.seriesId)
             .then((jobs) => this.setState({
                 ...this.state,
                 jobs: jobs

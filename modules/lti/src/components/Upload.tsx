@@ -9,6 +9,7 @@ import {
     copyEventToSeries,
     getEventMetadata,
     EventMetadataContainer,
+    findField,
     findFieldCollection,
     collectionToPairs
 } from "../OpencastRest";
@@ -60,14 +61,20 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
 
     resolveSeries(metadata: EventMetadataContainer): string | undefined {
         const qs = parsedQueryString();
+        // If we have a series ID in the query string, look no further.
         if (typeof qs.series === "string")
             return qs.series;
-        if (typeof qs.seriesName !== "string")
+        // Do we have a series ID in the event metadata?
+        const seriesField = findField("isPartOf", metadata);
+        if (seriesField === undefined)
             return;
-        const seriesCollection = findFieldCollection("isPartOf", metadata);
-        if (seriesCollection === undefined)
+        const fieldValue = seriesField.value;
+        if (typeof fieldValue === "string" && fieldValue !== "")
+            return fieldValue;
+        // Otherwise, assume and resolve a series name instead of an ID.
+        if (typeof qs.seriesName !== "string" || seriesField.collection === undefined)
             return;
-        const pairs = collectionToPairs(seriesCollection);
+        const pairs = collectionToPairs(seriesField.collection);
         return pairs
             .filter(([k, _]) => k === qs.seriesName)
             .map(([_, v]) => v)
@@ -144,6 +151,7 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
             ...this.state,
             uploadState: "pending"
         });
+        console.log("onSubmit, seriesId: " + this.state.metadata.seriesId);
         uploadFile(
             this.state.metadata.edited,
             this.state.metadata.seriesId,
@@ -242,7 +250,6 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
             return <Loading t={this.props.t} />;
         if (this.state.metadata === "error")
             return <div>{this.props.t("LTI.ERROR_LOADING_METADATA")}</div>;
-        const qs = parsedQueryString();
         const lockedString = this.state.metadata.edited.locked !== undefined ? "LTI.EVENT_LOCKED" : undefined;
         return <>
             <Helmet>
@@ -299,9 +306,7 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                 </>
             }
             <h2>{this.props.t("LTI.CURRENT_JOBS")}</h2>
-            <JobList
-                seriesId={typeof qs.series === "string" ? qs.series : undefined}
-                seriesName={typeof qs.seriesName === "string" ? qs.seriesName : undefined} />
+            <JobList seriesId={this.state.metadata.seriesId} />
         </>;
     }
 }

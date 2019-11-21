@@ -64,6 +64,7 @@ import org.opencastproject.workflow.api.WorkflowUtil;
 import org.opencastproject.workspace.api.Workspace;
 
 import com.entwinemedia.fn.data.Opt;
+import com.entwinemedia.fn.data.json.SimpleSerializer;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
@@ -188,11 +189,12 @@ public class LtiServiceImpl implements LtiService, ManagedService {
         throw new RuntimeException("Unable to create media package for event");
       }
       if (captions != null) {
-        final MediaPackageElementFlavor captionsFlavor = new MediaPackageElementFlavor("vtt", "captions");
+        final MediaPackageElementFlavor captionsFlavor = new MediaPackageElementFlavor("vtt+en", "captions");
         final MediaPackageElementBuilder elementBuilder = MediaPackageElementBuilderFactory.newInstance().newElementBuilder();
         final MediaPackageElement captionsMpe = elementBuilder
                 .newElement(MediaPackageElement.Type.Attachment, captionsFlavor);
         captionsMpe.setMimeType(mimeType("text", "vtt"));
+        captionsMpe.addTag("lang:en");
         mp.add(captionsMpe);
         final URI captionsUri = workspace
                 .put(
@@ -288,7 +290,7 @@ public class LtiServiceImpl implements LtiService, ManagedService {
   }
 
   @Override
-  public MetadataList getEventMetadata(final String eventId) throws NotFoundException, UnauthorizedException {
+  public String getEventMetadata(final String eventId) throws NotFoundException, UnauthorizedException {
     final Opt<Event> optEvent;
     try {
       optEvent = indexService.getEvent(eventId, searchIndex);
@@ -330,12 +332,11 @@ public class LtiServiceImpl implements LtiService, ManagedService {
     final String wfState = event.getWorkflowState();
     if (wfState != null && WorkflowUtil.isActive(WorkflowInstance.WorkflowState.valueOf(wfState)))
       metadataList.setLocked(MetadataList.Locked.WORKFLOW_RUNNING);
-
-    return metadataList;
+    return new SimpleSerializer().toJson(metadataList.toJSON());
   }
 
   @Override
-  public MetadataList getNewEventMetadata() {
+  public String getNewEventMetadata() {
     final MetadataList metadataList = this.indexService.getMetadataListWithAllEventCatalogUIAdapters();
     final Opt<MetadataCollection> optMetadataByAdapter = metadataList
             .getMetadataByAdapter(this.indexService.getCommonEventCatalogUIAdapter());
@@ -368,7 +369,7 @@ public class LtiServiceImpl implements LtiService, ManagedService {
 
       metadataList.add(this.indexService.getCommonEventCatalogUIAdapter(), collection);
     }
-    return metadataList;
+    return new SimpleSerializer().toJson(metadataList.toJSON());
   }
 
   @Override

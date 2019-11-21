@@ -20,11 +20,9 @@
  */
 package org.opencastproject.lti.endpoint;
 
-import org.opencastproject.index.service.catalog.adapter.MetadataList;
 import org.opencastproject.lti.service.api.LtiFileUpload;
 import org.opencastproject.lti.service.api.LtiJob;
 import org.opencastproject.lti.service.api.LtiService;
-import org.opencastproject.metadata.dublincore.MetadataParsingException;
 import org.opencastproject.security.api.UnauthorizedException;
 import org.opencastproject.serviceregistry.api.RemoteBase;
 import org.opencastproject.util.NotFoundException;
@@ -91,14 +89,19 @@ public class LtiServiceRemoteImpl extends RemoteBase implements LtiService {
           final String metadataJson) {
     final MultipartEntityBuilder entity = MultipartEntityBuilder.create();
     entity.addTextBody("isPartOf", seriesId);
-    entity.addTextBody("eventId", eventId);
-    entity.addTextBody("captions", captions);
     entity.addTextBody("metadata", metadataJson);
-    entity.addPart(file.getSourceName(), new InputStreamBody(file.getStream(), file.getSourceName()));
+    if (eventId != null) {
+      entity.addTextBody("eventId", eventId);
+    }
+    if (captions != null) {
+      entity.addTextBody("captions", captions);
+    }
+    if (file != null) {
+      entity.addPart(file.getSourceName(), new InputStreamBody(file.getStream(), file.getSourceName()));
+    }
     final HttpPost post = new HttpPost("/");
     post.setEntity(entity.build());
     closeConnection(safeGetResponse(post));
-    throw new RuntimeException("Unable to put file");
   }
 
   @Override
@@ -112,7 +115,7 @@ public class LtiServiceRemoteImpl extends RemoteBase implements LtiService {
   }
 
   @Override
-  public MetadataList getEventMetadata(final String eventId) throws NotFoundException, UnauthorizedException {
+  public String getEventMetadata(final String eventId) throws NotFoundException, UnauthorizedException {
     HttpResponse response = null;
     try {
       response = safeGetResponse(new HttpGet("/" + eventId + "/metadata"));
@@ -122,30 +125,22 @@ public class LtiServiceRemoteImpl extends RemoteBase implements LtiService {
       if (response.getStatusLine().getStatusCode() == Response.Status.UNAUTHORIZED.getStatusCode()) {
         throw new UnauthorizedException("not authorized to access event with ID " + eventId);
       }
-      final MetadataList result = new MetadataList();
-      result.fromJSON(IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8));
-      return result;
+      return IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
     } catch (IOException e) {
       throw new RuntimeException("failed retrieving jobs", e);
-    } catch (MetadataParsingException e) {
-      throw new RuntimeException(e);
     } finally {
       closeConnection(response);
     }
   }
 
   @Override
-  public MetadataList getNewEventMetadata() {
+  public String getNewEventMetadata() {
     HttpResponse response = null;
     try {
       response = safeGetResponse(new HttpGet("/new/metadata"));
-      final MetadataList result = new MetadataList();
-      result.fromJSON(IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8));
-      return result;
+      return IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
     } catch (IOException e) {
       throw new RuntimeException("failed retrieving jobs", e);
-    } catch (MetadataParsingException e) {
-      throw new RuntimeException(e);
     } finally {
       closeConnection(response);
     }
