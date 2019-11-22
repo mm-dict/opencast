@@ -376,6 +376,15 @@ public class DuplicateEventWorkflowOperationHandler extends AbstractWorkflowOper
     destination.setDate(source.getDate());
     if (seriesId != null && !seriesId.isEmpty()) {
       destination.setSeries(seriesId);
+      try {
+        destination.setSeriesTitle(seriesService.getSeries(seriesId).get(DublinCore.PROPERTY_TITLE).get(0).getValue());
+      } catch (SeriesException e) {
+        e.printStackTrace();
+      } catch (NotFoundException e) {
+        e.printStackTrace();
+      } catch (UnauthorizedException e) {
+        e.printStackTrace();
+      }
     } else {
       destination.setSeries(source.getSeries());
       destination.setSeriesTitle(source.getSeriesTitle());
