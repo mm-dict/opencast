@@ -30,6 +30,8 @@ import org.opencastproject.assetmanager.api.PropertyId;
 import org.opencastproject.assetmanager.api.query.AQueryBuilder;
 import org.opencastproject.assetmanager.api.query.AResult;
 import org.opencastproject.distribution.api.DistributionService;
+import org.opencastproject.ingest.api.IngestException;
+import org.opencastproject.ingest.api.IngestService;
 import org.opencastproject.job.api.Job;
 import org.opencastproject.job.api.JobContext;
 import org.opencastproject.mediapackage.MediaPackage;
@@ -44,6 +46,9 @@ import org.opencastproject.mediapackage.selector.SimpleElementSelector;
 import org.opencastproject.metadata.dublincore.DublinCore;
 import org.opencastproject.metadata.dublincore.DublinCoreCatalog;
 import org.opencastproject.metadata.dublincore.DublinCoreUtil;
+import org.opencastproject.security.api.UnauthorizedException;
+import org.opencastproject.series.api.SeriesException;
+import org.opencastproject.series.api.SeriesService;
 import org.opencastproject.util.JobUtil;
 import org.opencastproject.util.NotFoundException;
 import org.opencastproject.workflow.api.AbstractWorkflowOperationHandler;
@@ -60,9 +65,11 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -121,6 +128,18 @@ public class DuplicateEventWorkflowOperationHandler extends AbstractWorkflowOper
 
   /** The distribution service */
   protected DistributionService distributionService;
+
+  private SeriesService seriesService;
+
+  private IngestService ingestService;
+
+  public void setIngestService(IngestService ingestService) {
+    this.ingestService = ingestService;
+  }
+
+  public void setSeriesService(SeriesService seriesService) {
+    this.seriesService = seriesService;
+  }
 
   /**
    * Callback for the OSGi declarative services configuration.
@@ -221,6 +240,11 @@ public class DuplicateEventWorkflowOperationHandler extends AbstractWorkflowOper
         // Remove episode DC since we will add a new one (with changed title)
         elements.remove(e);
       }
+      // The series DC changes
+      if (!seriesId.isEmpty() && MediaPackageElements.SERIES.equals(e.getFlavor())) {
+        // Remove episode DC since we will add a new one
+        elements.remove(e);
+      }
     }
 
     final MediaPackageElement[] originalEpisodeDc = mediaPackage.getElementsByFlavor(MediaPackageElements.EPISODE);
@@ -239,6 +263,26 @@ public class DuplicateEventWorkflowOperationHandler extends AbstractWorkflowOper
         // Clone the media package (without its elements)
         newMp = copyMediaPackage(mediaPackage, seriesId, noSuffix, i + 1, copyNumberPrefix);
 
+        final DublinCoreCatalog seriesDc;
+        try {
+          seriesDc = seriesService.getSeries(seriesId);
+          newMp = ingestService
+                  .addCatalog(new ByteArrayInputStream(seriesDc.toXmlString().getBytes(StandardCharsets.UTF_8)),
+                          UUID.randomUUID().toString() + ".xml", MediaPackageElements.SERIES, newMp);
+        } catch (SeriesException e) {
+          e.printStackTrace();
+        } catch (NotFoundException e) {
+          e.printStackTrace();
+        } catch (UnauthorizedException e) {
+          e.printStackTrace();
+        } catch (IOException e) {
+          e.printStackTrace();
+        } catch (IngestException e) {
+          e.printStackTrace();
+        } catch (MediaPackageException e) {
+          e.printStackTrace();
+        }
+
         // Create and add new episode dublin core with changed title
         newMp = copyDublinCore(mediaPackage, originalEpisodeDc[0], newMp, seriesId, removeTags, addTags, overrideTags,
                 temporaryFiles);
@@ -247,6 +291,7 @@ public class DuplicateEventWorkflowOperationHandler extends AbstractWorkflowOper
         for (final MediaPackageElement e : elements) {
           final MediaPackageElement element = (MediaPackageElement) e.clone();
           updateTags(element, removeTags, addTags, overrideTags);
+          element.setFlavor(MediaPackageElementFlavor.flavor(e.getFlavor().getType(), "prepared"));
           newMp.add(element);
         }
 

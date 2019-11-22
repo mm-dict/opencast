@@ -86,7 +86,7 @@ class TranslatedSeries extends React.Component<SeriesProps, SeriesState> {
             this.state.currentPage - 1,
             undefined,
             typeof qs.series === "string" ? qs.series : undefined,
-            typeof qs.series_name === "string" ? qs.series_name : undefined
+            typeof qs.seriesName === "string" ? qs.seriesName : undefined
         ).then((results) => this.setState({
             ...this.state,
             searchResults: results

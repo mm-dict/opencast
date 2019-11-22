@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<definition xmlns="http://workflow.opencastproject.org">
+
+  <id>copy-event-to-series</id>
+  <title>Copy event to a different series</title>
+  <tags />
+  <description/>
+  <configuration_panel />
+  <displayOrder>10</displayOrder>
+
+  <operations>
+
+    <operation
+        id="defaults"
+        description="Applying default configuration values">
+      <configurations>
+        <configuration key="flagForCutting">false</configuration>
+        <configuration key="flagForReview">false</configuration>
+        <configuration key="flagQuality360p">false</configuration>
+        <configuration key="flagQuality480p">false</configuration>
+        <configuration key="flagQuality720p">true</configuration>
+        <configuration key="flagQuality1080p">false</configuration>
+        <configuration key="flagQuality2160p">false</configuration>
+        <configuration key="publishToEngage">true</configuration>
+        <configuration key="publishToApi">true</configuration>
+        <configuration key="publishToOaiPmh">true</configuration>
+        <configuration key="publishToYouTube">false</configuration>
+        <configuration key="publishToAws">false</configuration>
+        <configuration key="uploadedSearchPreview">false</configuration>
+        <configuration key="thumbnailType">0</configuration>
+        <configuration key="thumbnailPosition">1</configuration>
+      </configurations>
+    </operation>
+
+    <operation
+      id="duplicate-event"
+      fail-on-error="true"
+      exception-handler-workflow="partial-error"
+      description="Duplicate Event">
+      <configurations>
+        <configuration key="source-flavors">*/*</configuration>
+        <configuration key="number-of-events">${numberOfEvents}</configuration>
+        <configuration key="target-tags">archive</configuration>
+        <configuration key="property-namespaces">org.opencastproject.assetmanager.security,org.opencastproject.workflow.configuration</configuration>
+        <configuration key="copy-number-prefix">copy</configuration>
+        <configuration key="no-suffix">${noSuffix}</configuration>
+        <configuration key="set-series-id">${setSeriesId}</configuration>
+      </configurations>
+    </operation>
+
+
+    <operation
+        id="include"
+        description="Publish the recording">
+      <configurations>
+        <configuration key="workflow-id">partial-publish</configuration>
+      </configurations>
+    </operation>
+
+    <operation
+        id="snapshot"
+        description="Archive publishing information">
+      <configurations>
+        <configuration key="source-tags">archive</configuration>
+      </configurations>
+    </operation>
+
+    <!-- Clean up work artifacts -->
+
+    <operation
+        id="cleanup"
+        fail-on-error="false"
+        description="Remove temporary processing artifacts">
+      <configurations>
+        <configuration key="delete-external">true</configuration>
+        <!-- FixMe Don't clean up ACLs until workflow service no longer looks for them in the WFR. -->
+        <configuration key="preserve-flavors">security/*</configuration>
+      </configurations>
+    </operation>
+
+  </operations>
+
+  <state-mappings>
+    <state-mapping state="running">EVENTS.EVENTS.STATE_MAPPING.DUPLICATING</state-mapping>
+    <state-mapping state="failing">EVENTS.EVENTS.STATE_MAPPING.DUPLICATING</state-mapping>
+  </state-mappings>
+
+</definition>

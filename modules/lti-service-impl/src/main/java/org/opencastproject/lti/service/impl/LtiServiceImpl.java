@@ -235,7 +235,7 @@ public class LtiServiceImpl implements LtiService, ManagedService {
 
   @Override
   public void copyEventToSeries(final String eventId, final String seriesId) {
-    final String workflowId = "duplicate-event";
+    final String workflowId = "copy-event-to-series";
     try {
       final WorkflowDefinition wfd = workflowService.getWorkflowDefinitionById(workflowId);
       final Workflows workflows = new Workflows(assetManager, workflowService);
