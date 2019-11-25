@@ -22,6 +22,7 @@ package org.opencastproject.lti.service.impl;
 
 import static org.opencastproject.util.MimeType.mimeType;
 import static org.opencastproject.workflow.api.ConfiguredWorkflow.workflow;
+import static org.opencastproject.workflow.api.WorkflowInstance.WorkflowState.SUCCEEDED;
 
 import org.opencastproject.assetmanager.api.AssetManager;
 import org.opencastproject.assetmanager.util.Workflows;
@@ -59,6 +60,7 @@ import org.opencastproject.workflow.api.ConfiguredWorkflow;
 import org.opencastproject.workflow.api.WorkflowDatabaseException;
 import org.opencastproject.workflow.api.WorkflowDefinition;
 import org.opencastproject.workflow.api.WorkflowInstance;
+import org.opencastproject.workflow.api.WorkflowListener;
 import org.opencastproject.workflow.api.WorkflowService;
 import org.opencastproject.workflow.api.WorkflowUtil;
 import org.opencastproject.workspace.api.Workspace;
@@ -70,6 +72,7 @@ import com.google.gson.JsonSyntaxException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.osgi.service.cm.ManagedService;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,6 +88,7 @@ import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -94,6 +98,8 @@ public class LtiServiceImpl implements LtiService, ManagedService {
   private static final Logger logger = LoggerFactory.getLogger(LtiServiceImpl.class);
 
   private static final Gson gson = new Gson();
+  public static final String COPY_EVENT_TO_SERIES_WORKFLOW = "copy-event-to-series";
+  public static final String NEW_MP_ID_KEY = "newMpId";
   private IndexService indexService;
   private IngestService ingestService;
   private SecurityService securityService;
@@ -149,6 +155,41 @@ public class LtiServiceImpl implements LtiService, ManagedService {
   /** OSGi DI. */
   public void removeCatalogUIAdapter(EventCatalogUIAdapter catalogUIAdapter) {
     catalogUIAdapters.remove(catalogUIAdapter);
+  }
+
+  public void activate(ComponentContext cc) {
+    workflowService.addWorkflowListener(new WorkflowListener() {
+      @Override
+      public void stateChanged(WorkflowInstance workflow) {
+        if (!workflow.getTemplate().equals(COPY_EVENT_TO_SERIES_WORKFLOW)) {
+          return;
+        }
+
+        if (workflow.getState().equals(SUCCEEDED)) {
+          final String publishWorkflowName = "publish";
+          logger.info("workflow '{}' succeeded for media package '{}', starting workflow '{}'", workflow.getTemplate(),
+                  workflow.getMediaPackage().getIdentifier(), publishWorkflowName);
+          final WorkflowDefinition wfd;
+          try {
+            wfd = workflowService.getWorkflowDefinitionById(publishWorkflowName);
+            final Workflows workflows = new Workflows(assetManager, workflowService);
+            final ConfiguredWorkflow newWorkflow = workflow(wfd);
+            final String targetMpId = workflow.getConfiguration(NEW_MP_ID_KEY);
+            final List<WorkflowInstance> workflowInstances = workflows
+                    .applyWorkflowToLatestVersion(Collections.singleton(targetMpId), newWorkflow).toList();
+            if (workflowInstances.isEmpty()) {
+              throw new RuntimeException(
+                      String.format("couldn't start workflow '%s' for event %s", publishWorkflowName, targetMpId));
+            }
+          } catch (WorkflowDatabaseException e) {
+            logger.error(String.format("couldn't instantiate workflow '%s'", publishWorkflowName), e);
+          } catch (NotFoundException e) {
+            logger.error(String.format("couldn't find media package while starting workflow workflow '%s'",
+                    publishWorkflowName), e);
+          }
+        }
+      }
+    });
   }
 
   @Override
@@ -225,22 +266,25 @@ public class LtiServiceImpl implements LtiService, ManagedService {
     }
   }
 
-  private static Map<String, String> createCopyWorkflowConfig(final String seriesId) {
+  private static Map<String, String> createCopyWorkflowConfig(final String seriesId, final String newMpId) {
     final Map<String, String> result = new HashMap<>();
     result.put("numberOfEvents", "1");
     result.put("noSuffix", "true");
     result.put("setSeriesId", seriesId);
+    result.put(NEW_MP_ID_KEY, newMpId);
     return result;
   }
 
   @Override
   public void copyEventToSeries(final String eventId, final String seriesId) {
-    final String workflowId = "copy-event-to-series";
+    final String workflowId = COPY_EVENT_TO_SERIES_WORKFLOW;
     try {
       final WorkflowDefinition wfd = workflowService.getWorkflowDefinitionById(workflowId);
       final Workflows workflows = new Workflows(assetManager, workflowService);
-      final ConfiguredWorkflow workflow = workflow(wfd, createCopyWorkflowConfig(seriesId));
-      if (workflows.applyWorkflowToLatestVersion(Collections.singleton(eventId), workflow).isEmpty()) {
+      final ConfiguredWorkflow workflow = workflow(wfd, createCopyWorkflowConfig(seriesId, UUID.randomUUID().toString()));
+      final List<WorkflowInstance> workflowInstances = workflows
+              .applyWorkflowToLatestVersion(Collections.singleton(eventId), workflow).toList();
+      if (workflowInstances.isEmpty()) {
         throw new RuntimeException(String.format("couldn't start workflow '%s' for event %s", workflowId, eventId));
       }
     } catch (WorkflowDatabaseException | NotFoundException e) {
