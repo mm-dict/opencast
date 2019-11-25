@@ -24,8 +24,6 @@
             max="25"
             />
           <label for="numberOfEvents">Number of Events</label>
-          <input type="hidden" id="noSuffix" class="configField" value="false" />
-          <input type="hidden" id="setSeriesId" class="configField" value="" />
         </fieldset>
       </div>
 
