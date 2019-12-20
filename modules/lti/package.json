@@ -23,7 +23,7 @@
     "typescript": "3.6.3"
   },
   "scripts": {
-    "i18n": "./i18n.js",
+    "i18n": "./copy-translations.sh",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",

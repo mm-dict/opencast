@@ -171,14 +171,13 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -672,39 +671,6 @@ public abstract class AbstractEventEndpoint {
     if (!start.isNone() || !end.isNone() || !agentId.isNone() || !agentConfiguration.isNone()) {
       getSchedulerService()
         .updateEvent(event.getIdentifier(), start, end, agentId, Opt.none(), Opt.none(), Opt.none(), agentConfiguration);
-      // We want to keep the bibliographic meta data in sync
-      updateBibliographicMetadata(event, agentId, start, end);
-    }
-  }
-
-  private void updateBibliographicMetadata(Event event, Opt<String> agentId, Opt<Date> start, Opt<Date> end)
-    throws IndexServiceException, SearchIndexException, NotFoundException, UnauthorizedException {
-    final MetadataList metadataList = getIndexService().getMetadataListWithAllEventCatalogUIAdapters();
-    final Opt<MetadataCollection> optMetadataByAdapter = metadataList
-      .getMetadataByAdapter(getIndexService().getCommonEventCatalogUIAdapter());
-    if (optMetadataByAdapter.isSome()) {
-      final MetadataCollection collection = optMetadataByAdapter.get();
-      if (start.isSome() && collection.getOutputFields().containsKey("startDate")) {
-        final Opt<String> pattern = collection.getOutputFields().get("startDate").getPattern();
-        if (pattern.isSome()) {
-          final SimpleDateFormat sdf = new SimpleDateFormat(pattern.get());
-          sdf.setTimeZone(TimeZone.getTimeZone(ZoneId.of("UTC")));
-          final MetadataField.Type type = collection.getOutputFields().get("startDate").getType();
-          collection.updateStringField(collection.getOutputFields().get("startDate"), sdf.format(start.get()));
-          collection.getOutputFields().get("startDate").setPattern(pattern);
-          collection.getOutputFields().get("startDate").setType(type);
-        }
-      }
-      if (start.isSome() && end.isSome() && collection.getOutputFields().containsKey("duration")) {
-        final MetadataField.Type type = collection.getOutputFields().get("duration").getType();
-        final long duration = end.get().getTime() - start.get().getTime();
-        collection.updateStringField(collection.getOutputFields().get("duration"), duration + "");
-        collection.getOutputFields().get("duration").setType(type);
-      }
-      if (agentId.isSome() && collection.getOutputFields().containsKey("location")) {
-        collection.updateStringField(collection.getOutputFields().get("location"), agentId.get());
-      }
-      getIndexService().updateEventMetadata(event.getIdentifier(), metadataList, getIndex());
     }
   }
 
@@ -1184,6 +1150,122 @@ public abstract class AbstractEventEndpoint {
     return okJson(metadataList.toJSON());
   }
 
+  @POST  // use POST instead of GET because of a possibly long list of ids
+  @Path("events/metadata.json")
+  @Produces(MediaType.APPLICATION_JSON)
+  @RestQuery(name = "geteventsmetadata",
+             description = "Returns all the data related to the edit events metadata modal as JSON",
+             returnDescription = "All the data related to the edit events metadata modal as JSON",
+             restParameters = {
+               @RestParameter(name = "eventIds", description = "The event ids", isRequired = true,
+                              type = RestParameter.Type.STRING)
+             }, reponses = {
+               @RestResponse(description = "Returns all the data related to the edit events metadata modal as JSON",
+                             responseCode = HttpServletResponse.SC_OK),
+               @RestResponse(description = "No events to update, either not found or with running workflow, "
+                                         + "details in response body.",
+                             responseCode = HttpServletResponse.SC_NOT_FOUND)
+             })
+  public Response getEventsMetadata(@FormParam("eventIds") String eventIds) throws Exception {
+
+    if (StringUtils.isBlank(eventIds)) {
+      return badRequest("Event ids can't be empty");
+    }
+
+    JSONParser parser = new JSONParser();
+    List<String> ids;
+    try {
+      ids = (List<String>) parser.parse(eventIds);
+    } catch (org.json.simple.parser.ParseException e) {
+      logger.error("Unable to parse '{}'", eventIds, e);
+      return badRequest("Unable to parse event ids");
+    } catch (ClassCastException e) {
+      logger.error("Unable to cast '{}'", eventIds, e);
+      return badRequest("Unable to parse event ids");
+    }
+
+    Set<String> eventsNotFound = new HashSet();
+    Set<String> eventsWithRunningWorkflow = new HashSet();
+    Set<String> eventsMerged = new HashSet();
+
+    //get once instead of for each event
+    Map<String, String> seriesWithWriteAccess = null;
+    if (getOnlySeriesWithWriteAccessEventModal()) {
+      seriesWithWriteAccess = getSeriesService().getUserSeriesByAccess(true);
+    }
+
+    // collect the metadata of all events
+    List<MetadataCollection> collectedMetadata = new ArrayList();
+    for (String eventId: ids) {
+      Opt<Event> optEvent = getIndexService().getEvent(eventId, getIndex());
+      // not found?
+      if (optEvent.isNone()) {
+        eventsNotFound.add(eventId);
+        continue;
+      }
+
+      Event event = optEvent.get();
+
+      // check if there's a running workflow
+      final String wfState = event.getWorkflowState();
+      if (wfState != null && WorkflowUtil.isActive(WorkflowInstance.WorkflowState.valueOf(wfState))) {
+        eventsWithRunningWorkflow.add(eventId);
+        continue;
+      }
+
+      // collect metadata
+      MetadataCollection metadataCollection =
+        EventUtils.getEventMetadata(event, getIndexService().getCommonEventCatalogUIAdapter());
+      collectedMetadata.add(metadataCollection);
+
+      // in case we want only series with write access
+      if (getOnlySeriesWithWriteAccessEventModal()) {
+        MetadataField<?> seriesField =
+          metadataCollection.getOutputFields().get(DublinCore.PROPERTY_IS_PART_OF.getLocalName());
+        seriesField.setCollection(Opt.some(seriesWithWriteAccess));
+      }
+
+      eventsMerged.add(eventId);
+    }
+
+    // no events found?
+    if (collectedMetadata.isEmpty()) {
+      return notFoundJson(obj(
+        f("notFound", JSONUtils.setToJSON(eventsNotFound)),
+        f("runningWorkflow", JSONUtils.setToJSON(eventsWithRunningWorkflow))));
+    }
+
+    // merge metadata of events
+    MetadataCollection mergedMetadata;
+    if (collectedMetadata.size() == 1) {
+      mergedMetadata = collectedMetadata.get(0);
+    }
+    else {
+      //use first metadata collection as base
+      mergedMetadata = collectedMetadata.get(0).getCopy();
+      collectedMetadata.remove(0);
+
+      for (MetadataField field : mergedMetadata.getFields()) {
+        for (MetadataCollection otherMetadataCollection : collectedMetadata) {
+          MetadataField matchingField = otherMetadataCollection.getOutputFields().get(field.getOutputID());
+
+          // check if fields have the same value
+          if (!field.getValue().equals(matchingField.getValue())) {
+            field.setDifferentValues();
+            break;
+          }
+        }
+      }
+    }
+
+    return okJson(obj(
+      f("metadata", mergedMetadata.toJSON()),
+      f("notFound", JSONUtils.setToJSON(eventsNotFound)),
+      f("runningWorkflow", JSONUtils.setToJSON(eventsWithRunningWorkflow)),
+      f("merged", JSONUtils.setToJSON(eventsMerged))
+    ));
+  }
+
   @PUT
   @Path("bulk/update")
   @RestQuery(name = "bulkupdate", description = "Update all of the given events at once", restParameters = {
@@ -1373,6 +1455,79 @@ public abstract class AbstractEventEndpoint {
     }
   }
 
+  @PUT
+  @Path("events/metadata")
+  @RestQuery(name = "updateeventsmetadata",
+    description = "Update the passed metadata for the events with the given ids",
+    restParameters = {
+      @RestParameter(name = "eventIds", isRequired = true, type = RestParameter.Type.STRING,
+        description = "The ids of the events to update"),
+      @RestParameter(name = "metadata", isRequired = true, type = RestParameter.Type.TEXT,
+        description = "The metadata fields to update"),
+    }, reponses = {
+    @RestResponse(description = "All events have been updated successfully.",
+      responseCode = HttpServletResponse.SC_NO_CONTENT),
+    @RestResponse(description = "One or multiple errors occured while updating event metadata. "
+      + "Some events may have been updated successfully. "
+      + "Details are available in the response body.",
+      responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR)},
+    returnDescription = "In case of complete success, no content is returned. Otherwise, the response content "
+      + "contains the ids of events that couldn't be found and the ids and errors of events where the update failed "
+      + "as well as the ids of the events that were updated successfully.")
+  public Response updateEventsMetadata(@FormParam("eventIds") String eventIds, @FormParam("metadata") String metadata)
+    throws Exception {
+
+    if (StringUtils.isBlank(eventIds)) {
+      return badRequest("Event ids can't be empty");
+    }
+
+    JSONParser parser = new JSONParser();
+    List<String> ids;
+    try {
+      ids = (List<String>) parser.parse(eventIds);
+    } catch (org.json.simple.parser.ParseException e) {
+      logger.error("Unable to parse '{}'", eventIds, e);
+      return badRequest("Unable to parse event ids");
+    } catch (ClassCastException e) {
+      logger.error("Unable to cast '{}'", eventIds, e);
+      return badRequest("Unable to parse event ids");
+    }
+
+    // try to update each event
+    Set<String> eventsNotFound = new HashSet<>();
+    Set<String> eventsUpdated = new HashSet<>();
+    Set<String> eventsUpdateFailure = new HashSet();
+
+    for (String eventId : ids) {
+      Opt<Event> optEvent = getIndexService().getEvent(eventId, getIndex());
+      // not found?
+
+      if (optEvent.isNone()) {
+        eventsNotFound.add(eventId);
+        continue;
+      }
+
+      // update
+      try {
+        getIndexService().updateAllEventMetadata(eventId, metadata, getIndex());
+        eventsUpdated.add(eventId);
+      } catch (IllegalArgumentException e) {
+        eventsUpdateFailure.add(eventId);
+      }
+    }
+
+    // errors occurred?
+    if (!eventsNotFound.isEmpty() || !eventsUpdateFailure.isEmpty()) {
+      return serverErrorJson(obj(
+        f("updateFailures", JSONUtils.setToJSON(eventsUpdateFailure)),
+        f("notFound", JSONUtils.setToJSON(eventsNotFound)),
+        f("updated", JSONUtils.setToJSON(eventsUpdated))
+      ));
+    }
+
+    return noContent();
+  }
+
   @GET
   @Path("{eventId}/asset/assets.json")
   @Produces(MediaType.APPLICATION_JSON)
@@ -1552,7 +1707,7 @@ public abstract class AbstractEventEndpoint {
       return notFound("Cannot find an event with id '%s'.", id);
 
     try {
-      if (optEvent.get().isScheduledEvent() && !optEvent.get().hasRecordingStarted()) {
+      if (optEvent.get().getEventStatus().equals("EVENTS.EVENTS.STATUS.SCHEDULED")) {
         List<Field> fields = new ArrayList<Field>();
         Map<String, String> workflowConfig = getSchedulerService().getWorkflowConfig(id);
         for (Entry<String, String> entry : workflowConfig.entrySet()) {

@@ -36,4 +36,6 @@
              bind="setWorkflowService"/>
   <reference name="workspace" interface="org.opencastproject.workspace.api.Workspace"
              bind="setWorkspace"/>
+  <reference name="authorization-service" interface="org.opencastproject.security.api.AuthorizationService"
+             bind="setAuthorizationService"/>
 </scr:component>

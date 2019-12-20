@@ -51,6 +51,10 @@ import org.opencastproject.metadata.dublincore.EventCatalogUIAdapter;
 import org.opencastproject.metadata.dublincore.MetadataCollection;
 import org.opencastproject.metadata.dublincore.MetadataField;
 import org.opencastproject.metadata.dublincore.MetadataParsingException;
+import org.opencastproject.security.api.AccessControlEntry;
+import org.opencastproject.security.api.AccessControlList;
+import org.opencastproject.security.api.AclScope;
+import org.opencastproject.security.api.AuthorizationService;
 import org.opencastproject.security.api.SecurityService;
 import org.opencastproject.security.api.UnauthorizedException;
 import org.opencastproject.security.api.User;
@@ -98,8 +102,8 @@ public class LtiServiceImpl implements LtiService, ManagedService {
   private static final Logger logger = LoggerFactory.getLogger(LtiServiceImpl.class);
 
   private static final Gson gson = new Gson();
-  public static final String COPY_EVENT_TO_SERIES_WORKFLOW = "copy-event-to-series";
-  public static final String NEW_MP_ID_KEY = "newMpId";
+  private static final String COPY_EVENT_TO_SERIES_WORKFLOW = "copy-event-to-series";
+  private static final String NEW_MP_ID_KEY = "newMpId";
   private IndexService indexService;
   private IngestService ingestService;
   private SecurityService securityService;
@@ -107,10 +111,16 @@ public class LtiServiceImpl implements LtiService, ManagedService {
   private AssetManager assetManager;
   private Workspace workspace;
   private AbstractSearchIndex searchIndex;
+  private AuthorizationService authorizationService;
   private String workflow;
   private String workflowConfiguration;
   private String retractWorkflowId;
   private final List<EventCatalogUIAdapter> catalogUIAdapters = new ArrayList<>();
+
+  /** OSGi DI */
+  public void setAuthorizationService(AuthorizationService authorizationService) {
+    this.authorizationService = authorizationService;
+  }
 
   /** OSGi DI */
   public void setAssetManager(AssetManager assetManager) {
@@ -256,6 +266,12 @@ public class LtiServiceImpl implements LtiService, ManagedService {
       replaceField(collection, "isPartOf", seriesId);
       adapter.storeFields(mp, collection);
 
+      final AccessControlList accessControlList = new AccessControlList(
+              new AccessControlEntry("ROLE_ADMIN", "write", true),
+              new AccessControlEntry("ROLE_ADMIN", "read", true),
+              new AccessControlEntry("ROLE_OAUTH_USER", "write", true),
+              new AccessControlEntry("ROLE_OAUTH_USER", "read", true));
+      this.authorizationService.setAcl(mp, AclScope.Episode, accessControlList);
       mp = ingestService.addTrack(file.getStream(), file.getSourceName(), MediaPackageElements.PRESENTER_SOURCE, mp);
 
       final Map<String, String> configuration = gson.fromJson(workflowConfiguration, Map.class);

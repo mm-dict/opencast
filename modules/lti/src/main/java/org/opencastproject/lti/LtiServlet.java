@@ -205,7 +205,6 @@ public class LtiServlet extends HttpServlet {
     UriBuilder builder;
     try {
       String toolUriStr = req.getParameter(LTI_CUSTOM_TOOL);
-      toolUriStr = URLEncoder.encode(toolUriStr, StandardCharsets.UTF_8.toString());
       toolUriStr = toolUriStr.replaceAll("/?ltitools/(?<tool>[^/]*)/index.html\\??", "/ltitools/index.html?tool=${tool}&");
       URI toolUri = new URI(StringUtils.trimToEmpty(toolUriStr));
 
