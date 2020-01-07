@@ -204,9 +204,18 @@ public class LtiServlet extends HttpServlet {
     // The URL of the LTI tool. If no specific tool is passed we use the test tool
     UriBuilder builder;
     try {
+      logger.info(
+              "LTIPREFIX: Custom tool, raw parameter, before rewrite: {}",
+              StringUtils.trimToEmpty(req.getParameter(LTI_CUSTOM_TOOL)));
       String customTool = URLDecoder
               .decode(StringUtils.trimToEmpty(req.getParameter(LTI_CUSTOM_TOOL)), StandardCharsets.UTF_8.displayName());
+      logger.info(
+              "LTIPREFIX: Decoded parameter, before rewrite: {}",
+              customTool);
       customTool = customTool.replaceAll("/?ltitools/(?<tool>[^/]*)/index.html\\??", "/ltitools/index.html?subtool=${tool}&");
+      logger.info(
+              "LTIPREFIX: Decoded parameter, after rewrite: {}",
+              customTool);
       URI toolUri = new URI(customTool);
 
       if (toolUri.getPath().isEmpty())
