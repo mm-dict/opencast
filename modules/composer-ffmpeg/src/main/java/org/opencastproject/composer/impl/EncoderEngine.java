@@ -786,8 +786,7 @@ public class EncoderEngine implements AutoCloseable {
    */
   private List<String> makeEdits(List<VideoClip> clips, int transitionDuration, Boolean hasVideo,
           Boolean hasAudio) throws Exception {
-    double vfade = transitionDuration / 1000; // video and audio have the same transition duration
-    double afade = vfade;
+    double fade = transitionDuration / 1000.; // video and audio have the same transition duration
     DecimalFormatSymbols ffmpegFormat = new DecimalFormatSymbols();
     ffmpegFormat.setDecimalSeparator('.');
     DecimalFormat f = new DecimalFormat("0.00", ffmpegFormat);
@@ -811,13 +810,13 @@ public class EncoderEngine implements AutoCloseable {
         int fileindx = vclip.getSrc(); // get source file by index
         double inpt = vclip.getStart(); // get in points
         double duration = vclip.getDuration();
-        double vend = Math.max(duration - vfade, 0);
-        double aend = Math.max(duration - afade, 0);
+        double vend = Math.max(duration - fade, 0);
+        double aend = Math.max(duration - fade, 0);
         if (hasVideo) {
           String vvclip;
           vvclip = "[" + fileindx + ":v]trim=" + f.format(inpt) + ":duration=" + f.format(duration)
                   + ",setpts=PTS-STARTPTS"
-                  + ((vfade > 0) ? ",fade=t=in:st=0:d=" + vfade + ",fade=t=out:st=" + f.format(vend) + ":d=" + vfade
+                  + ((fade > 0) ? ",fade=t=in:st=0:d=" + fade + ",fade=t=out:st=" + f.format(vend) + ":d=" + fade
                           : "")
                   + "[" + outmap + "v" + i + "]";
           clauses.add(vvclip);
@@ -826,8 +825,8 @@ public class EncoderEngine implements AutoCloseable {
           String aclip;
           aclip = "[" + fileindx + ":a]atrim=" + f.format(inpt) + ":duration=" + f.format(duration)
                   + ",asetpts=PTS-STARTPTS"
-                  + ((afade > 0)
-                          ? ",afade=t=in:st=0:d=" + afade + ",afade=t=out:st=" + f.format(aend) + ":d=" + +afade
+                  + ((fade > 0)
+                          ? ",afade=t=in:st=0:d=" + fade + ",afade=t=out:st=" + f.format(aend) + ":d=" + +fade
                           : "")
                   + "[" + outmap + "a" + i + "]";
           clauses.add(aclip);
@@ -835,7 +834,7 @@ public class EncoderEngine implements AutoCloseable {
       }
       // use unsafe because different files may have different SAR/framerate
       if (hasVideo)
-        clauses.add(StringUtils.join(vpads, "") + "concat=n=" + n + ":unsafe=1[ov]"); // concat video clips
+        clauses.add(StringUtils.join(vpads, "") + "concat=n=" + n + "[ov]"); // concat video clips
       if (hasAudio)
         clauses.add(StringUtils.join(apads, "") + "concat=n=" + n + ":v=0:a=1[oa]"); // concat audio clips in stream 0,
     } else if (n == 1) { // single segment
@@ -843,15 +842,15 @@ public class EncoderEngine implements AutoCloseable {
       int fileindx = vclip.getSrc(); // get source file by index
       double inpt = vclip.getStart(); // get in points
       double duration = vclip.getDuration();
-      double vend = Math.max(duration - vfade, 0);
-      double aend = Math.max(duration - afade, 0);
+      double vend = Math.max(duration - fade, 0);
+      double aend = Math.max(duration - fade, 0);
 
       if (hasVideo) {
         String vvclip;
 
         vvclip = "[" + fileindx + ":v]trim=" + f.format(inpt) + ":duration=" + f.format(duration)
                 + ",setpts=PTS-STARTPTS,"
-                + ((vfade > 0) ? "fade=t=in:st=0:d=" + vfade + ",fade=t=out:st=" + f.format(vend) + ":d=" + vfade : "")
+                + ((fade > 0) ? "fade=t=in:st=0:d=" + fade + ",fade=t=out:st=" + f.format(vend) + ":d=" + fade : "")
                 + "[ov]";
 
         clauses.add(vvclip);
@@ -860,8 +859,8 @@ public class EncoderEngine implements AutoCloseable {
         String aclip;
         aclip = "[" + fileindx + ":a]atrim=" + f.format(inpt) + ":duration=" + f.format(duration)
                 + ",asetpts=PTS-STARTPTS,"
-                + ((afade > 0) ? "afade=t=in:st=0:d=" + afade + ",afade=t=out:st=" + f.format(aend) + ":d=" : "")
-                + afade + "[oa]";
+                + ((fade > 0) ? "afade=t=in:st=0:d=" + fade + ",afade=t=out:st=" + f.format(aend) + ":d=" : "")
+                + fade + "[oa]";
 
         clauses.add(aclip);
       }
