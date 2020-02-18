@@ -3,6 +3,67 @@ Changelog
 
 Opencast 7
 ----------
+### Opencast 7.6
+
+*Released on January 29, 2020*
+
+- [CVE-2020-5231](https://github.com/opencast/opencast/security/advisories/GHSA-94qw-r73x-j7hg) -
+   Users with ROLE\_COURSE\_ADMIN can create new users
+- [CVE-2020-5206](https://github.com/opencast/opencast/security/advisories/GHSA-vmm6-w4cf-7f3x) -
+   Authentication Bypass For Endpoints With Anonymous Access
+- [CVE-2020-5222](https://github.com/opencast/opencast/security/advisories/GHSA-mh8g-hprg-8363) -
+   Hard-Coded Key Used For Remember-me Token
+- [CVE-2020-5230](https://github.com/opencast/opencast/security/advisories/GHSA-w29m-fjp4-qhmq) -
+   Unsafe Identifiers
+- [CVE-2020-5228](https://github.com/opencast/opencast/security/advisories/GHSA-6f54-3qr9-pjgj) -
+   Public Access Via OAI-PMH
+- [[#1358](https://github.com/opencast/opencast/pull/1358)] -
+  Switch To HTTPS Maven Repository
+- [[#1353](https://github.com/opencast/opencast/pull/1353)] -
+  Handle empty fields from REST docs in EventHttpServletRequest
+- [[#1352](https://github.com/opencast/opencast/pull/1352)] -
+  Remove unsafe option in ffmpeg command for SMIL processing
+- [[#1343](https://github.com/opencast/opencast/pull/1343)] -
+  ] Fixes Admin-UI Presenter's column
+- [[#1333](https://github.com/opencast/opencast/pull/1333)] -
+  Switch to mvn.opencast.org
+- [[#1329](https://github.com/opencast/opencast/pull/1329)] -
+  Remove Spring Request Logger Configuration
+- [[#1325](https://github.com/opencast/opencast/pull/1325)] -
+  Secure FPS For Smil Processing
+- [[#1318](https://github.com/opencast/opencast/pull/1318)] -
+  Remove Custom Plugin Repositories
+- [[#1315](https://github.com/opencast/opencast/pull/1315)] -
+  Bump spring-security-oauth from 2.3.6.RELEASE to 2.3.7.RELEASE
+- [[#1276](https://github.com/opencast/opencast/pull/1276)] -
+  Don't add the internal publication of the original event twice
+- [[#1271](https://github.com/opencast/opencast/pull/1271)] -
+  Wrong encoding in video editor zoom box
+- [[#1270](https://github.com/opencast/opencast/pull/1270)] -
+  S3 Distribution Fails
+- [[#1265](https://github.com/opencast/opencast/pull/1265)] -
+  Some error operations referencing the wrong error-handler.
+- [[#1246](https://github.com/opencast/opencast/pull/1246)] -
+  Remove default storage_id setting from asset Manager
+
+### Opencast 7.5
+
+*Released on December 10, 2019*
+
+- [[#1233](https://github.com/opencast/opencast/pull/1233)] -
+  Change bibliographicdate if technicaldate is changed.
+- [[#1220](https://github.com/opencast/opencast/pull/1220)] -
+  Make Thumbnail Optional
+- [[#1218](https://github.com/opencast/opencast/pull/1218)] -
+  [Documentation] Added path hint to upgrade.md
+- [[#1170](https://github.com/opencast/opencast/pull/1170)] -
+  MH-9753: Prepare AV WOH can throw a NPE
+- [[#1164](https://github.com/opencast/opencast/pull/1164)] -
+  CentOS basic installation guide rewording
+- [[#1148](https://github.com/opencast/opencast/pull/1148)] -
+  VideoEditorServiceImpl: Fixed the file extension duplication with removeExtention from FilenameUtils.
+- [[#1122](https://github.com/opencast/opencast/pull/1122)] -
+  fixes #1069 workflow tab shows scheduling info instead of workflows
 
 ### Opencast 7.4
 
@@ -528,8 +589,30 @@ Opencast 7
 - [[MH-12782](https://opencast.jira.com/browse/MH-12782)][[#209](https://github.com/opencast/opencast/pull/209)] -
   As an unprivileged user, I only want to see series and events that I have write access to.
 
+
 Opencast 6
 ----------
+
+### Opencast 6.7
+
+*Released on December 8, 2019*
+
+- [[#1200](https://github.com/opencast/opencast/pull/1200)] -
+  Fix Crowdin Deployment
+- [[#1143](https://github.com/opencast/opencast/pull/1143)] -
+  Upgrade jackson to 2.9.10 (6.x)
+- [[#1142](https://github.com/opencast/opencast/pull/1142)] -
+  Update apache commons-compress to 1.19
+- [[#1132](https://github.com/opencast/opencast/pull/1132)] -
+  Fixed the "hide" button in the Documentation.
+- [[#1080](https://github.com/opencast/opencast/pull/1080)] -
+  Documentation reworked
+- [[#1035](https://github.com/opencast/opencast/pull/1035)] -
+  Pushing to Maven Central
+- [[#1026](https://github.com/opencast/opencast/pull/1026)] -
+  Adding Ansible script documentation
+- [[#1019](https://github.com/opencast/opencast/pull/1019)] -
+  SMIL tests fail when doctype url can't be resolved
 
 ### Opencast 6.6
 
@@ -550,11 +633,11 @@ Opencast 6
 - [[MH-13643](https://opencast.jira.com/browse/MH-13643)][[#979](https://github.com/opencast/opencast/pull/979)] -
   Update to Paella 6.1.4
 - [[MH-13637](https://opencast.jira.com/browse/MH-13637)][[#974](https://github.com/opencast/opencast/pull/974)] -
-  asset manager endpoint fix
+  Asset manager endpoint fix
 - [[MH-13633](https://opencast.jira.com/browse/MH-13633)][[#969](https://github.com/opencast/opencast/pull/969)] -
   Update spring-security-oauth
 - [[MH-13611](https://opencast.jira.com/browse/MH-13611)][[#955](https://github.com/opencast/opencast/pull/955)] -
-  duplicate events fix
+  Duplicate events fix
 
 ### Opencast 6.5
 

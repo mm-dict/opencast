@@ -119,14 +119,46 @@ Last but not least this release also fixes a known security vulnerability in Apa
 update.
 
 
-Aditional Notes About 7.4
--------------------------
+Additional Notes About 7.4
+--------------------------
+
 Opencast 7.4 brings a performance fix for some queries in the search API that can cause Opencast to run out of memory.
 
 This release also gives back a patch that was in version 6.x that allows to filter capture agent roles for ACLs and
 fixes the date cell of the events overview table in the admin UI.
 
 Finally, Opencast 7.4 also brings an update to the CAS security example that was out of date.
+
+
+Additional Notes About 7.5
+--------------------------
+
+Opencast 7.5 fixes behaviour where the bibliographic date was not changed when changing the technical date via Rest.
+Also an option was added to disable thumbnail generation in the video editor because it can lead to performance issues.
+
+
+Additional Notes About 7.6
+-------------------------
+
+Opencast 7.6 fixes a number of security issues. Upgrading is strongly recommended.
+Take a look at the [security advisories](https://github.com/opencast/opencast/security/advisories) for more details.
+
+One change is that the OAI-PMH endpoint is no longer publicly accessible by default.
+If you need it to be, you can easily change that in the security configuration at `etc/security/mh_default_org.xml`.
+
+### Fixed Security Issues
+
+- CVE-2020-5231 – [Users with ROLE\_COURSE\_ADMIN can create new users
+  ](https://github.com/opencast/opencast/security/advisories/GHSA-94qw-r73x-j7hg)
+- CVE-2020-5206 – [Authentication Bypass For Endpoints With Anonymous Access
+  ](https://github.com/opencast/opencast/security/advisories/GHSA-vmm6-w4cf-7f3x)
+- CVE-2020-5222 – [Hard-Coded Key Used For Remember-me Token
+  ](https://github.com/opencast/opencast/security/advisories/GHSA-mh8g-hprg-8363)
+- CVE-2020-5230 – [Unsafe Identifiers
+  ](https://github.com/opencast/opencast/security/advisories/GHSA-w29m-fjp4-qhmq)
+- CVE-2020-5228 – [Public Access Via OAI-PMH
+  ](https://github.com/opencast/opencast/security/advisories/GHSA-6f54-3qr9-pjgj)
+
 
 Release Schedule
 ----------------

@@ -14,15 +14,13 @@
     <opencast.basedir>${basedir}</opencast.basedir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <opencast.nexus.url>https://mvncache.opencast.org</opencast.nexus.url>
-    <opencast.nexus-backup.url>https://nexus.opencast.org</opencast.nexus-backup.url>
 
     <!-- library version specifications -->
     <aws.version>1.11.49_1</aws.version>
     <commons-beanutils.version>1.9.3</commons-beanutils.version>
     <commons-codec.version>1.12</commons-codec.version>
     <commons-collections.version>4.3</commons-collections.version>
-    <commons-compress.version>1.18</commons-compress.version>
+    <commons-compress.version>1.19</commons-compress.version>
     <commons-csv.version>1.6</commons-csv.version>
     <commons-fileupload.version>1.4</commons-fileupload.version>
     <commons-lang3.version>3.8.1</commons-lang3.version>
@@ -33,7 +31,7 @@
     <guava.version>23.0</guava.version>
     <httpcomponents-httpclient.version>4.5.7</httpcomponents-httpclient.version>
     <httpcomponents-httpcore.version>4.4.11</httpcomponents-httpcore.version>
-    <jackson.version>2.9.9</jackson.version>
+    <jackson.version>2.10.0</jackson.version>
     <jdk.version>1.8</jdk.version>
     <joda-time.version>2.10.1</joda-time.version>
     <json-simple.version>1.1.1</json-simple.version>
@@ -1012,7 +1010,7 @@
       <dependency>
         <groupId>org.springframework.security.oauth</groupId>
         <artifactId>spring-security-oauth</artifactId>
-        <version>2.3.6.RELEASE</version>
+        <version>2.3.7.RELEASE</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.security</groupId>
@@ -1808,55 +1806,23 @@
       </plugin>
     </plugins>
   </reporting>
-  <pluginRepositories>
-    <pluginRepository>
-      <id>opencast</id>
-      <name>Opencast Repo</name>
-      <url>${opencast.nexus.url}/nexus/content/groups/public</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-    </pluginRepository>
-    <pluginRepository>
-      <id>opencast-backup</id>
-      <name>Opencast Backup Repository</name>
-      <url>${opencast.nexus-backup.url}/nexus/content/groups/public</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-    </pluginRepository>
-  </pluginRepositories>
   <repositories>
     <repository>
-      <id>opencast</id>
-      <name>Opencast Repo</name>
-      <url>${opencast.nexus.url}/nexus/content/groups/public</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
+      <id>central</id>
+      <name>Central Maven Repository</name>
+      <url>https://repo.maven.apache.org/maven2/</url>
     </repository>
     <repository>
-      <id>opencast-backup</id>
-      <name>Opencast Backup Repo</name>
-      <url>${opencast.nexus-backup.url}/nexus/content/groups/public</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
+      <id>spring.io</id>
+      <name>Spring Framework Maven Plugins-Release Repository</name>
+      <url>https://repo.spring.io/plugins-release/</url>
+    </repository>
+    <repository>
+      <id>mvn.opencast.org</id>
+      <name>Opencast 3rd-Party Repository</name>
+      <url>https://mvn.opencast.org/</url>
     </repository>
   </repositories>
-
   <distributionManagement>
     <snapshotRepository>
       <id>ossrh</id>
