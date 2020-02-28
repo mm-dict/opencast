@@ -16,6 +16,16 @@
   </properties>
   <dependencies>
     <dependency>
+      <groupId>org.opencastproject</groupId>
+      <artifactId>opencast-kernel</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.tsugi</groupId>
+      <artifactId>tsugi-util</artifactId>
+      <version>0.2.1</version>
+    </dependency>
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <scope>provided</scope>
@@ -23,6 +33,11 @@
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.compendium</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -225,6 +240,21 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>analyze-dep</id>
+            <goals>
+              <goal>analyze-only</goal>
+            </goals>
+            <configuration>
+              <failOnWarning>false</failOnWarning>
+              <ignoredDependencies>
+                <ignoredDependency>javax.servlet:servlet-api:jar</ignoredDependency>
+                <ignoredDependency>javax.servlet:javax.servlet-api:jar</ignoredDependency>
+              </ignoredDependencies>
+            </configuration>
+          </execution>
+      </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.felix</groupId>
@@ -234,6 +264,9 @@
           <instructions>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
             <Build-Number>${buildNumber}</Build-Number>
+            <Embed-Dependency>
+              tsugi-util;inline=true
+            </Embed-Dependency>
             <Import-Package>
               javax.ws.rs;version=2.0.1,
               javax.ws.rs.core;version=2.0.1,
