@@ -60,7 +60,7 @@ const SeriesEpisode: React.StatelessComponent<EpisodeProps> = ({ episode, delete
     </div>;
 }
 
-class TranslatedSeries extends React.Component<SeriesProps, SeriesState> {
+class TranslatedDeeplink extends React.Component<SeriesProps,SeriesState> {
     constructor(props: SeriesProps) {
         super(props);
         this.state = {
@@ -205,4 +205,4 @@ class TranslatedSeries extends React.Component<SeriesProps, SeriesState> {
     }
 }
 
-export const Series = withTranslation()(TranslatedSeries);
+export const Deeplink = withTranslation()(TranslatedDeeplink);

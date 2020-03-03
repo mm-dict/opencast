@@ -157,6 +157,7 @@ public class LtiServlet extends HttpServlet implements ManagedService {
     UriBuilder builder;
     try {
       logger.debug("Received '{}' LTI message type", messageType);
+      logger.debug("Custom tool parameter prefix: {}", BasicLTIConstants.CUSTOM_PREFIX);
 
       logger.info(
               "LTIPREFIX: Custom tool, raw parameter, before rewrite: {}",
@@ -175,9 +176,6 @@ public class LtiServlet extends HttpServlet implements ManagedService {
       if (messageType.equals(BasicLTIConstants.LTI_MESSAGE_TYPE_CONTENTITEMSELECTIONREQUEST)) {
         toolUri = new URI(URLDecoder.decode(StringUtils.trimToEmpty(
                 req.getParameter(LTI_CUSTOM_DL_TOOL)), "UTF-8"));
-      } else {
-        toolUri = new URI(URLDecoder.decode(StringUtils.trimToEmpty(
-                req.getParameter(LTI_CUSTOM_TOOL)), "UTF-8"));
       }
 
       if (toolUri.getPath().isEmpty())
