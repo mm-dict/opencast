@@ -45,7 +45,6 @@ import org.opencastproject.assetmanager.api.query.ARecord;
 import org.opencastproject.assetmanager.api.query.AResult;
 import org.opencastproject.assetmanager.api.query.ASelectQuery;
 import org.opencastproject.assetmanager.api.query.Predicate;
-import org.opencastproject.authorization.xacml.XACMLUtils;
 import org.opencastproject.index.IndexProducer;
 import org.opencastproject.mediapackage.Catalog;
 import org.opencastproject.mediapackage.MediaPackage;
@@ -741,7 +740,8 @@ public class SchedulerServiceImpl extends AbstractIndexProducer implements Sched
 
       Opt<AccessControlList> acl = Opt.none();
       Opt<DublinCoreCatalog> dublinCore = Opt.none();
-      Opt<AccessControlList> aclOld = loadEpisodeAclFromAsset(record.getSnapshot().get());
+      Opt<AccessControlList> aclOld =
+              some(authorizationService.getActiveAcl(record.getSnapshot().get().getMediaPackage()).getA());
 
       //update metadata for dublincore
       if (startDateTime.isSome() && endDateTime.isSome()) {
@@ -823,6 +823,7 @@ public class SchedulerServiceImpl extends AbstractIndexProducer implements Sched
             || securityService.getUser().hasRole(securityService.getOrganization().getAdminRole()));
   }
 
+<<<<<<< HEAD
   private Opt<AccessControlList> loadEpisodeAclFromAsset(Snapshot snapshot) {
     Option<MediaPackageElement> acl = mlist(snapshot.getMediaPackage().getElements())
             .filter(MediaPackageSupport.Filters.isEpisodeAcl).headOpt();
@@ -849,6 +850,8 @@ public class SchedulerServiceImpl extends AbstractIndexProducer implements Sched
     }
   }
 
+=======
+>>>>>>> upstream/r/8.x
   private Opt<DublinCoreCatalog> loadEpisodeDublinCoreFromAsset(Snapshot snapshot) {
     Option<MediaPackageElement> dcCatalog = mlist(snapshot.getMediaPackage().getElements())
             .filter(MediaPackageSupport.Filters.isEpisodeDublinCore).headOpt();
@@ -994,11 +997,7 @@ public class SchedulerServiceImpl extends AbstractIndexProducer implements Sched
       if (record.isNone())
         throw new NotFoundException();
 
-      Opt<AccessControlList> acl = loadEpisodeAclFromAsset(record.get().getSnapshot().get());
-      if (acl.isNone())
-        return null;
-
-      return acl.get();
+      return authorizationService.getActiveAcl(record.get().getSnapshot().get().getMediaPackage()).getA();
     } catch (NotFoundException e) {
       throw e;
     } catch (Exception e) {
@@ -1095,8 +1094,21 @@ public class SchedulerServiceImpl extends AbstractIndexProducer implements Sched
   public List<MediaPackage> findConflictingEvents(String captureDeviceID, Date startDate, Date endDate)
       throws SchedulerException {
     try {
-      return persistence.getEvents(captureDeviceID, startDate, endDate, Util.EVENT_MINIMUM_SEPARATION_MILLISECONDS)
-          .parallelStream().map(this::getEventMediaPackage).collect(Collectors.toList());
+      final Organization organization = new DefaultOrganization();
+      final User user = SecurityUtil.createSystemUser(systemUserName, organization);
+      List<MediaPackage> conflictingEvents = new ArrayList();
+
+      SecurityUtil.runAs(securityService, organization, user, () -> {
+        try {
+          conflictingEvents.addAll(persistence.getEvents(captureDeviceID, startDate, endDate, Util.EVENT_MINIMUM_SEPARATION_MILLISECONDS)
+            .stream().map(this::getEventMediaPackage).collect(Collectors.toList()));
+        } catch (SchedulerServiceDatabaseException e) {
+          logger.error("Failed to get conflicting events", e);
+        }
+      });
+
+      return conflictingEvents;
+
     } catch (Exception e) {
       throw new SchedulerException(e);
     }
@@ -1641,7 +1653,8 @@ public class SchedulerServiceImpl extends AbstractIndexProducer implements Sched
             final AResult result = query.select(query.snapshot())
                     .where(query.mediaPackageId(event.getMediaPackageId()).and(query.version().isLatest())).run();
             final Snapshot snapshot = result.getRecords().head().get().getSnapshot().get();
-            final Opt<AccessControlList> acl = loadEpisodeAclFromAsset(snapshot);
+            final Opt<AccessControlList> acl = Opt.some(authorizationService.getActiveAcl(snapshot.getMediaPackage()).getA());
+
             final Opt<DublinCoreCatalog> dublinCore = loadEpisodeDublinCoreFromAsset(snapshot);
 
             final List<SchedulerItem> schedulerItems = new ArrayList<>(
