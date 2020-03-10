@@ -22,6 +22,7 @@ package org.opencastproject.scheduler.impl;
 
 import static com.entwinemedia.fn.Stream.$;
 import static com.entwinemedia.fn.data.Opt.some;
+import static org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace;
 import static org.opencastproject.scheduler.impl.SchedulerUtil.calculateChecksum;
 import static org.opencastproject.scheduler.impl.SchedulerUtil.episodeToMp;
 import static org.opencastproject.scheduler.impl.SchedulerUtil.eventOrganizationFilter;
@@ -472,7 +473,7 @@ public class SchedulerServiceImpl extends AbstractIndexProducer implements Sched
     } catch (SchedulerException e) {
       throw e;
     } catch (Exception e) {
-      logger.error("Failed to create event with id '{}':", mediaPackageId, e);
+      logger.error("Failed to create event with id '{}': {}", mediaPackageId, getStackTrace(e));
       throw new SchedulerException(e);
     }
   }
@@ -823,35 +824,6 @@ public class SchedulerServiceImpl extends AbstractIndexProducer implements Sched
             || securityService.getUser().hasRole(securityService.getOrganization().getAdminRole()));
   }
 
-<<<<<<< HEAD
-  private Opt<AccessControlList> loadEpisodeAclFromAsset(Snapshot snapshot) {
-    Option<MediaPackageElement> acl = mlist(snapshot.getMediaPackage().getElements())
-            .filter(MediaPackageSupport.Filters.isEpisodeAcl).headOpt();
-    if (acl.isNone())
-      return Opt.none();
-
-    Opt<Asset> asset = assetManager.getAsset(snapshot.getVersion(),
-            snapshot.getMediaPackage().getIdentifier().compact(), acl.get().getIdentifier());
-    if (asset.isNone())
-      return Opt.none();
-
-    if (Availability.OFFLINE.equals(asset.get().getAvailability()))
-      return Opt.none();
-
-    InputStream inputStream = null;
-    try {
-      inputStream = asset.get().getInputStream();
-      return Opt.some(XACMLUtils.parseXacml(inputStream));
-    } catch (Exception e) {
-      logger.warn("Unable to parse access control list:", e);
-      return Opt.none();
-    } finally {
-      IOUtils.closeQuietly(inputStream);
-    }
-  }
-
-=======
->>>>>>> upstream/r/8.x
   private Opt<DublinCoreCatalog> loadEpisodeDublinCoreFromAsset(Snapshot snapshot) {
     Option<MediaPackageElement> dcCatalog = mlist(snapshot.getMediaPackage().getElements())
             .filter(MediaPackageSupport.Filters.isEpisodeDublinCore).headOpt();
@@ -932,7 +904,7 @@ public class SchedulerServiceImpl extends AbstractIndexProducer implements Sched
     } catch (RuntimeNotFoundException e) {
       throw e.getWrappedException();
     } catch (Exception e) {
-      logger.error("Failed to get mediapackage of event '{}':", mediaPackageId, e);
+      logger.error("Failed to get mediapackage of event '{}': {}", mediaPackageId, getStackTrace(e));
       throw new SchedulerException(e);
     }
   }
@@ -959,7 +931,7 @@ public class SchedulerServiceImpl extends AbstractIndexProducer implements Sched
     } catch (NotFoundException e) {
       throw e;
     } catch (Exception e) {
-      logger.error("Failed to get dublin core catalog of event '{}':", mediaPackageId, e);
+      logger.error("Failed to get dublin core catalog of event '{}': {}", mediaPackageId, getStackTrace(e));
       throw new SchedulerException(e);
     }
   }
@@ -978,7 +950,7 @@ public class SchedulerServiceImpl extends AbstractIndexProducer implements Sched
     } catch (NotFoundException e) {
       throw e;
     } catch (Exception e) {
-      logger.error("Failed to get technical metadata of event '{}':", mediaPackageId, e);
+      logger.error("Failed to get technical metadata of event '{}': {}", mediaPackageId, getStackTrace(e));
       throw new SchedulerException(e);
     }
   }
@@ -1001,7 +973,7 @@ public class SchedulerServiceImpl extends AbstractIndexProducer implements Sched
     } catch (NotFoundException e) {
       throw e;
     } catch (Exception e) {
-      logger.error("Failed to get access control list of event '{}':", mediaPackageId, e);
+      logger.error("Failed to get access control list of event '{}': {}", mediaPackageId, getStackTrace(e));
       throw new SchedulerException(e);
     }
   }
@@ -1018,7 +990,7 @@ public class SchedulerServiceImpl extends AbstractIndexProducer implements Sched
     } catch (NotFoundException e) {
       throw e;
     } catch (Exception e) {
-      logger.error("Failed to get workflow configuration of event '{}':", mediaPackageId, e);
+      logger.error("Failed to get workflow configuration of event '{}': {}", mediaPackageId, getStackTrace(e));
       throw new SchedulerException(e);
     }
   }
@@ -1036,7 +1008,7 @@ public class SchedulerServiceImpl extends AbstractIndexProducer implements Sched
     } catch (NotFoundException e) {
       throw e;
     } catch (Exception e) {
-      logger.error("Failed to get capture agent contiguration of event '{}':", mediaPackageId, e);
+      logger.error("Failed to get capture agent contiguration of event '{}': {}", mediaPackageId, getStackTrace(e));
       throw new SchedulerException(e);
     }
   }
@@ -1295,7 +1267,7 @@ public class SchedulerServiceImpl extends AbstractIndexProducer implements Sched
       } catch (NotFoundException e) {
         logger.debug("Skipping event with id {} because it is not found", eventId);
       } catch (Exception e) {
-        logger.warn("Unable to delete event with id '{}':", eventId, e);
+        logger.warn("Unable to delete event with id '{}': {}", eventId, getStackTrace(e));
       }
     }
 
@@ -1492,7 +1464,7 @@ public class SchedulerServiceImpl extends AbstractIndexProducer implements Sched
       persistence.touchLastEntry(captureAgentId);
       populateLastModifiedCache();
     } catch (SchedulerServiceDatabaseException e) {
-      logger.error("Failed to update last modified entry of agent '{}':", captureAgentId, e);
+      logger.error("Failed to update last modified entry of agent '{}': {}", captureAgentId, getStackTrace(e));
     }
   }
 
