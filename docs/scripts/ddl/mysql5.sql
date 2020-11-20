@@ -284,21 +284,13 @@ CREATE TABLE oc_oaipmh (
   repo_id VARCHAR(255) NOT NULL,
   series_id VARCHAR(128),
   deleted tinyint(1) DEFAULT '0',
-  modification_date DATETIME DEFAULT NULL,
+  modification_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   mediapackage_xml TEXT(65535) NOT NULL,
   PRIMARY KEY (mp_id, repo_id, organization),
   CONSTRAINT UNQ_oc_oaipmh UNIQUE (modification_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE INDEX IX_oc_oaipmh_modification_date ON oc_oaipmh (modification_date);
-
--- set to current date and time on insert
-CREATE TRIGGER oc_init_oaipmh_date BEFORE INSERT ON `oc_oaipmh`
-FOR EACH ROW SET NEW.modification_date = NOW();
-
--- set to current date and time on update
-CREATE TRIGGER oc_update_oaipmh_date BEFORE UPDATE ON `oc_oaipmh`
-FOR EACH ROW SET NEW.modification_date = NOW();
 
 CREATE TABLE oc_oaipmh_elements (
   id INT(20) NOT NULL AUTO_INCREMENT,
