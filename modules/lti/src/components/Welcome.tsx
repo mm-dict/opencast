@@ -15,6 +15,8 @@ export function Welcome() {
                 <li>Use the <code>?deletion=true</code> URL parameter to show a deletion button next to each episode.</li>
                 <li>Use the <code>?edit=true</code> URL parameter to show an edit button next to each episode.</li>
             </ul>
+            <li>Upload a video in the <a href="index.html?subtool=upload">Upload LTI Tool</a>.</li>
+            <li>Use the deeplinking in the <a href="index.html?subtool=deeplink">Deeplink LTI Tool</a>.</li>
         </ul>
     </>;
 }
