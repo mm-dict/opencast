@@ -186,10 +186,10 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
         }
 
         const rgbMax: number = 220, rgbOffset: number = 20;
-        const seriesRgbMax = new Array(rgbMax, rgbMax, rgbMax),
-            seriesRgbOffset = new Array(rgbOffset, rgbOffset, rgbOffset),
+        const seriesRgbMax = [rgbMax, rgbMax, rgbMax],
+            seriesRgbOffset = [rgbOffset, rgbOffset, rgbOffset],
             stringRadix = 16
-        const rgb: any[] = new Array(0, 0, 0);
+        const rgb: any[] = [0, 0, 0];
         let color: string = '#';
 
         for (let i = 0; i < id.length; ++i) {
@@ -267,7 +267,7 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
                                             {episode.mediapackage.seriestitle !== undefined && <div className="seriestitle">{episode.mediapackage.seriestitle}</div>}
                                             <div className="date">{this.formatDate(episode.dcCreated)}</div>
                                             {episode.mediapackage.duration !== undefined && <div className="duration">{this.formatDuration(episode.mediapackage.duration)}</div>}
-                                            <a href="#" className="btn btn-primary card-text selectitem" onClick={() => {this.populateData(episode.dcTitle, episode.mediapackage.attachments[0].url, this.formatDate(episode.dcCreated), '/play/' + episode.id)}}>Select</a>
+                                            <Button variant="primary" className="card-text selectitem" onClick={() => {this.populateData(episode.dcTitle, episode.mediapackage.attachments[0].url, this.formatDate(episode.dcCreated), '/play/' + episode.id)}}>Select</Button>
                                         </div>
                                     </div>
                                 </div>
@@ -309,7 +309,7 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
                                     <div className="tilecontent">
                                         <h4 className="title">{serie.dcTitle}</h4>
                                     </div>
-                                    <a href="#" className="btn btn-primary selectitem" onClick={() => { this.populateData(serie.dcTitle, 'engage/ui/img/logo/opencast-icon.svg', this.formatDate(serie.dcCreated), 'ltitools/series/index.html?series=' + serie.id) }}>Select</a>
+                                    <Button variant="primary" className="selectitem" onClick={() => { this.populateData(serie.dcTitle, 'engage/ui/img/logo/opencast-icon.svg', this.formatDate(serie.dcCreated), 'ltitools/series/index.html?series=' + serie.id) }}>Select</Button>
                                 </div>
                             </div>
                             <DeeplinkPaging
