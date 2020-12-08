@@ -21,10 +21,18 @@
 
 package org.opencastproject.lti;
 
+import org.opencastproject.kernel.security.OAuthConsumerDetailsService;
+
 import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONObject;
+import org.osgi.service.cm.ManagedService;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.oauth.common.signature.SharedConsumerSecretImpl;
+import org.springframework.security.oauth.provider.ConsumerDetails;
+import org.springframework.security.oauth.provider.ConsumerDetailsService;
+import org.tsugi.basiclti.BasicLTIUtil;
 
 import java.io.IOException;
 import java.net.URI;
@@ -32,6 +40,7 @@ import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
@@ -48,11 +57,14 @@ import javax.ws.rs.core.UriBuilder;
  * A servlet to accept an LTI login via POST. The actual authentication happens in LtiProcessingFilter. GET requests
  * produce JSON containing the LTI parameters passed during LTI launch.
  */
-public class LtiServlet extends HttpServlet {
+public class LtiServlet extends HttpServlet implements ManagedService {
 
   private static final String LTI_CUSTOM_PREFIX = "custom_";
   private static final String LTI_CUSTOM_TOOL = "custom_tool";
   private static final String LTI_CUSTOM_TEST = "custom_test";
+
+  /** Our custom parameters **/
+  private static final String TEST = "test";
 
   /** The logger */
   private static final Logger logger = LoggerFactory.getLogger(LtiServlet.class);
@@ -65,6 +77,14 @@ public class LtiServlet extends HttpServlet {
 
   /** Path under which all the LTI tools are available */
   private static final String TOOLS_URL = "/ltitools";
+
+  /** URI where tools should post to in order to generate ContentItemSelection message **/
+  private static final String CONTENT_ITEMS_URI = "/lti/ci";
+
+  /** needed to keep track of which secret to sign ContentItemSelection message **/
+  private static final String CONSUMER_KEY = "consumer_key";
+  private static final String OAUTH_PREFIX = "oauth_";
+  private static final String OAUTH_CONSUMER_KEY = OAUTH_PREFIX + CONSUMER_KEY;
 
   // The following LTI launch parameters are made available to GET requests at the /lti endpoint.
   // See https://www.imsglobal.org/specs/ltiv1p2/implementation-guide for the meaning of each.
@@ -153,6 +173,17 @@ public class LtiServlet extends HttpServlet {
   /** See the LTI specification */
   public static final String COURSE_SECTION = "lis_course_section_sourcedid";
 
+  /** Return URL for ContentItemSelection */
+  public static final String CONTENT_ITEM_RETURN_URL = "content_item_return_url";
+
+  /** LTI parameter not specified in tsugi library **/
+  private static final String CONTENT_ITEMS = "content_items";
+
+  /** Basic LTI Launch Message parameter */
+  public static final String LTI_MESSAGE_TYPE_CONTENTITEMSELECTIONREQUEST = "ContentItemSelectionRequest";
+  public static final String LTI_MESSAGE_TYPE_CONTENTITEMSELECTION = "ContentItemSelection";
+  public static final String DATA = "data";
+
   public static final SortedSet<String> LTI_CONSTANTS;
 
   static {
@@ -185,7 +216,11 @@ public class LtiServlet extends HttpServlet {
     LTI_CONSTANTS.add(CONSUMER_CONTACT);
     LTI_CONSTANTS.add(COURSE_OFFERING);
     LTI_CONSTANTS.add(COURSE_SECTION);
+    LTI_CONSTANTS.add(CONTENT_ITEM_RETURN_URL);
+    LTI_CONSTANTS.add(OAUTH_CONSUMER_KEY);
   }
+
+  private OAuthConsumerDetailsService consumerDetailsService;
 
   /**
    * {@inheritDoc}
@@ -197,9 +232,16 @@ public class LtiServlet extends HttpServlet {
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     // Store the LTI data as a map in the session
     HttpSession session = req.getSession(false);
+
+    if (CONTENT_ITEMS_URI.equals(req.getRequestURI())) {
+      sendContentItem(req, resp);
+      return;
+    }
+
     session.setAttribute(SESSION_ATTRIBUTE_KEY, getLtiValuesAsMap(req));
 
     // We must return a 200 for some OAuth client libraries to accept this as a valid response
+    String messageType = StringUtils.trimToEmpty(req.getParameter(LTI_MESSAGE_TYPE));
 
     // The URL of the LTI tool. If no specific tool is passed we use the test tool
     UriBuilder builder;
@@ -229,8 +271,9 @@ public class LtiServlet extends HttpServlet {
     }
 
     // We need to add the custom params to the outgoing request
-    for (String key : req.getParameterMap().keySet()) {
-      logger.debug("Found query parameter '{}'", key);
+    for (Object k : req.getParameterMap().keySet()) {
+      String key = k.toString();
+      logger.debug("Found query parameter '{}'", k);
       if (key.startsWith(LTI_CUSTOM_PREFIX) && (!LTI_CUSTOM_TOOL.equals(key))) {
         String paramValue = req.getParameter(key);
         // we need to remove the prefix custom_
@@ -244,6 +287,15 @@ public class LtiServlet extends HttpServlet {
     if (StringUtils.isNotBlank(localeParamValue)) {
       // 'lng' is query param for i18next-browser-languagedetector
       builder.queryParam("lng", localeParamValue);
+    }
+
+    // add params required for content item
+    if (messageType.equals(LTI_MESSAGE_TYPE_CONTENTITEMSELECTIONREQUEST)) {
+      if (req.getParameterMap().containsKey(DATA)) {
+        builder.queryParam(DATA, req.getParameter(DATA));
+      }
+      builder.queryParam(CONSUMER_KEY, req.getParameter(OAUTH_CONSUMER_KEY));
+      builder.queryParam(CONTENT_ITEM_RETURN_URL, req.getParameter(CONTENT_ITEM_RETURN_URL));
     }
 
     // Build the final URL (as a string)
@@ -264,6 +316,31 @@ public class LtiServlet extends HttpServlet {
     }
   }
 
+
+  private void sendContentItem(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    Map<String, String> ltiValues = getLtiValuesAsMap(req);
+    String consumerKey = req.getParameter(CONSUMER_KEY);
+    ConsumerDetails consumer = consumerDetailsService.loadConsumerByConsumerKey(consumerKey);
+    String consumerSecret = ((SharedConsumerSecretImpl) consumer.getSignatureSecret()).getConsumerSecret();
+    String contentItems = req.getParameter(CONTENT_ITEMS);
+    String returnUrl = ltiValues.get(CONTENT_ITEM_RETURN_URL);
+
+    Map<String, String> props = new HashMap<String, String>();
+    props.put(LTI_MESSAGE_TYPE, LTI_MESSAGE_TYPE_CONTENTITEMSELECTION);
+    props.put(CONTENT_ITEMS, contentItems);
+    props.put(DATA, ltiValues.get(DATA));
+    Map<String, String> properties = BasicLTIUtil.signProperties(props, returnUrl, "POST", consumerKey, consumerSecret, "", "", "", "", "", null);
+    resp.setContentType("text/html");
+
+    // whether to show debug info before sending content items to tool consumer
+    boolean test = false;
+    if ("true".equals(req.getParameter(TEST))) {
+      test = true;
+    }
+
+    resp.getWriter().write(BasicLTIUtil.postLaunchHTML(properties, returnUrl, "Send content to LMS", test, null));
+  }
+
   /**
    * Builds a map of LTI parameters
    *
@@ -280,6 +357,16 @@ public class LtiServlet extends HttpServlet {
       }
     }
     return ltiValues;
+  }
+
+  /**
+   * Sets the consumer details service
+   *
+   * @param consumerDetailsService
+   *          the consumer details service to set
+   */
+  public void setConsumerDetailsService(ConsumerDetailsService consumerDetailsService) {
+    this.consumerDetailsService = (OAuthConsumerDetailsService) consumerDetailsService;
   }
 
   /**
@@ -304,5 +391,14 @@ public class LtiServlet extends HttpServlet {
       resp.setContentType("application/json");
       JSONObject.writeJSONString(ltiAttributes, resp.getWriter());
     }
+  }
+
+  public void activate(ComponentContext cc) {
+    logger.info("LTI Serviet started.");
+  }
+
+  @Override
+  public void updated(Dictionary<String, ?> properties) {
+    logger.info("LTI Servlet updated.");
   }
 }
