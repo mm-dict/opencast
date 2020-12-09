@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth.common.signature.SharedConsumerSecretImpl;
 import org.springframework.security.oauth.provider.ConsumerDetails;
 import org.springframework.security.oauth.provider.ConsumerDetailsService;
-import org.tsugi.basiclti.BasicLTIUtil;
 
 import java.io.IOException;
 import java.net.URI;
@@ -329,7 +328,7 @@ public class LtiServlet extends HttpServlet implements ManagedService {
     props.put(LTI_MESSAGE_TYPE, LTI_MESSAGE_TYPE_CONTENTITEMSELECTION);
     props.put(CONTENT_ITEMS, contentItems);
     props.put(DATA, ltiValues.get(DATA));
-    Map<String, String> properties = BasicLTIUtil.signProperties(props, returnUrl, "POST", consumerKey, consumerSecret, "", "", "", "", "", null);
+    Map<String, String> properties = LtiUtils.signProperties(props, returnUrl, "POST", consumerKey, consumerSecret, "", "", "", "", "", null);
     resp.setContentType("text/html");
 
     // whether to show debug info before sending content items to tool consumer
@@ -338,7 +337,7 @@ public class LtiServlet extends HttpServlet implements ManagedService {
       test = true;
     }
 
-    resp.getWriter().write(BasicLTIUtil.postLaunchHTML(properties, returnUrl, "Send content to LMS", test, null));
+    resp.getWriter().write(LtiUtils.postLaunchHTML(properties, returnUrl, "Send content to LMS", test, null));
   }
 
   /**

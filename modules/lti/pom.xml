@@ -16,14 +16,14 @@
   </properties>
   <dependencies>
     <dependency>
+      <groupId>net.oauth.core</groupId>
+      <artifactId>oauth</artifactId>
+      <version>20100527</version>
+    </dependency>
+    <dependency>
       <groupId>org.opencastproject</groupId>
       <artifactId>opencast-kernel</artifactId>
       <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.tsugi</groupId>
-      <artifactId>tsugi-util</artifactId>
-      <version>0.2.1</version>
     </dependency>
     <dependency>
       <groupId>org.osgi</groupId>
@@ -259,7 +259,9 @@
               *
             </Import-Package>
             <Export-Package>
-              org.opencastproject.lti;version=${project.version}
+              org.opencastproject.lti;version=${project.version},
+              net.oauth,
+              net.oauth.*
             </Export-Package>
             <Service-Component>
               OSGI-INF/opencast-lti.xml,
