@@ -285,7 +285,7 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
                                     handlePageChange={this.handlePageChange.bind(this)}
                             />
                         </>
-                    )}) : <p className="ml-2">No episodes found.</p> : <Loading t={this.props.t} />}
+                    )}) : <p className="ml-2 pl-1">No episodes found.</p> : <Loading t={this.props.t} />}
                     </Container>
                     <div className="clearfix" />
                     <div id="episodes-pager" />
@@ -325,7 +325,7 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
                                 handlePageChange={this.handlePageChange.bind(this)}
                             />
                         </>
-                    )}) : <p className="ml-2">No series found.</p> : <Loading t={this.props.t} />}
+                    )}) : <p className="ml-2 pl-1">No series found.</p> : <Loading t={this.props.t} />}
                     </Container>
                     <div className="clearfix" />
                     <div id="series-pager" />
