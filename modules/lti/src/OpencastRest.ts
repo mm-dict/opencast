@@ -218,7 +218,7 @@ export async function postDeeplinkData(
     contentItemReturnUrl?: string,
     consumerKey?: string,
     data?: string,
-    test?: string): Promise<{}> {
+    test?: string): Promise<string> {
     const formdata = new FormData();
     if(contentItemReturnUrl !== undefined){
         formdata.append("content_item_return_url", contentItemReturnUrl);

@@ -7,6 +7,7 @@ import { withTranslation, WithTranslation } from "react-i18next";
 import Pagination from "react-js-pagination";
 import i18next from "i18next";
 import { Container, Tabs, Tab, Form, Button, Col } from 'react-bootstrap';
+import InnerHTML from 'dangerously-set-html-content'
 import "../App.css";
 import './Deeplink.css';
 import 'engage-ui/src/main/resources/ui/css/engage-ui.css';
@@ -39,6 +40,7 @@ interface DeeplinkState {
     readonly searchEpisodeResults?: SearchEpisodeResults;
     readonly searchSeriesResults?: SearchEpisodeResults;
     readonly showEpisodeTemplate: boolean;
+    readonly populatedData?: string;
 }
 
 interface DeeplinkProps extends WithTranslation {
@@ -175,9 +177,10 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
             typeof qs.consumer_key === 'string' ? qs.consumer_key : undefined,
             typeof qs.data === 'string' ? qs.data : undefined,
             typeof qs.test === 'string' ? qs.test : undefined
-        ).then(() => {
+        ).then((response) => {
             this.setState({
                 ...this.state,
+                populatedData: response
             });
         }).catch((error) => {
             this.setState({
@@ -234,6 +237,8 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
                 <title>Opencast: Deep Linking</title>
             </Helmet>
             <h2>Deep Linking</h2>
+            {/* Use InnerHTML to render dynamic html and execute any scripts tag within it. */}
+            {this.state.populatedData !== undefined && <InnerHTML html={this.state.populatedData} />}
             <Tabs defaultActiveKey="episodes">
                 <Tab eventKey="episodes" title="Episodes">
                     <Form.Row id="episodes-searchfield" className="searchfield">
