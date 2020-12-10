@@ -4,6 +4,22 @@ Changelog
 Opencast 8
 ----------
 
+### Opencast 8.9
+
+*Released on December 8th, 2020*
+
+- [[#2099](https://github.com/opencast/opencast/pull/2099)] -
+  Support faster playback rates in paella video player
+- [[#2087](https://github.com/opencast/opencast/pull/2087)] -
+  Move from Travis CI to GitHub Actions (8.x)
+- [[#2075](https://github.com/opencast/opencast/pull/2075)] -
+  Reduce IO Load When Starting a Workflow
+- [[#2068](https://github.com/opencast/opencast/pull/2068)] -
+  JDK Support proposal (2020-11-11) documentation for 8.x
+- [[#1988](https://github.com/opencast/opencast/pull/1988)] -
+  #1987 Admin UI event start filter datepicker timezone patch
+
+
 ### Opencast 8.8
 
 *Released on November 19th, 2020*
@@ -641,6 +657,16 @@ Opencast 8
 
 Opencast 7
 ----------
+
+### Opencast 7.9
+
+*Released on December 8, 2020*
+
+- [[#1964](https://github.com/opencast/opencast/pull/1964)] -
+  Docs: When the sidebar is hidden, the navigation links are disabled now
+- [[#1922](https://github.com/opencast/opencast/pull/1922)] -
+  Remove Spring snapshot repository from main pom
+
 ### Opencast 7.8
 
 *Released on August 17, 2020*
