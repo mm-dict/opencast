@@ -175,7 +175,7 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
             typeof qs.consumer_key === 'string' ? qs.consumer_key : undefined,
             typeof qs.data === 'string' ? qs.data : undefined,
             typeof qs.test === 'string' ? qs.test : undefined
-        ).then((response) => {
+        ).then(() => {
             this.setState({
                 ...this.state,
             });
@@ -237,7 +237,7 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
             <Tabs defaultActiveKey="episodes">
                 <Tab eventKey="episodes" title="Episodes">
                     <Form.Row id="episodes-searchfield" className="searchfield">
-                        <Col>
+                        <Col className="pl-0">
                             <Form.Control type="text" placeholder="Filter" value={this.state.episodesFilter} onChange={(e) => {
                                 this.setState({
                                     ...this.state,
@@ -285,14 +285,14 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
                                     handlePageChange={this.handlePageChange.bind(this)}
                             />
                         </>
-                    )}) : <p>No episodes found.</p> : <Loading t={this.props.t} />}
+                    )}) : <p className="ml-2">No episodes found.</p> : <Loading t={this.props.t} />}
                     </Container>
                     <div className="clearfix" />
                     <div id="episodes-pager" />
                 </Tab>
                 <Tab eventKey="series" title="Series">
                     <Form.Row id="series-searchfield" className="searchfield">
-                        <Col>
+                        <Col className="pl-0">
                             <Form.Control type="text" placeholder="Filter" value={this.state.seriesFilter} onChange={(e) => {
                                 this.setState({
                                     ...this.state,
@@ -325,7 +325,7 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
                                 handlePageChange={this.handlePageChange.bind(this)}
                             />
                         </>
-                    )}) : <p>No series found.</p> : <Loading t={this.props.t} />}
+                    )}) : <p className="ml-2">No series found.</p> : <Loading t={this.props.t} />}
                     </Container>
                     <div className="clearfix" />
                     <div id="series-pager" />
