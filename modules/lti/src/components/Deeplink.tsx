@@ -1,7 +1,7 @@
 import React from "react";
 import { Loading } from "./Loading";
 import Helmet from "react-helmet";
-import { searchEpisode, SearchEpisodeResults, postDeeplinkData } from "../OpencastRest";
+import { searchEpisode, getLti, SearchEpisodeResults, postDeeplinkData } from "../OpencastRest";
 import { parsedQueryString } from "../utils";
 import { withTranslation, WithTranslation } from "react-i18next";
 import Pagination from "react-js-pagination";
@@ -115,6 +115,14 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
     }
 
     componentDidMount() {
+        getLti().then((lti) => this.setState({
+            ...this.state,
+            episodesFilter: lti.context_label,
+            seriesFilter: lti.context_label
+        })).catch((error) => this.setState({
+            ...this.state,
+            httpErrors: this.state.httpErrors.concat([`LTI: ${error.message}`])
+        }))
         this.loadEpisodesTab(1, this.state.episodesFilter);
         this.loadSeriesTab(1, this.state.seriesFilter);
     }
@@ -167,8 +175,7 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
             typeof qs.consumer_key === 'string' ? qs.consumer_key : undefined,
             typeof qs.data === 'string' ? qs.data : undefined,
             typeof qs.test === 'string' ? qs.test : undefined
-        ).then((response) => {
-            console.log(response)
+        ).then(() => {
             this.setState({
                 ...this.state,
             });
@@ -247,7 +254,6 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
                     <Container fluid id="episodes-results" className="p-0">
                     { this.state.searchEpisodeResults !== undefined ? this.state.searchEpisodeResults.total !== 0 ? this.state.searchEpisodeResults.results.map((episode) => {
                         return (
-                        <>
                             <div className="col-xs-12 col-sm-6 col-md-4 col-lg-4 float-left">
                                 <div className="tile">
                                     <div className="seriesindicator" style={{backgroundColor: this.generateSeriesColor(episode.id)}} />
@@ -272,16 +278,14 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
                                     </div>
                                 </div>
                             </div>
-                            <DeeplinkPaging
-                                    currentPage={this.state.currentPage}
-                                    results={this.state.searchEpisodeResults}
-                                    handlePageChange={this.handlePageChange.bind(this)}
-                            />
-                        </>
-                    )}) : <p>No episodes found.</p> : <Loading t={this.props.t} />}
+                    )}) : <p className="ml-2 pl-1">No episodes found.</p> : <Loading t={this.props.t} />}
                     </Container>
                     <div className="clearfix" />
-                    <div id="episodes-pager" />
+                    <DeeplinkPaging
+                        currentPage={this.state.currentPage}
+                        results={this.state.searchEpisodeResults}
+                        handlePageChange={this.handlePageChange.bind(this)}
+                    />
                 </Tab>
                 <Tab eventKey="series" title="Series">
                     <Form.Row id="series-searchfield" className="searchfield">
@@ -312,16 +316,15 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
                                     <Button variant="primary" className="selectitem" onClick={() => { this.populateData(serie.dcTitle, 'engage/ui/img/logo/opencast-icon.svg', this.formatDate(serie.dcCreated), 'ltitools/series/index.html?series=' + serie.id) }}>Select</Button>
                                 </div>
                             </div>
-                            <DeeplinkPaging
-                                currentPage={this.state.currentPage}
-                                results={this.state.searchSeriesResults}
-                                handlePageChange={this.handlePageChange.bind(this)}
-                            />
                         </>
-                    )}) : <p>No series found.</p> : <Loading t={this.props.t} />}
+                    )}) : <p className="ml-2 pl-1">No series found.</p> : <Loading t={this.props.t} />}
                     </Container>
                     <div className="clearfix" />
-                    <div id="series-pager" />
+                    <DeeplinkPaging
+                        currentPage={this.state.currentPage}
+                        results={this.state.searchSeriesResults}
+                        handlePageChange={this.handlePageChange.bind(this)}
+                    />
                 </Tab>
             </Tabs>
         </>
