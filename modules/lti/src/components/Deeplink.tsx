@@ -237,7 +237,7 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
             <Tabs defaultActiveKey="episodes">
                 <Tab eventKey="episodes" title="Episodes">
                     <Form.Row id="episodes-searchfield" className="searchfield">
-                        <Col className="pl-0">
+                        <Col>
                             <Form.Control type="text" placeholder="Filter" value={this.state.episodesFilter} onChange={(e) => {
                                 this.setState({
                                     ...this.state,
@@ -254,7 +254,6 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
                     <Container fluid id="episodes-results" className="p-0">
                     { this.state.searchEpisodeResults !== undefined ? this.state.searchEpisodeResults.total !== 0 ? this.state.searchEpisodeResults.results.map((episode) => {
                         return (
-                        <>
                             <div className="col-xs-12 col-sm-6 col-md-4 col-lg-4 float-left">
                                 <div className="tile">
                                     <div className="seriesindicator" style={{backgroundColor: this.generateSeriesColor(episode.id)}} />
@@ -279,20 +278,18 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
                                     </div>
                                 </div>
                             </div>
-                            <DeeplinkPaging
-                                    currentPage={this.state.currentPage}
-                                    results={this.state.searchEpisodeResults}
-                                    handlePageChange={this.handlePageChange.bind(this)}
-                            />
-                        </>
                     )}) : <p className="ml-2 pl-1">No episodes found.</p> : <Loading t={this.props.t} />}
                     </Container>
                     <div className="clearfix" />
-                    <div id="episodes-pager" />
+                    <DeeplinkPaging
+                        currentPage={this.state.currentPage}
+                        results={this.state.searchEpisodeResults}
+                        handlePageChange={this.handlePageChange.bind(this)}
+                    />
                 </Tab>
                 <Tab eventKey="series" title="Series">
                     <Form.Row id="series-searchfield" className="searchfield">
-                        <Col className="pl-0">
+                        <Col>
                             <Form.Control type="text" placeholder="Filter" value={this.state.seriesFilter} onChange={(e) => {
                                 this.setState({
                                     ...this.state,
@@ -319,16 +316,15 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
                                     <Button variant="primary" className="selectitem" onClick={() => { this.populateData(serie.dcTitle, 'engage/ui/img/logo/opencast-icon.svg', this.formatDate(serie.dcCreated), 'ltitools/series/index.html?series=' + serie.id) }}>Select</Button>
                                 </div>
                             </div>
-                            <DeeplinkPaging
-                                currentPage={this.state.currentPage}
-                                results={this.state.searchSeriesResults}
-                                handlePageChange={this.handlePageChange.bind(this)}
-                            />
                         </>
                     )}) : <p className="ml-2 pl-1">No series found.</p> : <Loading t={this.props.t} />}
                     </Container>
                     <div className="clearfix" />
-                    <div id="series-pager" />
+                    <DeeplinkPaging
+                        currentPage={this.state.currentPage}
+                        results={this.state.searchSeriesResults}
+                        handlePageChange={this.handlePageChange.bind(this)}
+                    />
                 </Tab>
             </Tabs>
         </>
