@@ -1,7 +1,7 @@
 import React from "react";
 import { Loading } from "./Loading";
 import Helmet from "react-helmet";
-import { searchEpisode, SearchEpisodeResults, postDeeplinkData } from "../OpencastRest";
+import { searchEpisode, getLti, SearchEpisodeResults, postDeeplinkData } from "../OpencastRest";
 import { parsedQueryString } from "../utils";
 import { withTranslation, WithTranslation } from "react-i18next";
 import Pagination from "react-js-pagination";
@@ -115,6 +115,14 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
     }
 
     componentDidMount() {
+        getLti().then((lti) => this.setState({
+            ...this.state,
+            episodesFilter: lti.context_label,
+            seriesFilter: lti.context_label
+        })).catch((error) => this.setState({
+            ...this.state,
+            httpErrors: this.state.httpErrors.concat([`LTI: ${error.message}`])
+        }))
         this.loadEpisodesTab(1, this.state.episodesFilter);
         this.loadSeriesTab(1, this.state.seriesFilter);
     }
@@ -168,7 +176,6 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
             typeof qs.data === 'string' ? qs.data : undefined,
             typeof qs.test === 'string' ? qs.test : undefined
         ).then((response) => {
-            console.log(response)
             this.setState({
                 ...this.state,
             });

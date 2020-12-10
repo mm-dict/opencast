@@ -58,6 +58,7 @@ export interface EventMetadataContainer {
 
 export interface LtiData {
     readonly roles: string[];
+    readonly context_label: string;
 }
 
 export function findField(
@@ -185,6 +186,7 @@ export async function getLti(): Promise<LtiData> {
     const response = await axios.get(hostAndPort() + "/lti");
     return {
         roles: response.data.roles !== undefined ? response.data.roles.split(",") : [],
+        context_label: response.data.context_label
     }
 }
 
