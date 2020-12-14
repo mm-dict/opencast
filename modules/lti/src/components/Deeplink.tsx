@@ -13,7 +13,7 @@ import './Deeplink.css';
 import 'engage-ui/src/main/resources/ui/css/engage-ui.css';
 import 'bootstrap/dist/css/bootstrap.css';
 
-const limit: number = 15;
+const pagingLimit: number = 15;
 
 interface DeeplinkPagingPagingProps{
     readonly currentPage: number;
@@ -24,7 +24,7 @@ interface DeeplinkPagingPagingProps{
 const DeeplinkPaging: React.FC<DeeplinkPagingPagingProps> = ({ currentPage, handlePageChange, results }) => {
     return results !== undefined ? <Pagination
         activePage={currentPage}
-        itemsCountPerPage={limit}
+        itemsCountPerPage={pagingLimit}
         totalItemsCount={results.total}
         pageRangeDisplayed={5}
         itemClass="page-item"
@@ -61,7 +61,7 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
 
     loadEpisodesTab(page: number, q?: string) {
         const qs = parsedQueryString();
-        const offset: number = (page - 1) * limit;
+        const offset: number = (page - 1) * pagingLimit;
 
         this.setState({
             ...this.state,
@@ -71,7 +71,7 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
         });
 
         searchEpisode(
-            limit,
+            pagingLimit,
             offset,
             undefined,
             typeof qs.series === "string" ? qs.series : undefined,
@@ -90,7 +90,7 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
 
     loadSeriesTab(page: number, q?: string) {
         const qs = parsedQueryString();
-        const offset: number = (page - 1) * limit;
+        const offset: number = (page - 1) * pagingLimit;
 
         this.setState({
             ...this.state,
@@ -100,7 +100,7 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
         });
 
         searchEpisode(
-            limit,
+            pagingLimit,
             offset,
             undefined,
             typeof qs.series === "string" ? qs.series : undefined,
@@ -180,9 +180,11 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
             typeof qs.data === 'string' ? qs.data : undefined,
             typeof qs.test === 'string' ? qs.test : undefined
         ).then((response) => {
+            console.log(response)
+            console.log(response.data)
             this.setState({
                 ...this.state,
-                populatedData: response
+                populatedData: response.data
             });
         }).catch((error) => {
             this.setState({

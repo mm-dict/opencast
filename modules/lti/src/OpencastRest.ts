@@ -218,7 +218,7 @@ export async function postDeeplinkData(
     contentItemReturnUrl?: string,
     consumerKey?: string,
     data?: string,
-    test?: string): Promise<string> {
+    test?: string): Promise<any> {
     const formdata = new FormData();
     if(contentItemReturnUrl !== undefined){
         formdata.append("content_item_return_url", contentItemReturnUrl);
@@ -235,5 +235,11 @@ export async function postDeeplinkData(
     if(contentItems !== undefined){
         formdata.append("content_items", contentItems);
     }
-    return axios.post(hostAndPort() + "/lti/ci", formdata);
+    return axios.post(
+        hostAndPort() + "/lti/ci",
+        formdata,
+        {
+            headers: {'Content-Type': 'multipart/form-data'}
+        }
+    );
 }
