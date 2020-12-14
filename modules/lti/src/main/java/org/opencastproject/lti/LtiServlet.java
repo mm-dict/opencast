@@ -232,6 +232,9 @@ public class LtiServlet extends HttpServlet implements ManagedService {
     // Store the LTI data as a map in the session
     HttpSession session = req.getSession(false);
 
+    // Always set the session cookie
+    resp.setHeader("Set-Cookie", "JSESSIONID=" + session.getId() + ";Path=/");
+
     if (CONTENT_ITEMS_URI.equals(req.getRequestURI())) {
       sendContentItem(req, resp);
       return;
@@ -299,9 +302,6 @@ public class LtiServlet extends HttpServlet implements ManagedService {
 
     // Build the final URL (as a string)
     String redirectUrl = builder.build().toString();
-
-    // Always set the session cookie
-    resp.setHeader("Set-Cookie", "JSESSIONID=" + session.getId() + ";Path=/");
 
     // The client can specify debug option by passing a value to test
     // if in test mode display details where we go
@@ -393,7 +393,7 @@ public class LtiServlet extends HttpServlet implements ManagedService {
   }
 
   public void activate(ComponentContext cc) {
-    logger.info("LTI Serviet started.");
+    logger.info("LTI Servlet started.");
   }
 
   @Override

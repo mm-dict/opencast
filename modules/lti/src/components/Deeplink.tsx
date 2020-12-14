@@ -13,6 +13,8 @@ import './Deeplink.css';
 import 'engage-ui/src/main/resources/ui/css/engage-ui.css';
 import 'bootstrap/dist/css/bootstrap.css';
 
+const pagingLimit: number = 15;
+
 interface DeeplinkPagingPagingProps{
     readonly currentPage: number;
     readonly handlePageChange: (pageNumber: number) => void;
@@ -22,7 +24,7 @@ interface DeeplinkPagingPagingProps{
 const DeeplinkPaging: React.FC<DeeplinkPagingPagingProps> = ({ currentPage, handlePageChange, results }) => {
     return results !== undefined ? <Pagination
         activePage={currentPage}
-        itemsCountPerPage={results.limit}
+        itemsCountPerPage={pagingLimit}
         totalItemsCount={results.total}
         pageRangeDisplayed={5}
         itemClass="page-item"
@@ -59,8 +61,7 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
 
     loadEpisodesTab(page: number, q?: string) {
         const qs = parsedQueryString();
-        const limit: number = 15;
-        const offset: number = (page - 1) * limit;
+        const offset: number = (page - 1) * pagingLimit;
 
         this.setState({
             ...this.state,
@@ -70,7 +71,7 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
         });
 
         searchEpisode(
-            limit,
+            pagingLimit,
             offset,
             undefined,
             typeof qs.series === "string" ? qs.series : undefined,
@@ -89,8 +90,7 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
 
     loadSeriesTab(page: number, q?: string) {
         const qs = parsedQueryString();
-        const limit: number = 15;
-        const offset: number = (page - 1) * limit;
+        const offset: number = (page - 1) * pagingLimit;
 
         this.setState({
             ...this.state,
@@ -100,7 +100,7 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
         });
 
         searchEpisode(
-            limit,
+            pagingLimit,
             offset,
             undefined,
             typeof qs.series === "string" ? qs.series : undefined,
@@ -117,16 +117,18 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
     }
 
     componentDidMount() {
-        getLti().then((lti) => this.setState({
-            ...this.state,
-            episodesFilter: lti.context_label,
-            seriesFilter: lti.context_label
-        })).catch((error) => this.setState({
+        getLti().then((lti) => {
+            this.setState({
+                ...this.state,
+                episodesFilter: lti.context_label,
+                seriesFilter: lti.context_label
+            })
+            this.loadEpisodesTab(1, lti.context_label);
+            this.loadSeriesTab(1, lti.context_label);
+        }).catch((error) => this.setState({
             ...this.state,
             httpErrors: this.state.httpErrors.concat([`LTI: ${error.message}`])
         }))
-        this.loadEpisodesTab(1, this.state.episodesFilter);
-        this.loadSeriesTab(1, this.state.seriesFilter);
     }
 
     handlePageChange(pageNumber: number) {
@@ -143,10 +145,10 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
     }
 
     formatDuration(duration: number) {
-        const round: number = 1000, limit: number = 60, numOfInts: number = 2;
-        const seconds = ("0" + Math.floor(duration / round % limit).toString()).slice(-numOfInts),
-            minutes = ("0" + Math.floor(duration / (round * limit) % limit).toString()).slice(-numOfInts),
-            hours = ("0" + Math.floor(duration / (round * limit * limit) % limit).toString()).slice(-numOfInts);
+        const round: number = 1000, max: number = 60, numOfInts: number = 2;
+        const seconds = ("0" + Math.floor(duration / round % max).toString()).slice(-numOfInts),
+            minutes = ("0" + Math.floor(duration / (round * max) % max).toString()).slice(-numOfInts),
+            hours = ("0" + Math.floor(duration / (round * max * max) % max).toString()).slice(-numOfInts);
 
         return hours + ':' + minutes + ':' + seconds;
     }
@@ -178,9 +180,11 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
             typeof qs.data === 'string' ? qs.data : undefined,
             typeof qs.test === 'string' ? qs.test : undefined
         ).then((response) => {
+            console.log(response)
+            console.log(response.data)
             this.setState({
                 ...this.state,
-                populatedData: response
+                populatedData: response.data
             });
         }).catch((error) => {
             this.setState({
