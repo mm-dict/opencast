@@ -30,6 +30,7 @@ import org.opencastproject.index.service.api.IndexService;
 import org.opencastproject.index.service.exception.IndexServiceException;
 import org.opencastproject.index.service.impl.index.AbstractSearchIndex;
 import org.opencastproject.index.service.impl.index.event.Event;
+import org.opencastproject.index.service.impl.index.event.EventHttpServletRequest;
 import org.opencastproject.index.service.impl.index.event.EventSearchQuery;
 import org.opencastproject.index.service.impl.index.event.EventUtils;
 import org.opencastproject.ingest.api.IngestService;
@@ -51,9 +52,9 @@ import org.opencastproject.metadata.dublincore.EventCatalogUIAdapter;
 import org.opencastproject.metadata.dublincore.MetadataField;
 import org.opencastproject.metadata.dublincore.MetadataJson;
 import org.opencastproject.metadata.dublincore.MetadataList;
+import org.opencastproject.scheduler.api.SchedulerException;
 import org.opencastproject.security.api.AccessControlEntry;
 import org.opencastproject.security.api.AccessControlList;
-import org.opencastproject.security.api.AclScope;
 import org.opencastproject.security.api.AuthorizationService;
 import org.opencastproject.security.api.SecurityService;
 import org.opencastproject.security.api.UnauthorizedException;
@@ -77,6 +78,7 @@ import com.google.gson.JsonSyntaxException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.osgi.service.cm.ManagedService;
@@ -246,10 +248,12 @@ public class LtiServiceImpl implements LtiService, ManagedService {
       throw new RuntimeException("No workflow configured, cannot upload");
     }
     try {
-      MediaPackage mp = ingestService.createMediaPackage();
+      final EventHttpServletRequest r = new EventHttpServletRequest();
+      final MediaPackage mp = ingestService.createMediaPackage();
       if (mp == null) {
         throw new RuntimeException("Unable to create media package for event");
       }
+
       if (captions != null) {
         final MediaPackageElementFlavor captionsFlavor = new MediaPackageElementFlavor("vtt+en", "captions");
         final MediaPackageElementBuilder elementBuilder = MediaPackageElementBuilderFactory.newInstance().newElementBuilder();
@@ -267,15 +271,25 @@ public class LtiServiceImpl implements LtiService, ManagedService {
         captionsMpe.setURI(captionsUri);
       }
 
-      JSONArray metadataJsonArray = (JSONArray) new JSONParser().parse(metadataJson);
-
-      final EventCatalogUIAdapter adapter = getEventCatalogUIAdapter();
+      r.setMediaPackage(mp);
+      final MetadataList metadataList = new MetadataList();
+      final MediaPackageElementFlavor flavor = new MediaPackageElementFlavor("dublincore", "episode");
+      final EventCatalogUIAdapter adapter = catalogUIAdapters.stream().filter(e -> e.getFlavor().equals(flavor)).findAny()
+              .orElse(null);
+      if (adapter == null) {
+        throw new RuntimeException("no adapter found");
+      }
       final DublinCoreMetadataCollection collection = adapter.getRawFields();
+
+      r.setMediaPackage(ingestService.addTrack(file.getStream(), file.getSourceName(), MediaPackageElements.PRESENTER_SOURCE, mp));
+
+      JSONArray metadataJsonArray = (JSONArray) new JSONParser().parse(metadataJson);
 
       JSONArray collectionJsonArray = MetadataJson.extractSingleCollectionfromListJson(metadataJsonArray);
       MetadataJson.fillCollectionFromJson(collection, collectionJsonArray);
 
       replaceField(collection, "isPartOf", seriesId);
+      replaceField(collection, "duration", "6000");
       adapter.storeFields(mp, collection);
 
       AccessControlList accessControlList = null;
@@ -293,12 +307,23 @@ public class LtiServiceImpl implements LtiService, ManagedService {
           new AccessControlEntry("ROLE_OAUTH_USER", "read", true));
       }
 
-      this.authorizationService.setAcl(mp, AclScope.Episode, accessControlList);
-      mp = ingestService.addTrack(file.getStream(), file.getSourceName(), MediaPackageElements.PRESENTER_SOURCE, mp);
+      r.setProcessing(
+              (JSONObject) new JSONParser().parse(
+                      String.format("{\"workflow\":\"%s\",\"configuration\":%s}", workflow, workflowConfiguration)));
+      r.setMetadataList(metadataList);
+      metadataList.add(adapter, collection);
 
-      final Map<String, String> configuration = gson.fromJson(workflowConfiguration, Map.class);
-      configuration.put("workflowDefinitionId", workflow);
-      ingestService.ingest(mp, workflow, configuration);
+      JSONObject source = new JSONObject();
+      source.put("type", "UPLOAD");
+      r.setSource(source);
+      indexService.createEvent(r);
+    } catch (SchedulerException e) {
+      if (e.getCause() != null && e.getCause() instanceof NotFoundException
+              || e.getCause() instanceof IllegalArgumentException) {
+        throw new RuntimeException("unable to create event", e.getCause());
+      } else {
+        throw new RuntimeException("unable to create event", e);
+      }
     } catch (Exception e) {
       throw new RuntimeException("unable to create event", e);
     }
