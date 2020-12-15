@@ -180,8 +180,6 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
             typeof qs.data === 'string' ? qs.data : undefined,
             typeof qs.test === 'string' ? qs.test : undefined
         ).then((response) => {
-            console.log(response)
-            console.log(response.data)
             this.setState({
                 ...this.state,
                 populatedData: response.data
