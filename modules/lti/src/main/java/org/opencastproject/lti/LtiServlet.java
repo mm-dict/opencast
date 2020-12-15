@@ -327,7 +327,7 @@ public class LtiServlet extends HttpServlet implements ManagedService {
     Map<String, String> props = new HashMap<String, String>();
     props.put(LTI_MESSAGE_TYPE, LTI_MESSAGE_TYPE_CONTENTITEMSELECTION);
     props.put(CONTENT_ITEMS, contentItems);
-    props.put(DATA, ltiValues.get(DATA));
+    props.put(DATA, req.getParameter(DATA));
     Map<String, String> properties = LtiUtils.signProperties(props, returnUrl, "POST", consumerKey, consumerSecret, "", "", "", "", "", null);
     resp.setContentType("text/html");
 

@@ -44,6 +44,12 @@ public final class LtiUtils {
   public static final String LTI_VERSION = "lti_version";
   public static final String LTI_MESSAGE_TYPE = "lti_message_type";
 
+  public static final String TOOL_CONSUMER_INSTANCE_GUID = "tool_consumer_instance_guid";
+  public static final String TOOL_CONSUMER_INSTANCE_DESCRIPTION = "tool_consumer_instance_description";
+  public static final String TOOL_CONSUMER_INSTANCE_URL = "tool_consumer_instance_url";
+  public static final String TOOL_CONSUMER_INSTANCE_NAME = "tool_consumer_instance_name";
+  public static final String TOOL_CONSUMER_INSTANCE_CONTACT_EMAIL = "tool_consumer_instance_contact_email";
+
   /** The logger */
   private static final Logger logger = LoggerFactory.getLogger(LtiUtils.class);
 
@@ -79,16 +85,16 @@ public final class LtiUtils {
     if (postProp.get(LTI_MESSAGE_TYPE) == null) postProp.put(LTI_MESSAGE_TYPE, "basic-lti-launch-request");
 
     if (toolConsumerInstanceGuid != null)
-      postProp.put(toolConsumerInstanceGuid, toolConsumerInstanceGuid);
+      postProp.put(TOOL_CONSUMER_INSTANCE_GUID, toolConsumerInstanceGuid);
     if (toolConsumerInstanceDescription != null)
-      postProp.put(toolConsumerInstanceDescription,
+      postProp.put(TOOL_CONSUMER_INSTANCE_DESCRIPTION,
           toolConsumerInstanceDescription);
     if (toolConsumerInstanceUrl != null)
-      postProp.put(toolConsumerInstanceUrl, toolConsumerInstanceUrl);
+      postProp.put(TOOL_CONSUMER_INSTANCE_URL, toolConsumerInstanceUrl);
     if (toolConsumerInstanceName != null)
-      postProp.put(toolConsumerInstanceName, toolConsumerInstanceName);
+      postProp.put(TOOL_CONSUMER_INSTANCE_NAME, toolConsumerInstanceName);
     if (toolConsumerInstanceContactEmail != null)
-      postProp.put(toolConsumerInstanceContactEmail,
+      postProp.put(TOOL_CONSUMER_INSTANCE_CONTACT_EMAIL,
           toolConsumerInstanceContactEmail);
 
     if (postProp.get("oauth_callback") == null)
