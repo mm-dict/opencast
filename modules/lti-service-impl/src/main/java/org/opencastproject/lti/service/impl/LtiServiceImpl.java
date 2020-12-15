@@ -306,7 +306,7 @@ public class LtiServiceImpl implements LtiService, ManagedService {
           new AccessControlEntry("ROLE_OAUTH_USER", "write", true),
           new AccessControlEntry("ROLE_OAUTH_USER", "read", true));
       }
-
+      r.setAcl(accessControlList);
       r.setProcessing(
               (JSONObject) new JSONParser().parse(
                       String.format("{\"workflow\":\"%s\",\"configuration\":%s}", workflow, workflowConfiguration)));
