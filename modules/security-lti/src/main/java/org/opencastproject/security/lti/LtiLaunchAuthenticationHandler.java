@@ -51,11 +51,13 @@ import org.springframework.security.oauth.provider.OAuthAuthenticationHandler;
 import org.springframework.security.oauth.provider.token.OAuthAccessProviderToken;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Dictionary;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -121,7 +123,7 @@ public class LtiLaunchAuthenticationHandler implements OAuthAuthenticationHandle
   private static final String ALLOW_DIGEST_USER_KEY = "lti.allow_digest_user";
 
   /** The key to look up whether a JpaUserReferences should be created on login **/
-  private static final String CREATE_JPA_USER_REFERENCE_KEY = "lti.create_jpa_user_reference";
+  private static final String LTI_ROLES_TO_CREATE_JPA_USER_REFERENCES_FROM = "lti.create_jpa_user_reference.roles";
 
   /** The security service */
   private SecurityService securityService = null;
@@ -160,8 +162,8 @@ public class LtiLaunchAuthenticationHandler implements OAuthAuthenticationHandle
   /** concurrent attemtps */
   private Map<String, Boolean> activePersistenceTransactions = new ConcurrentHashMap<>(128);
 
-  /** Determines whether a JpaUserReference should be created on lti login */
-  private boolean createJpaUserReference = true;
+  /** Contains the LTI roles where a JpaUserReference shall be created. The default is 'instructor'. */
+  private List<String> ltiRolesForUserCreation;
 
   @Reference(name = "UserDetailsService")
   public void setUserDetailsService(UserDetailsService userDetailsService) {
@@ -237,9 +239,8 @@ public class LtiLaunchAuthenticationHandler implements OAuthAuthenticationHandle
       usernameBlacklist.add(username);
     }
 
-    createJpaUserReference = BooleanUtils.toBooleanDefaultIfNull(
-      BooleanUtils.toBooleanObject(StringUtils.trimToNull((String) properties.get(CREATE_JPA_USER_REFERENCE_KEY))),
-      true);
+    ltiRolesForUserCreation = extractLtiRolesForUserCreation(
+            (String) properties.get(LTI_ROLES_TO_CREATE_JPA_USER_REFERENCES_FROM));
 
     customRoleName = StringUtils.trimToNull((String) properties.get(CUSTOM_ROLE_NAME));
     if (customRoleName != null) {
@@ -355,11 +356,12 @@ public class LtiLaunchAuthenticationHandler implements OAuthAuthenticationHandle
     userAuthorities.add(new SimpleGrantedAuthority("ROLE_USER"));
     userAuthorities.add(new SimpleGrantedAuthority("ROLE_ANONYMOUS"));
 
-
     // Create/Update the user reference
-    if (createJpaUserReference) {
+    if (ltiRolesForUserCreation != null && ltiRolesForUserCreation.size() > 0) {
       if (activePersistenceTransactions.putIfAbsent(username, Boolean.TRUE) != null) {
         logger.debug("Concurrent access of user {}. Ignoring.", username);
+      } else if (!requestContainsMatchingRoles(request)) {
+        logger.debug("No JpaUserReference will be created for LTI user {}.", username);
       } else {
 
         try {
@@ -471,6 +473,37 @@ public class LtiLaunchAuthenticationHandler implements OAuthAuthenticationHandle
       return new JpaOrganization(org.getId(), org.getName(), org.getServers(), org.getAdminRole(),
               org.getAnonymousRole(), org.getProperties());
     }
+  }
+
+  /**
+   * Extracts LTI roles from a cfg key. This roles determine whether a JpaUserReference
+   * shall be created on a LTI login or not.
+   *
+   * @param ltiRoles The roles from the cfg.
+   * @return The list of the LTI roles where a jpaUserReference will be created.
+   * The default is 'instructor' in case no roles are defined in the config.
+   */
+  private List<String> extractLtiRolesForUserCreation(String ltiRoles) {
+    ltiRoles = StringUtils.trimToNull(ltiRoles);
+    if (ltiRoles == null) return Arrays.asList("instructor");
+    ltiRoles = ltiRoles.toLowerCase();
+    return Arrays.asList(ltiRoles.trim().split("\\s*,\\s*"));
+  }
+
+  /**
+   * Gets the LTI roles from the request and checks if one role is allowed
+   * for jpaUserReference creation.
+   *
+   * @param request The HttpServletRequest with the roles
+   * @return create JpaUserReference or not
+   */
+  private boolean requestContainsMatchingRoles(HttpServletRequest request) {
+    String roles = request.getParameter(ROLES);
+    if (roles != null) {
+      List<String> requestRoleList = Arrays.asList(roles.toLowerCase().trim().split("\\s*,\\s*"));
+      return !Collections.disjoint(requestRoleList, ltiRolesForUserCreation);
+    }
+    return false;
   }
 
 
