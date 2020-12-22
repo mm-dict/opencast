@@ -257,7 +257,7 @@ public class LtiServiceImpl implements LtiService, ManagedService {
       }
 
       if (captions != null) {
-        final MediaPackageElementFlavor captionsFlavor = new MediaPackageElementFlavor(captionsFormat + "+" + captionsLanguage, "captions");
+        final MediaPackageElementFlavor captionsFlavor = new MediaPackageElementFlavor("captions", captionsFormat + "+" + captionsLanguage);
         final MediaPackageElementBuilder elementBuilder = MediaPackageElementBuilderFactory.newInstance().newElementBuilder();
         final MediaPackageElement captionsMpe = elementBuilder
                 .newElement(MediaPackageElement.Type.Attachment, captionsFlavor);
