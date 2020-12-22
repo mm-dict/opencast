@@ -146,7 +146,6 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
     }
 
     setUploadPogress(progress: number) {
-        console.log(progress)
         this.setState({
             ...this.state,
             uploadProgress: progress
