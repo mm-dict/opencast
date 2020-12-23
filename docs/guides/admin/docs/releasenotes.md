@@ -100,13 +100,70 @@ Improvements
 API changes
 -----------
 
-- The external API now returns the bibliographic start date
-  instead of the technical one
-- Allow updating processing information using the Events API
-- Export statistics to CSV
-- The filter in the Events API is "additive" now, allowing you to get
-  different types of events in one request
-- The Series API can now return ACLs within its response, if you tell it to
+- Removed REST endpoints for modifying workflow definitions
+    - DELETE /workflow/definition/{id}
+    - PUT /workflow/definition
+
+Additional Notes about 8.10
+---------------------------
+
+This release contains an important bugfix where unprivileged users could not upload videos.
+
+
+Additional Notes about 8.9
+--------------------------
+
+Opencast 8.9 contains an important security fix regarding host verification. Upgrading is strongly recommended. If you
+use self-signed certificates, you now need to properly import them.
+Additionally, the UI of the docs were improved and and the Spring snapshot repository was removed to resolve build
+problems.
+5 other patches have been merged.
+
+Additional Notes About 8.8
+--------------------------
+
+This maintenance includes 12 patches.
+
+Additional Notes About 8.7
+--------------------------
+
+This maintenance release fixes severals bugs including problems with the scheduler in multitenant systems and adds
+missing ACLs after asset uploads.
+
+Additional Notes About 8.6
+--------------------------
+
+This maintenance release contains some bugfixes.
+
+Additional Notes About 8.5
+--------------------------
+
+This maintenance release contains mainly fixes for LTI issues.
+
+Additional Notes About 8.4
+--------------------------
+
+This maintenance release contains several Opencast Studio bug fixes and enhancements, plus additional security filters.
+
+### Configuration Changes in 8.4
+
+- Updated studio workflows
+- Additional security configuration in `etc/security/mh_default_org.xml` include
+    - 403 Logout redirect
+    - admin access to "/"
+    - role access to system filters
+    - prevent normal user from deleting series
+    - additional studio access filters
+- Muxing fix in encoding files
+
+    - `etc/encoding/adaptive-streaming-movies.properties`
+    - `etc/encoding/opencast-movies.properties`
+- Increased preview image resolution in
+    - `etc/encoding/engage-images.properties`
+- A new editor preview profile in
+    - `etc/encoding/opencast-movies.properties`
+- Default maximum job attempt increases 1 to 10 in
+    - `etc/org.opencastproject.serviceregistry.impl.ServiceRegistryJpaImpl.cfg`
 
 Additional Notes about 9.1
 --------------------------
