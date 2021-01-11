@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tt xml:lang="en" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns="http://www.w3.org/ns/ttml">
+  <head>
+    <styling>
+      <style xml:id="basic" tts:textAlign="center" />
+    </styling>
+    <ttm:metadata>
+      <ttm:title>Example.ttml</ttm:title>
+    </ttm:metadata>
+  </head>
+  <body style="basic">
+    <div>
+      <p begin="00:00:00.500" end="00:00:02.000">The Web is always changing</p>
+      <p begin="00:00:02.500" end="00:00:04.300">and the way we access it is changing</p>
+    </div>
+  </body>
+</tt>
