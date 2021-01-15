@@ -184,6 +184,12 @@ While is is not active by default for compatibility to older 9.x releases, it ca
 access to static files has the same security checks you are already used to from the player and from other user
 interfaces.
 
+Additional Notes about 9.1
+--------------------------
+
+This release contains an important bugfix where unprivileged users
+could not upload videos, before.
+
 
 Release Schedule
 ----------------

@@ -12,6 +12,12 @@ University](https://uni-osnabrueck.de). This repository provides preconfigured O
 </div>
 
 
+> __Release__
+>
+> Opencast 9 is currently not available from the RPM repository.
+> It should be available within a week after the release of Opencast 9.
+
+
 Availability
 ------------
 
