@@ -1,0 +1,63 @@
+.container {
+    color: #494c4e;
+    font-family: Lato,Lucida Sans Unicode,Lucida Grande,sans-serif;
+    letter-spacing: .01rem;
+    font-size: .95rem;
+    font-weight: 400;
+    line-height: 1.4rem;
+}
+
+h2 {
+    color: #494c4e;
+    font-family: Lato,Lucida Sans Unicode,Lucida Grande,sans-serif !important;
+    letter-spacing: .01rem;
+    font-size: 2rem !important;
+    font-weight: 400 !important;
+}
+
+h4 {
+    font-weight: 400 !important;
+    color: #006fbf !important;
+    line-height: 1.8rem !important;
+}
+
+.btn-primary {
+    background-color: #006fbf !important;
+    font-weight: 700 !important;
+    font-size: .7rem !important;
+    letter-spacing: .2px;
+}
+
+.selectitem {
+    width: 98%
+}
+
+.searchfield .btn-primary {
+    padding-top: 9px !important;
+    padding-bottom: 9px !important;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+    background-color: #004489 !important;
+}
+
+a {
+    color: #006fbf !important;
+}
+
+.page-item.active .page-link {
+    z-index: 3;
+    color: #fff !important;
+    background-color: #006fbf !important;
+    border-color: #006fbf !important;
+}
+
+.tile:hover {
+    color: #494c4e !important;
+    cursor: default !important;
+    background: #fff !important;
+}
+
+.text-muted {
+    color: #494c4e !important;
+}
