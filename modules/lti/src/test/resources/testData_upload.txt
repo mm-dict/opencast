@@ -1,0 +1,33 @@
+
+-----------------------------7dd2ad38581480
+Content-Disposition: form-data; name="metadata"
+
+[{'flavor':'dublincore/episode','title':'EVENTS.EVENTS.DETAILS.CATALOG.EPISODE','fields':[{'readOnly':false,'id':'title','label':'EVENTS.EVENTS.DETAILS.METADATA.TITLE','type':'text','value':'Testing metadata','required':true},{'translatable':false,'readOnly':false,'id':'creator','label':'EVENTS.EVENTS.DETAILS.METADATA.PRESENTERS','collection':{'Test':'Test'},'type':'mixed_text','value':['Test'],'required':false},{'readOnly':true,'id':'publisher','label':'EVENTS.EVENTS.DETAILS.METADATA.PUBLISHER','type':'text','value':'Administrator','required':false}]}]
+-----------------------------7dd2ad38581480
+Content-Disposition: form-data; name="seriesId"
+
+testSeries
+-----------------------------7dd2ad38581480
+Content-Disposition: form-data; name="eventId"
+
+testEvent
+-----------------------------7dd2ad38581480
+Content-Disposition: form-data; name="captionsFormat"
+
+vtt
+-----------------------------7dd2ad38581480
+Content-Disposition: form-data; name="captionsLanguage"
+
+en
+-----------------------------7dd2ad38581480
+Content-Disposition: form-data; name="captions"; filename="sample.vtt"
+Content-Type: text/vtt
+
+WEBVTT
+
+00:00:00.500 --> 00:00:02.000
+The Web is always changing
+
+00:00:02.500 --> 00:00:04.300
+and the way we access it is changing
+-----------------------------7dd2ad38581480--

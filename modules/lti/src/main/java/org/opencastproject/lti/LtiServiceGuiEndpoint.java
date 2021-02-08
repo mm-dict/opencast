@@ -188,6 +188,9 @@ public class LtiServiceGuiEndpoint {
               eventId,
               seriesId,
               metadata);
+      if (captionsFormat == null) {
+        return Response.status(200, "null").build();
+      }
       return Response.ok().build();
     } catch (FileUploadException | IOException e) {
       return Response.status(Status.INTERNAL_SERVER_ERROR).entity("error while uploading").build();
@@ -202,7 +205,7 @@ public class LtiServiceGuiEndpoint {
   @Path("{eventId}")
   @RestQuery(name = "deleteevent", description = "Deletes an event.", returnDescription = "", pathParameters = {
           @RestParameter(name = "eventId", description = "The event id", isRequired = true, type = Type.STRING) }, responses = {
-          @RestResponse(description = "The event has been deleted.", responseCode = HttpServletResponse.SC_NO_CONTENT),
+          @RestResponse(description = "The event has been deletgetInputStreamed.", responseCode = HttpServletResponse.SC_NO_CONTENT),
           @RestResponse(description = "The specified event does not exist.", responseCode = HttpServletResponse.SC_NOT_FOUND) })
   public Response deleteEvent(@HeaderParam("Accept") String acceptHeader, @PathParam("eventId") String id) {
     service.delete(id);
