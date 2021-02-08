@@ -105,12 +105,6 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                             seriesId: seriesId
                         },
                     });
-
-                    const timerMillis = 10000;
-                    this.setState({
-                        ...this.state,
-                        refreshTimerId: setInterval(this.refreshTimer.bind(this), timerMillis),
-                    });
                 }
             }
         }).catch((_) => this.setState({
