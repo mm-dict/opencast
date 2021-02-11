@@ -150,8 +150,16 @@ public class LtiServiceGuiEndpoint {
       String captionsLanguage = null;
       String metadata = null;
       String eventId = null;
-      for (FileItemIterator iter = new ServletFileUpload().getItemIterator(request); iter.hasNext();) {
-        final FileItemStream item = iter.next();
+
+      FileItemIterator iter = new ServletFileUpload().getItemIterator(request); 
+
+      if (iter.hasNext()) {
+        return Response.status(200, "has stuff").build();
+      }
+
+      while (iter.hasNext()) {
+        return Response.status(200, "iter").build();
+        /* final FileItemStream item = iter.next();
         final String fieldName = item.getFieldName();
         if ("eventId".equals(fieldName)) {
           eventId = Streams.asString(item.openStream());
@@ -161,6 +169,7 @@ public class LtiServiceGuiEndpoint {
           captions = Streams.asString(item.openStream());
         } else if ("captionsFormat".equals(fieldName)) {
           captionsFormat = Streams.asString(item.openStream());
+          return Response.status(200, captionsFormat).build();
         } else if ("captionsLanguage".equals(fieldName)) {
           captionsLanguage = Streams.asString(item.openStream());
         } else if ("seriesId".equals(fieldName)) {
@@ -177,8 +186,8 @@ public class LtiServiceGuiEndpoint {
                   eventId,
                   seriesId,
                   metadata);
-          return Response.ok().build();
-        }
+          return Response.ok().build(); 
+        } */
       }
       service.upsertEvent(
               null,

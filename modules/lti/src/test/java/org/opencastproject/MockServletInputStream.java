@@ -26,23 +26,51 @@ import java.io.InputStream;
 import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
 
+import org.apache.commons.io.IOUtils;
+
 public class MockServletInputStream extends ServletInputStream {
 
     private InputStream fis = null;
+    private byte[] inputBytes;
+    private int lastIndexRetrieved = -1;
+    private ReadListener readListener = null;
+
     public MockServletInputStream(String fileName) {
      try {
       // fis = new FileInputStream(fileName);
       fis = getClass().getClassLoader().getResourceAsStream(fileName);
+      inputBytes = IOUtils.toByteArray(fis);
      } catch (Exception genExe) {
       genExe.printStackTrace();
      }
     }
-    @Override
+
+    /* @Override
     public int read() throws IOException {
      if (fis.available() > 0) {
       return fis.read();
      }
      return 0;
+    } */
+
+    @Override
+    public int read() throws IOException {
+        int i;
+        if (!isFinished()) {
+            i = inputBytes[lastIndexRetrieved+1];
+            lastIndexRetrieved++;
+            if (isFinished() && (readListener != null)) {
+                try {
+                    readListener.onAllDataRead();
+                } catch (IOException ex) {
+                    readListener.onError(ex);
+                    throw ex;
+                }
+            }
+            return i;
+        } else {
+            return -1;
+        }
     }
 
     @Override
@@ -56,19 +84,29 @@ public class MockServletInputStream extends ServletInputStream {
 
     @Override
     public boolean isFinished() {
-      // TODO Auto-generated method stub
-      return false;
+      return (lastIndexRetrieved == inputBytes.length-1);
     }
 
     @Override
     public boolean isReady() {
-      // TODO Auto-generated method stub
-      return false;
+      return isFinished();
     }
 
     @Override
     public void setReadListener(ReadListener readListener) {
-      // TODO Auto-generated method stub
-
+        this.readListener = readListener;
+        if (!isFinished()) {
+            try {
+                readListener.onDataAvailable();
+            } catch (IOException e) {
+                readListener.onError(e);
+            }
+        } else {
+            try {
+                readListener.onAllDataRead();
+            } catch (IOException e) {
+                readListener.onError(e);
+            }
+        }
     }
 }

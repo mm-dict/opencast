@@ -27,7 +27,9 @@ import static org.junit.Assert.assertNotNull;
 import org.opencastproject.MockServletInputStream;
 import org.opencastproject.lti.service.api.LtiService;
 import org.opencastproject.security.api.UnauthorizedException;
-
+import org.apache.commons.fileupload.RequestContext;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.fileupload.servlet.ServletRequestContext;
 import org.apache.http.HttpStatus;
 import org.easymock.EasyMock;
 import org.junit.After;
@@ -63,12 +65,17 @@ public class LtiServiceGuiEndpointTest {
   @Test
   public void testUploadVTTCaptions() throws Exception {
     HttpServletRequest req = EasyMock.createNiceMock(HttpServletRequest.class);
-    EasyMock.expect(req.getInputStream()).andReturn(new MockServletInputStream("testData_upload.txt"));
+    ServletFileUpload fileUpload = EasyMock.createNiceMock(ServletFileUpload.class);
 
+    EasyMock.expect(req.getInputStream()).andReturn(new MockServletInputStream("testData_upload.txt")).anyTimes();
     EasyMock.expect(req.getMethod()).andReturn("POST").anyTimes();
-    EasyMock.expect(req.getContentType()).andReturn("multipart/form-data; boundary=-----------------------------7dd2ad38581480");
-    EasyMock.expect(req.getCharacterEncoding()).andReturn("UTF-8");
-    EasyMock.expect(req.getContentLength()).andReturn(1024);
+    EasyMock.expect(req.getContentType()).andReturn("multipart/form-data; boundary=-----------------------------7dd2ad38581480").anyTimes();
+    EasyMock.expect(req.getCharacterEncoding()).andReturn("UTF-8").anyTimes();
+    EasyMock.expect(req.getContentLength()).andReturn(1024).anyTimes();
+    // EasyMock.expect(req.getClass()).andReturn(HttpServletRequest.class.getClass()).anyTimes();
+
+    // ServletRequestContext ctx = new ServletRequestContext(req);
+    // EasyMock.expect(reqContext(req)).andReturn(ctx);
     EasyMock.replay(req);
 
     Response createEventResponse = endpoint.createNewEvent("application/json", req);
