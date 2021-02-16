@@ -486,7 +486,9 @@ public class LtiLaunchAuthenticationHandler implements OAuthAuthenticationHandle
    */
   private List<String> extractLtiRolesForUserCreation(String ltiRoles) {
     ltiRoles = StringUtils.trimToNull(ltiRoles);
-    if (ltiRoles == null) return Arrays.asList("instructor");
+    if (ltiRoles == null) {
+      return Arrays.asList("instructor");
+    }
     ltiRoles = ltiRoles.toLowerCase();
     return Arrays.asList(ltiRoles.trim().split("\\s*,\\s*"));
   }
