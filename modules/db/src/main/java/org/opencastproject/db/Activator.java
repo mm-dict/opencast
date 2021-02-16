@@ -145,11 +145,7 @@ public class Activator implements BundleActivator {
 
     logger.info("Database connection pool established at {}", jdbcUrl);
     logger.info("Database connection pool parameters: max.size={}, min.size={}, max.idle.time={}",
-<<<<<<< HEAD
-      pooledDataSource.getMaxPoolSize(), pooledDataSource.getMinPoolSize(), pooledDataSource.getMaxIdleTime());
-=======
         pooledDataSource.getMaxPoolSize(), pooledDataSource.getMinPoolSize(), pooledDataSource.getMaxIdleTime());
->>>>>>> 9.2
     Statement statement = pooledDataSource.getConnection().createStatement();
 
     long random = Math.round(Math.random() * 1000000);
@@ -183,12 +179,8 @@ public class Activator implements BundleActivator {
   private void runUpdate(Statement statement, String sql) throws RuntimeException, SQLException {
     int affected = statement.executeUpdate(sql);
     if (affected != 1) {
-<<<<<<< HEAD
-      throw new RuntimeException("Unable to update on a testing table, check that your database user has the right permissions!");
-=======
       throw new RuntimeException(
           "Unable to update on a testing table, check that your database user has the right permissions!");
->>>>>>> 9.2
     }
   }
 
