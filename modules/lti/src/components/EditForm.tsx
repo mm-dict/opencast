@@ -92,6 +92,7 @@ function MetadataFieldInner(props: MetadataFieldProps) {
 
     if (field.collection !== undefined && field.type === "mixed_text") {
         const options: OptionType[] = collectionToOptions(field.collection, field.translatable, t);
+
         return <CreatableSelect
             isMulti={true}
             isClearable={true}

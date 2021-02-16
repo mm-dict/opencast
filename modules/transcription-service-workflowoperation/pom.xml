@@ -7,7 +7,7 @@
   <parent>
     <groupId>org.opencastproject</groupId>
     <artifactId>base</artifactId>
-    <version>9.1</version>
+    <version>9.2</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <properties>
@@ -78,7 +78,11 @@
     <dependency>
       <groupId>org.opencastproject</groupId>
       <artifactId>opencast-transcription-service-amberscript</artifactId>
+<<<<<<< HEAD
       <version>9.1</version>
+=======
+      <version>9.2</version>
+>>>>>>> 9.2
       <scope>compile</scope>
     </dependency>
   </dependencies>

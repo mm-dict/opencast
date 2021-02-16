@@ -7,16 +7,6 @@ This guide is based on an RPM software repository available for Red Hat-based Li
 University](https://uni-osnabrueck.de). This repository provides preconfigured Opencast installations and all necessary
 3rd-party-tools.
 
-<div class=warn>
-<b>Opencast 9</b> is currently available from the testing repository only.
-</div>
-
-
-> __Release__
->
-> Opencast 9 is currently not available from the RPM repository.
-> It should be available within a week after the release of Opencast 9.
-
 
 Availability
 ------------
@@ -48,11 +38,6 @@ It might take some time after the release of a new Opencast version before the R
 Until then, you can use `/etc/yum.repos.d/opencast-testing.repo` instead to get the latest version.
 Note that the testing repository is an additional repository and still requires the stable repository to be active.
 
-<div class=warn>
-For <b>Opencast 9</b> temporarily enable the testing repository in <code>/etc/yum.repo.d/opencast-testing.repo</code>
-while it is not yet in the stable repository.
-</div>
-
 You can check if the repositories were successfully enabled using:
 
 ```
@@ -64,6 +49,19 @@ dnf repolist enabled
   opencast-testing
   opencast-testing-noarch
 ```
+
+
+Install Opencast
+------------------
+
+For a basic all-in-one installation just run:
+
+```sh
+dnf install opencast-allinone
+```
+
+This will install the default distribution of Opencast and all its dependencies.
+For more options, see the [advanced installation section below](#advanced-installation).
 
 
 Install Opencast

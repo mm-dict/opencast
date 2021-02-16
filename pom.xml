@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.opencastproject</groupId>
   <artifactId>base</artifactId>
-  <version>9.1</version>
+  <version>9.2</version>
   <packaging>pom</packaging>
   <name>opencast</name>
   <description>Opencast is a media capture, processing, management and distribution system</description>
@@ -163,6 +163,7 @@
     <module>modules/message-broker-impl</module>
     <module>modules/metadata</module>
     <module>modules/metadata-api</module>
+    <module>modules/metrics-exporter</module>
     <module>modules/mpeg7</module>
     <module>modules/notification-workflowoperation</module>
     <module>modules/oaipmh</module>
@@ -206,6 +207,7 @@
     <module>modules/silencedetection-remote</module>
     <module>modules/smil-api</module>
     <module>modules/smil-impl</module>
+    <module>modules/smil-workflowoperation</module>
     <module>modules/solr</module>
     <module>modules/sox-api</module>
     <module>modules/sox-impl</module>
@@ -391,6 +393,7 @@
           <skip>${checkstyle.skip}</skip>
           <configLocation>${opencast.basedir}/docs/checkstyle/opencast-checkstyle.xml</configLocation>
           <headerLocation>${opencast.basedir}/docs/checkstyle/opencast-header.txt</headerLocation>
+          <suppressionsLocation>${opencast.basedir}/docs/checkstyle/checkstyle-suppressions.xml</suppressionsLocation>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
           <consoleOutput>true</consoleOutput>
           <logViolationsToConsole>true</logViolationsToConsole>

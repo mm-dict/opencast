@@ -7,7 +7,8 @@
   <parent>
     <groupId>org.opencastproject</groupId>
     <artifactId>base</artifactId>
-    <version>9.1</version>
+    <version>9.2</version>
+>>>>>>> 9.2
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <properties>

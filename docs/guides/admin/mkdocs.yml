@@ -5,6 +5,11 @@ edit_uri: edit/develop/docs/guides/admin/docs/
 markdown_extensions:
   - markdown_inline_graphviz
 
+plugins:
+  - mermaid2:
+      arguments:
+        theme: neutral
+
 # Default theme used is windmill
 theme: windmill
 
@@ -105,6 +110,7 @@ nav:
    - Live Schedule: 'modules/liveschedule.md'
    - LTI Module: 'modules/ltimodule.md'
    - Media Module: 'modules/mediamodule.configuration.md'
+   - Metrics (OpenMetrics, Prometheus): modules/metrics.md
    - Player:
       - Configuration: 'modules/player.configuration.md'
       - URL Parameters: 'modules/player.url.parameter.md'
@@ -164,6 +170,7 @@ nav:
    - Clone: 'workflowoperationhandlers/clone-woh.md'
    - Cover Image: 'workflowoperationhandlers/coverimage-woh.md'
    - Crop Video: 'workflowoperationhandlers/cropvideo-woh.md'
+   - Cut Marks To Smil: 'workflowoperationhandlers/cut-marks-to-smil-woh.md'
    - Defaults: 'workflowoperationhandlers/defaults-woh.md'
    - Demux: 'workflowoperationhandlers/demux-woh.md'
    - Duplicate Event: 'workflowoperationhandlers/duplicate-event-woh.md'

@@ -184,12 +184,36 @@ While is is not active by default for compatibility to older 9.x releases, it ca
 access to static files has the same security checks you are already used to from the player and from other user
 interfaces.
 
+Additional Notes about 9.2
+--------------------------
+
+Opencast 9.2 comes with a few new features, non of which require any migrations or change the default bohavior of
+Opencast 9.x.
+
+A [metrics endpoint has been added](modules/metrics.md). It supports the [OpenMetrics format](https://openmetrics.io)
+and can be used by tools like [Prometheus](https://prometheus.io). The endpoint is available at `/metrics`.
+
+A [completely new system for securing static file content](configuration/serving-static-files.md) has been integrated.
+While is is not active by default for compatibility to older 9.x releases, it can be easily enabled and used to ensure
+access to static files has the same security checks you are already used to from the player and from other user
+interfaces.
+
+A new [workflow operation `cut-marks-to-smil`](workflowoperationhandlers/cut-marks-to-smil-woh.md) has been added to
+allow a simpler specification of cutting information for the video editor. This was also the last piece missing from the
+[BigBlueButton recordings integration](https://github.com/elan-ev/opencast-bigbluebutton-integration) in Opencast.
+
+Some problems with the new adopter registration and update reporting have been resolved. If you stumbled over these
+before, this is the release to try again.
+
+A [security problem](https://github.com/opencast/opencast/security/advisories/GHSA-vpc2-3wcv-qj4w) where chaning access
+ights to an individual video lead to cooresponding changes to its entire series was fixed.
+
+
 Additional Notes about 9.1
 --------------------------
 
 This release contains an important bugfix where unprivileged users
 could not upload videos, before.
-
 
 Release Schedule
 ----------------
