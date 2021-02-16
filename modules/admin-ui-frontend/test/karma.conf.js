@@ -65,14 +65,14 @@ module.exports = function (config) {
                 var result = availableBrowsers;
                 /* Leaving this commented out as an example.
                    If we ever want to disable an installed browser (c.f: IE) we can exclude it like this
-                //Remove PhantomJS if another browser has been detected
-                if (availableBrowsers.length > 1 && availableBrowsers.indexOf('PhantomJS')>-1) {
-                    var i = result.indexOf('PhantomJS');
+                //Remove PhantomJS if another browser has been detected */
+                if (availableBrowsers.length > 1 && availableBrowsers.indexOf('Safari')>-1) {
+                    var i = result.indexOf('Safari');
                     if (i !== -1) {
                         result.splice(i, 1);
                     }
                 }
-		*/
+
 		if (availableBrowsers.length < 1) {
                     console.error("No browsers detected");
                     console.error("Suggest installing Firefox or other FOSS browser");
