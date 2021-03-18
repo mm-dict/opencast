@@ -9,6 +9,8 @@
     "@fortawesome/react-fontawesome": "^0.1.4",
     "axios": "^0.21.1",
     "bootstrap": "^4.3.1",
+    "dangerously-set-html-content": "^1.0.8",
+    "engage-ui": "../engage-ui",
     "i18next": "^17.0.16",
     "i18next-browser-languagedetector": "^3.0.3",
     "query-string": "^6.8.3",
