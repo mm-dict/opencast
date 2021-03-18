@@ -184,6 +184,15 @@ While is is not active by default for compatibility to older 9.x releases, it ca
 access to static files has the same security checks you are already used to from the player and from other user
 interfaces.
 
+Additional Notes about 9.3
+--------------------------
+
+Besides many fixes and improvements, Opencast 9.3 comes with the following new features:
+
+The metrics endpoint now provides information about the number of events per organization.
+
+This release also includes a first version of the standalone video editor.
+
 Additional Notes about 9.2
 --------------------------
 
