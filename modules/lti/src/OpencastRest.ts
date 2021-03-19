@@ -222,7 +222,7 @@ export async function uploadFile(
 }
 
 export async function postDeeplinkData(
-    contentItems: string,
+    contentItems?: string,
     contentItemReturnUrl?: string,
     consumerKey?: string,
     data?: string,
