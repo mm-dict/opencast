@@ -471,6 +471,7 @@ public class LtiServiceImpl implements LtiService, ManagedService {
 
   @Override
   public void delete(String id) {
+    logger.error("################ DELETING LTI SERVICE: {}", id);
     try {
       final Opt<Event> event = indexService.getEvent(id, searchIndex);
       if (event.isNone()) {

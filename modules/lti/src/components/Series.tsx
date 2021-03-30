@@ -151,6 +151,8 @@ class TranslatedSeries extends React.Component<SeriesProps, SeriesState> {
     }
 
     isInstructor() {
+        console.log(this.state.ltiRoles)
+        console.log(parsedQueryString())
         return this.state.ltiRoles !== undefined && this.state.ltiRoles.includes("Instructor");
     }
 

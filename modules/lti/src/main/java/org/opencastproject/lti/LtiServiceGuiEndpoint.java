@@ -37,6 +37,8 @@ import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.fileupload.util.Streams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -67,6 +69,7 @@ import javax.ws.rs.core.Response.Status;
 @Path("/")
 @RestService(name = "ltirestserviceendpoint", title = "LTI Service", notes = {}, abstractText = "Provides operations to LTI clients")
 public class LtiServiceGuiEndpoint {
+  private static final Logger logger = LoggerFactory.getLogger(LtiServiceGuiEndpoint.class);
   /* OSGi service references */
   private LtiService service;
 
@@ -195,6 +198,7 @@ public class LtiServiceGuiEndpoint {
           @RestResponse(description = "The event has been deleted.", responseCode = HttpServletResponse.SC_NO_CONTENT),
           @RestResponse(description = "The specified event does not exist.", responseCode = HttpServletResponse.SC_NOT_FOUND) })
   public Response deleteEvent(@HeaderParam("Accept") String acceptHeader, @PathParam("eventId") String id) {
+    logger.error("################ DELETING LTI GUI ENDPOINT: {}", id);
     service.delete(id);
     return Response.noContent().build();
   }
