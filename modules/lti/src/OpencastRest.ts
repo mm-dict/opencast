@@ -200,17 +200,14 @@ export async function searchEpisode(
             dcCreated: result.dcCreated,
             languageShortCode: result.dcLanguage,
             licenseKey: result.dcLicense,
-            mediapackage: result.mediapackage !== undefined ? {
+            mediapackage: {
                 creators: result.mediapackage.creators !== undefined ? result.mediapackage.creators.creator : [],
                 attachments: result.mediapackage.attachments.attachment.map((attachment: any) => ({
                     type: attachment.type,
                     url: attachment.url
                 })),
                 seriestitle: result.mediapackage.seriestitle,
-                duration: result.mediapackage.duration
-            } : {
-                creators: [],
-                attachments: [],
+                duration: result.mediapackage.duration,
                 tracks: parseTracksFromResult(result)
             }
         })),
