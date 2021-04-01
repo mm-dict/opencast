@@ -185,10 +185,10 @@ const parseAttachmentsFromResult = (result: any) => {
             }))
         )
     } else if (result.mediapackage.attachments.attachment !== null) {
-        return {
+        return [{
             type: result.mediapackage.attachments.attachment.type,
             url: result.mediapackage.attachments.attachment.url
-        }
+        }]
     }
 
     return undefined;
