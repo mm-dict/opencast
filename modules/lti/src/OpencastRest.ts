@@ -172,6 +172,28 @@ const parseTracksFromResult = (result: any) => {
   return undefined;
 }
 
+/**
+ * Attachments is not guarenteed to be an array, or exist at all
+ * @param result a result from the search query
+ */
+const parseAttachmentsFromResult = (result: any) => {
+    if (Array.isArray(result.mediapackage.attachments.attachment)) {
+        return (
+            result.mediapackage.attachments.attachment.map((attachment: any) => ({
+                type: attachment.type,
+                url: attachment.url
+            }))
+        )
+    } else if (result.mediapackage.attachments.attachment !== null) {
+        return {
+            type: result.mediapackage.attachments.attachment.type,
+            url: result.mediapackage.attachments.attachment.url
+        }
+    }
+
+    return undefined;
+}
+
 export async function searchEpisode(
     limit: number,
     offset: number,
@@ -202,10 +224,7 @@ export async function searchEpisode(
             licenseKey: result.dcLicense,
             mediapackage: {
                 creators: result.mediapackage.creators !== undefined ? result.mediapackage.creators.creator : [],
-                attachments: result.mediapackage.attachments.attachment.map((attachment: any) => ({
-                    type: attachment.type,
-                    url: attachment.url
-                })),
+                attachments: parseAttachmentsFromResult(result),
                 seriestitle: result.mediapackage.seriestitle,
                 duration: result.mediapackage.duration,
                 tracks: parseTracksFromResult(result)
