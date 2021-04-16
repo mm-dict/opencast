@@ -20,7 +20,7 @@
  */
 package org.opencastproject.lti.endpoint;
 
-import static org.opencastproject.util.doc.rest.RestParameter.Type.STRING;
+import static org.opencastproject.util.doc.rest.RestParameter.Type;
 
 import org.opencastproject.lti.service.api.LtiFileUpload;
 import org.opencastproject.lti.service.api.LtiJob;
@@ -54,12 +54,14 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
+//import javax.ws.rs.GET;
+//import javax.ws.rs.POST;
+//import javax.ws.rs.Produces;
+//import javax.ws.rs.core.MediaType;
 
 /**
  * The service calling the LTI REST endpoint (for multi-node setups with LTI)
@@ -72,7 +74,6 @@ import javax.ws.rs.core.Response;
 public class LtiServiceRemoteImpl extends RemoteBase implements LtiService {
   private static final Logger logger = LoggerFactory.getLogger(LtiServiceRemoteImpl.class);
   private static final Gson gson = new Gson();
-
   public LtiServiceRemoteImpl() {
     super(LtiService.JOB_TYPE);
   }
@@ -85,19 +86,7 @@ public class LtiServiceRemoteImpl extends RemoteBase implements LtiService {
     return response;
   }
 
-  @GET
-  @Path("/jobs")
-  @Produces(MediaType.APPLICATION_JSON)
-  @RestQuery(name = "listjobs", description = "List recent jobs for a specific series.", returnDescription = "",
-      restParameters = {
-      @RestParameter(
-        name = "seriesId", description = "The id of the series you want jobs for",
-        isRequired = true, type = STRING),
-      },
-      responses = {
-      @RestResponse(description = "The list of jobs", responseCode = HttpServletResponse.SC_OK),
-      }
-  )
+  @Override
   public List<LtiJob> listJobs(final String seriesId) {
     HttpResponse response = null;
     try {
@@ -136,20 +125,7 @@ public class LtiServiceRemoteImpl extends RemoteBase implements LtiService {
     closeConnection(safeGetResponse(post));
   }
 
-  @POST
-  @Path("{eventId}/copy")
-  @RestQuery(name = "copyeventtoseries", description = "Copy an event to a different series", returnDescription = "",
-      pathParameters = {
-      @RestParameter(name = "eventId", description = "The event (id) to copy", isRequired = true, type = STRING),
-      @RestParameter(name = "seriesId", description = "The series (id) to copy into", isRequired = true, type = STRING)
-      },
-      responses = {
-      @RestResponse(description = "The event has been copied.", responseCode = HttpServletResponse.SC_NO_CONTENT),
-      @RestResponse(
-        description = "The specified event does not exist.",
-        responseCode = HttpServletResponse.SC_NOT_FOUND)
-      }
-  )
+  @Override
   public void copyEventToSeries(final String eventId, final String seriesId) {
     final HttpPost post = new HttpPost("/" + eventId + "/copy?seriesId=" + seriesId);
     closeConnection(safeGetResponse(post));
@@ -174,15 +150,7 @@ public class LtiServiceRemoteImpl extends RemoteBase implements LtiService {
     }
   }
 
-  @GET
-  @Path("new/metadata")
-  @Produces(MediaType.APPLICATION_JSON)
-  @RestQuery(
-      name = "getneweventmetadata", description = "Get the metadata of a new event",
-      returnDescription = "The metadata of a new event", responses = {
-      @RestResponse(description = "A new event's metadata", responseCode = HttpServletResponse.SC_OK),
-      }
-  )
+  @Override
   public String getNewEventMetadata() {
     HttpResponse response = null;
     try {
@@ -195,20 +163,7 @@ public class LtiServiceRemoteImpl extends RemoteBase implements LtiService {
     }
   }
 
-  @POST
-  @Path("{eventId}/metadata")
-  @Produces(MediaType.APPLICATION_JSON)
-  @RestQuery(
-      name = "seteventmetadata", description = "Set the metadata of an existing event", returnDescription = "",
-      pathParameters = {
-      @RestParameter(name = "eventId", description = "The event id", isRequired = true, type = STRING)
-      },
-      responses = {
-      @RestResponse(description = "The event's metadata has been set", responseCode = HttpServletResponse.SC_OK),
-      @RestResponse(description = "The event doesn't exist", responseCode = HttpServletResponse.SC_NOT_FOUND),
-      @RestResponse(description = "The event cannot be accessed", responseCode = HttpServletResponse.SC_UNAUTHORIZED),
-      }
-  )
+  @Override
   public void setEventMetadataJson(final String eventId, final String metadataJson)
           throws NotFoundException, UnauthorizedException {
     final MultipartEntityBuilder entity = MultipartEntityBuilder.create();
@@ -229,22 +184,32 @@ public class LtiServiceRemoteImpl extends RemoteBase implements LtiService {
     }
   }
 
-  @DELETE
-  @Path("{eventId}")
-  @RestQuery(name = "deleteevent", description = "Deletes an event.", returnDescription = "", pathParameters = {
-      @RestParameter(name = "eventId", description = "The event id", isRequired = true, type = STRING) }, responses = {
-      @RestResponse(description = "The event has been deleted.", responseCode = HttpServletResponse.SC_NO_CONTENT),
-      @RestResponse(
-        description = "The specified event does not exist.",
-        responseCode = HttpServletResponse.SC_NOT_FOUND
-      )
-  })
+  @Override
   public void delete(String eventId) {
-    logger.error("################ DELETING LTI REMOTE ENDPOINT: {}", eventId);
+    logger.error("################ DELETING LTI REMOTE OVERRIDE: {}", eventId);
     final HttpDelete post = new HttpDelete("/" + eventId);
     final HttpResponse response = getResponse(post, Response.Status.NO_CONTENT.getStatusCode());
     if (response == null) {
       throw new RuntimeException("No response from service");
     }
+  }
+
+  @DELETE
+  @Path("{eventId}")
+  @RestQuery(name = "deleteevent", description = "Deletes an event.", returnDescription = "", pathParameters = {
+          @RestParameter(name = "eventId", description = "The event id", isRequired = true, type = Type.STRING) },
+          responses = {
+            @RestResponse(
+              description = "The event has been deleted.",
+              responseCode = HttpServletResponse.SC_NO_CONTENT),
+            @RestResponse(
+              description = "The specified event does not exist.",
+              responseCode = HttpServletResponse.SC_NOT_FOUND
+            )
+          })
+  public Response deleteEvent(@HeaderParam("Accept") String acceptHeader, @PathParam("eventId") String id) {
+    logger.error("################ DELETING LTI REMOTE ENDPOINT: {}", id);
+    //this.service.delete(id);
+    return Response.noContent().build();
   }
 }

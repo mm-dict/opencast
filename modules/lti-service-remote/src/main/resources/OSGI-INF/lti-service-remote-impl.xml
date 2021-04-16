@@ -4,10 +4,10 @@
                immediate="true">
   <implementation class="org.opencastproject.lti.endpoint.LtiServiceRemoteImpl"/>
   <property name="service.description" value="LTI Service Remote Service"/>
+  <property name="opencast.service.type" value="org.opencastproject.lti.service"/>
   <service>
     <!-- expose interface for MH REST publisher! -->
-    <!-- <provide interface="org.opencastproject.lti.service.api.LtiService"/> -->
-    <provide interface="org.opencastproject.lti.endpoint.LtiServiceRemoteImpl"/>
+    <provide interface="org.opencastproject.lti.service.api.LtiService"/>
   </service>
   <reference name="trustedHttpClient" interface="org.opencastproject.security.api.TrustedHttpClient"
              bind="setTrustedHttpClient"/>
