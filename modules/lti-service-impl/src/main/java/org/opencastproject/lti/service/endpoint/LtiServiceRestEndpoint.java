@@ -112,19 +112,6 @@ public class LtiServiceRestEndpoint {
   @POST
   @Path("/")
   @Consumes(MediaType.MULTIPART_FORM_DATA)
-<<<<<<< HEAD
-  @RestQuery(name = "createevent", description = "Creates an event by sending metadata in a multipart request.", returnDescription = "", restParameters = {
-          @RestParameter(name = "metadata", description = "Event metadata", isRequired = true, type = STRING),
-          @RestParameter(name = "presenter", description = "Presenter movie track", isRequired = true, type = Type.FILE),
-          @RestParameter(name = "captions", description = "Caption file", isRequired = false, type = STRING),
-          @RestParameter(name = "captionsFormat", description = "Caption file format", isRequired = false, type = STRING),
-          @RestParameter(name = "captionsLanguage", description = "Caption language", isRequired = false, type = STRING),
-          @RestParameter(name = "isPartOf", description = "Series id of the event", isRequired = false, type = STRING),
-          @RestParameter(name = "eventId", description = "ID of the event to update (if it's an update)", isRequired = false, type = STRING) }, responses = {
-                  @RestResponse(description = "A new event is created or the event is updated", responseCode = HttpServletResponse.SC_OK),
-                  @RestResponse(description = "No authorization to create or update events", responseCode = HttpServletResponse.SC_UNAUTHORIZED),
-                  @RestResponse(description = "The event to be updated wasn't found", responseCode = HttpServletResponse.SC_NOT_FOUND) })
-=======
   @RestQuery(
       name = "createevent",
       description = "Creates an event by sending metadata in a multipart request.",
@@ -176,7 +163,6 @@ public class LtiServiceRestEndpoint {
           )
       }
   )
->>>>>>> upstream/r/9.x
   public Response createNewEvent(@HeaderParam("Accept") String acceptHeader, @Context HttpServletRequest request) {
     String seriesId = "";
     try {
