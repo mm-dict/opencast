@@ -123,7 +123,7 @@ public class LtiLaunchAuthenticationHandler implements OAuthAuthenticationHandle
   private static final String ALLOW_DIGEST_USER_KEY = "lti.allow_digest_user";
 
   /** The key to look up whether a JpaUserReferences should be created on login **/
-  private static final String LTI_ROLES_TO_CREATE_JPA_USER_REFERENCES_FROM = "lti.create_jpa_user_reference.roles";
+  private static final String CREATE_JPA_USER_REFERENCE_KEY = "lti.create_jpa_user_reference";
 
   /** The key to look up the LTI roles for which a JpaUserReference should be created **/
   private static final String LTI_ROLES_TO_CREATE_JPA_USER_REFERENCES_FROM = "lti.create_jpa_user_reference.roles";
@@ -165,8 +165,8 @@ public class LtiLaunchAuthenticationHandler implements OAuthAuthenticationHandle
   /** concurrent attemtps */
   private Map<String, Boolean> activePersistenceTransactions = new ConcurrentHashMap<>(128);
 
-  /** Contains the LTI roles where a JpaUserReference shall be created. The default is 'instructor'. */
-  private List<String> ltiRolesForUserCreation;
+  /** Determines whether a JpaUserReference should be created on lti login */
+  private boolean createJpaUserReference = true;
 
   /** LTI roles a user must have, so a JpaUserReference is created */
   private List<String> ltiRolesForUserCreation;
