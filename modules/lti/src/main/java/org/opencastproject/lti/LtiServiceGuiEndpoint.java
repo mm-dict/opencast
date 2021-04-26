@@ -119,6 +119,20 @@ public class LtiServiceGuiEndpoint {
 
   @POST
   @Path("/{eventId}/copy")
+  @RestQuery(
+      name = "copyevent",
+      description = "Copies an event to another series.",
+      returnDescription = "",
+      pathParameters = {
+          @RestParameter(name = "eventId", description = "The event id", isRequired = true, type = Type.STRING)
+      },
+      responses = {
+          @RestResponse(
+              description = "The event has been copied.",
+              responseCode = HttpServletResponse.SC_NO_CONTENT
+          )
+      }
+  )
   @Produces(MediaType.APPLICATION_JSON)
   public Response copyEventToSeries(
       @PathParam("eventId") final String eventId,

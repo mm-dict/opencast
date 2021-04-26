@@ -229,12 +229,6 @@ public class LtiServiceRestEndpoint {
               description = "The event (id) to copy",
               isRequired = true,
               type = STRING
-          ),
-          @RestParameter(
-              name = "seriesId",
-              description = "The series (id) to copy into",
-              isRequired = true,
-              type = STRING
           )
       },
       responses = {
