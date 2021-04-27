@@ -240,7 +240,9 @@ public final class LtiUtils {
       text.append(htmlspecialchars(launchtext));
       text.append("\">\n");
 
-      text.append(" <input type=\"Submit\" value=\"Show Launch Data\" onclick=\"document.getElementById('ltiLaunchDebug_");
+      text.append(
+          " <input type=\"Submit\" value=\"Show Launch Data\" onclick=\"document.getElementById('ltiLaunchDebug_"
+      );
       text.append(submitUuid);
       text.append("').style.display = 'block';return false;\">\n");
     } else {
