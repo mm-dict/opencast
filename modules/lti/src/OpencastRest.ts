@@ -225,13 +225,13 @@ export async function searchEpisode(
                         type: attachment.type,
                         url: attachment.url
                     })),
-                tracks: parseTracksFromResult(result),
+                tracks: series ? undefined : parseTracksFromResult(result),
                 seriestitle: result.mediapackage.seriestitle,
                 duration: result.mediapackage.duration
             } : {
                 creators: [],
                 attachments: [],
-                tracks: parseTracksFromResult(result)
+                tracks: series ? undefined : parseTracksFromResult(result)
             }
         })),
         total: response.data["search-results"].total,
