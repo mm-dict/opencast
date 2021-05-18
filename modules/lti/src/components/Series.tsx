@@ -9,7 +9,10 @@ import Helmet from "react-helmet";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash, faEdit } from "@fortawesome/free-solid-svg-icons";
 import i18next from "i18next";
-import { parsedQueryString } from "../utils";
+import { parsedQueryString, capitalize } from "../utils";
+import { sortByType } from "../trackUtils";
+import Dropdown from "react-bootstrap/esm/Dropdown";
+import DropdownMenu from "react-bootstrap/esm/DropdownMenu";
 
 interface SeriesState {
     readonly searchResults?: SearchEpisodeResults;
@@ -56,6 +59,26 @@ const SeriesEpisode: React.StatelessComponent<EpisodeProps> = ({ episode, delete
                     <button onClick={(e) => { editCallback(episode.id); e.stopPropagation(); }}>
                         <FontAwesomeIcon icon={faEdit} />
                     </button>}
+                {downloadCallback !== undefined && Array.isArray(episode.mediapackage.tracks) && episode.mediapackage.tracks.length > 0 &&
+                  <Dropdown style={{display: 'inline-block'}}>
+                    <Dropdown.Toggle as={dropdownCustomToggle} >
+                      <FontAwesomeIcon icon={faDownload}/>
+                    </Dropdown.Toggle>
+                    <DropdownMenu>
+                      {sortByType(episode.mediapackage.tracks).map((track) => {
+                          if (track !== undefined && (track.url.endsWith('mp4') || track.url.endsWith('webm'))) {
+                            return (
+                              <Dropdown.Item onClick={(e) => { downloadCallback(track); e.stopPropagation(); }} >
+                                {capitalize(track.type.split('/')[0])} <br/>
+                                {track.resolution !== undefined ? `${track.resolution.width} x ${track.resolution.height}` : undefined}
+                              </Dropdown.Item>
+                            );
+                          }
+                          return undefined;
+                      })}
+                    </DropdownMenu>
+                  </Dropdown>
+                }
             </div>}
     </div>;
 }
@@ -187,6 +210,7 @@ class TranslatedSeries extends React.Component<SeriesProps, SeriesState> {
                         episode={episode}
                         deleteCallback={this.isInstructor() && this.hasDeletion() ? this.deleteEventCallback.bind(this) : undefined}
                         editCallback={this.isInstructor() && this.hasEdit() ? this.editEpisodeCallback.bind(this) : undefined}
+                        downloadCallback={this.hasDownload() ? this.downloadEventCallback.bind(this) : undefined}
                         t={this.props.t} />)}
                 </div>
                 <footer className="mt-3">

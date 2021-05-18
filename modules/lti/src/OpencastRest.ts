@@ -5,6 +5,12 @@ export interface Attachment {
     readonly url: string;
 }
 
+export interface Track {
+    readonly type: string;
+    readonly url: string;
+    readonly resolution: { width: number, height: number} | undefined;
+}
+
 export interface JobResult {
     readonly title: string;
     readonly status: string;
@@ -131,6 +137,55 @@ export async function copyEventToSeries(eventId: string, targetSeries: string): 
     return axios.post(hostAndPort() + "/lti-service-gui/" + eventId + "/copy?target_series=" + targetSeries);
 }
 
+/**
+ * Parse resolution from string to object if possible
+ * A resolution is expected to have the format {width}x{height}
+ * @param resolution resolution to be parsed
+ */
+const parseResolutionFromString = (resolution: any) => {
+  if (typeof resolution === "string" && /[0-9]+x[0-9]+/.test(resolution)) {
+    return {
+      width: parseInt(resolution.split('x')[0]),
+      height: parseInt(resolution.split('x')[1]),
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Track is not guaranteed to be an array or even exist at all, so we need to handle different cases
+ * @param result a result from the search query
+ */
+const parseTracksFromResult = (result: any) => {
+  if (Array.isArray(result.mediapackage.media.track)) {
+    return (
+      result.mediapackage.media.track.reduce((res: Track[], track: any) => {
+        // Avoid tracks that belong to an adaptive streaming publication
+        if(!('logicalname' in track) && 'video' in track && 'resolution' in track.video) {
+          res.push({
+            type: track.type,
+            url: track.url,
+            resolution: parseResolutionFromString(track.video.resolution)
+          })
+        }
+        return res;
+      }, [])
+    )
+  } else if (result.mediapackage.media.track !== null) {
+    // Avoid tracks that belong to an adaptive streaming publication
+    if ('logicalname' in result.mediapackage.media.track ||
+        !('video' in result.mediapackage.media.track && 'resolution' in result.mediapackage.media.track.video)) {
+      return undefined;
+    }
+    return {
+      type: result.mediapackage.media.track.type,
+      url: result.mediapackage.media.track.url,
+      resolution: parseResolutionFromString(result.mediapackage.media.track.video.resolution),
+    }
+  }
+  return undefined;
+}
+
 export async function searchEpisode(
     limit: number,
     offset: number,
@@ -161,15 +216,17 @@ export async function searchEpisode(
             licenseKey: result.dcLicense,
             mediapackage: result.mediapackage !== undefined ? {
                 creators: result.mediapackage.creators !== undefined ? result.mediapackage.creators.creator : [],
-                attachments: result.mediapackage.attachments.attachment.map((attachment: any) => ({
-                    type: attachment.type,
-                    url: attachment.url
-                })),
+                attachments: Array.from(
+                    Array.isArray(result.mediapackage.attachments.attachment) ?
+                        result.mediapackage.attachments.attachment :
+                        Array.of(result.mediapackage.attachments.attachment),
+                    (attachment: any) => ({
+                        type: attachment.type,
+                        url: attachment.url
+                    })),
+                tracks: parseTracksFromResult(result),
                 seriestitle: result.mediapackage.seriestitle,
                 duration: result.mediapackage.duration
-            } : {
-                creators: [],
-                attachments: []
             }
         })),
         total: response.data["search-results"].total,

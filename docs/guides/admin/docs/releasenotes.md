@@ -184,6 +184,14 @@ While is is not active by default for compatibility to older 9.x releases, it ca
 access to static files has the same security checks you are already used to from the player and from other user
 interfaces.
 
+Additional Notes about 9.5
+--------------------------
+
+This release contains many bugfixes. In particular, a long standing issue
+with 9's automatic database schema generation is finally resolved.
+
+There is also a "Download" dropdown in the LTI tools, now.
+
 Additional Notes about 9.4
 --------------------------
 
