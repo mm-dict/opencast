@@ -1,5 +1,5 @@
-import React from "react";
-import { SearchEpisodeResults, searchEpisode, getLti, SearchEpisodeResult, deleteEvent } from "../OpencastRest";
+import React, { DOMAttributes } from "react";
+import { SearchEpisodeResults, searchEpisode, getLti, SearchEpisodeResult, deleteEvent, Track } from "../OpencastRest";
 import { Loading } from "./Loading";
 import { withTranslation, WithTranslation } from "react-i18next";
 import "../App.css";
@@ -7,7 +7,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 import Pagination from "react-js-pagination";
 import Helmet from "react-helmet";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrash, faEdit } from "@fortawesome/free-solid-svg-icons";
+import { faTrash, faEdit, faDownload } from "@fortawesome/free-solid-svg-icons";
 import i18next from "i18next";
 import { parsedQueryString, capitalize } from "../utils";
 import { sortByType } from "../trackUtils";
@@ -29,10 +29,30 @@ interface EpisodeProps {
     readonly episode: SearchEpisodeResult;
     readonly deleteCallback?: (episodeId: string) => void;
     readonly editCallback?: (episodeId: string) => void;
+    readonly downloadCallback?: (track: Track) => void;
     readonly t: i18next.TFunction;
 }
 
-const SeriesEpisode: React.StatelessComponent<EpisodeProps> = ({ episode, deleteCallback, editCallback, t }) => {
+/**
+ * To allow for full css control, the bootstrap-dropdown requires you to employ custom components
+ */
+const dropdownCustomToggle = React.forwardRef<any, DOMAttributes<any>>(({children, onClick}, ref) =>
+  <button
+    ref={ref}
+    onClick={(e) => {
+      e.preventDefault();
+      if ( onClick !== undefined ) {
+        onClick(e);
+      }
+      e.stopPropagation();
+    }}
+  >
+    {children}
+    &#x25bc;
+  </button>
+);
+
+const SeriesEpisode: React.StatelessComponent<EpisodeProps> = ({ episode, deleteCallback, editCallback, downloadCallback, t }) => {
     const attachments = episode.mediapackage.attachments;
     const imageAttachment = attachments.find((a) => a.type.endsWith("/search+preview"));
     const image = imageAttachment !== undefined ? imageAttachment.url : "";
@@ -154,12 +174,35 @@ class TranslatedSeries extends React.Component<SeriesProps, SeriesState> {
         });
     }
 
+    downloadEventCallback(track: Track) {
+        if (track.url !== "") {
+            // Create a temporary HTML element to hide download url. Probably fine, seems kinda hacky?
+            // Creating an invisible element
+            const element = document.createElement('a');
+            element.setAttribute('href', track.url);                       // filepath
+            const filename = track.url.split('/').pop()
+            element.setAttribute('download',                               // filename
+              filename !== undefined ? filename : track.type
+            );
+
+            // Add the element, click it and remove it before anyone notices it was even there
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+        return null;
+    }
+
     hasDeletion() {
         return parsedQueryString().deletion === "true";
     }
 
     hasEdit() {
         return parsedQueryString().edit === "true";
+    }
+
+    hasDownload() {
+      return parsedQueryString().download === "true";
     }
 
     componentDidMount() {

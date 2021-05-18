@@ -19,6 +19,7 @@ export interface JobResult {
 export interface MediaPackage {
     readonly attachments: Attachment[];
     readonly creators: string[];
+    readonly tracks: Track[] | undefined;
     readonly seriestitle?: string;
     readonly duration?: number;
 }
@@ -227,6 +228,10 @@ export async function searchEpisode(
                 tracks: parseTracksFromResult(result),
                 seriestitle: result.mediapackage.seriestitle,
                 duration: result.mediapackage.duration
+            } : {
+                creators: [],
+                attachments: [],
+                tracks: parseTracksFromResult(result)
             }
         })),
         total: response.data["search-results"].total,
