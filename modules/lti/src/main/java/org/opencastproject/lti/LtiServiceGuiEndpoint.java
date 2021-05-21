@@ -124,7 +124,20 @@ public class LtiServiceGuiEndpoint {
       description = "Copies an event to another series.",
       returnDescription = "",
       pathParameters = {
-          @RestParameter(name = "eventId", description = "The event id", isRequired = true, type = Type.STRING)
+          @RestParameter(
+              name = "eventId",
+              description = "The event id",
+              isRequired = true,
+              type = Type.STRING
+          )
+      },
+      restParameters = {
+          @RestParameter(
+              name = "target_series",
+              description = "The series (id) to copy the event to",
+              isRequired = true,
+              type = STRING
+          )
       },
       responses = {
           @RestResponse(

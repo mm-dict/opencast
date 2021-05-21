@@ -243,6 +243,14 @@ public class LtiServiceRestEndpoint {
               type = STRING
           )
       },
+      restParameters = {
+          @RestParameter(
+              name = "seriesId",
+              description = "The series (id) to copy the event to",
+              isRequired = true,
+              type = STRING
+          )
+      },
       responses = {
           @RestResponse(
               description = "The event has been copied.",
