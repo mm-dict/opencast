@@ -136,7 +136,7 @@ public class LtiServiceGuiEndpoint {
               name = "target_series",
               description = "The series (id) to copy the event to",
               isRequired = true,
-              type = STRING
+              type = Type.STRING
           )
       },
       responses = {
