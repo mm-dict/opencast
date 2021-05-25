@@ -20,6 +20,8 @@
  */
 package org.opencastproject.lti.endpoint;
 
+import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
+
 import org.opencastproject.lti.service.api.LtiFileUpload;
 import org.opencastproject.lti.service.api.LtiJob;
 import org.opencastproject.lti.service.api.LtiService;
@@ -114,7 +116,11 @@ public class LtiServiceRemoteImpl extends RemoteBase implements LtiService {
   @Override
   public void copyEventToSeries(final String eventId, final String seriesId) {
     final HttpPost post = new HttpPost("/" + eventId + "/copy?seriesId=" + seriesId);
-    closeConnection(safeGetResponse(post));
+    final HttpResponse response = getResponse(post, SC_NO_CONTENT);
+    // if (response == null) {
+    //   throw new RuntimeException("No response from service");
+    // }
+    closeConnection(response);
   }
 
   @Override
