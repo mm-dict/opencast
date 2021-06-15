@@ -37,7 +37,7 @@ Features
   and to receive news about the project
 - Configure Opencast to trim the start and end automatically
   to help with issues of synchronizing audio and video streams
-- Automatically generate subscriptions with the new AmberScript integration
+- Automatically generate transcriptions with the new AmberScript integration
 - Do more with LTI: Create new events, edit or delete existing ones,
   or move them between series
 - Export statistics to CSV using a new External API endpoint
@@ -183,6 +183,16 @@ A [completely new system for securing static file content](configuration/serving
 While is is not active by default for compatibility to older 9.x releases, it can be easily enabled and used to ensure
 access to static files has the same security checks you are already used to from the player and from other user
 interfaces.
+
+Additional Notes about 9.6
+--------------------------
+
+Another release with many bug fixes, but also some new features,
+including, but not limited to:
+
+- The LTI-Tools now inlude the iFrameResizer library
+  to let hosts control the size of the embedded tool.
+- Elasticsearch can now be used with basic authentication
 
 Additional Notes about 9.5
 --------------------------

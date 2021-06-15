@@ -13,6 +13,7 @@
     "engage-ui": "../engage-ui",
     "i18next": "^17.0.16",
     "i18next-browser-languagedetector": "^3.0.3",
+    "iframe-resizer": "^4.3.2",
     "query-string": "^6.8.3",
     "react": "^17.0.1",
     "react-bootstrap": "^1.4.0",
