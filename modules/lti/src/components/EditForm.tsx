@@ -9,6 +9,7 @@ import {
 import Select, { ValueType } from "react-select";
 import CreatableSelect from "react-select/creatable";
 import * as i18next from "i18next";
+import i18n from "../i18n";
 
 const allowedFields = ["title", "language", "license", "creator"];
 
@@ -68,7 +69,7 @@ function collectionToOptions(collection: EventMetadataCollection, translatable: 
         .map(([k, v]) => [parseMetadataCollectionKey(k).label, v])
         .map(([k, v]) => [translatable ? t(k) : k, v])
         .map(([k, v]) => ({ value: v, label: k}))
-        .sort((a,b) => a.label.localeCompare(b.label, i18next.language));
+        .sort((a,b) => a.label.localeCompare(b.label, i18n.language));
 }
 
 function MetadataFieldReadOnly(props: MetadataFieldProps) {
@@ -105,8 +106,6 @@ function MetadataFieldInner(props: MetadataFieldProps) {
             onChange={(e) => valueChange(field.id, e.currentTarget.value)} />;
 
     if (field.collection !== undefined && field.type === "mixed_text") {
-        const options: OptionType[] = collectionToOptions(field.collection, field.translatable, t);
-
         return <CreatableSelect
             isMulti={true}
             isClearable={true}

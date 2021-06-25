@@ -312,9 +312,9 @@ export async function postDeeplinkData(
     if(test !== undefined){
         formdata.append("test", test);
     }
-    if(contentItems !== undefined){
-        formdata.append("content_items", contentItems);
-    }
+
+    formdata.append("content_items", contentItems);
+
     return axios.post(
         hostAndPort() + "/lti/ci",
         formdata,

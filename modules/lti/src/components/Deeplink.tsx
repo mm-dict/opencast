@@ -5,7 +5,7 @@ import { searchEpisode, getLti, SearchEpisodeResults, postDeeplinkData } from ".
 import { parsedQueryString } from "../utils";
 import { withTranslation, WithTranslation } from "react-i18next";
 import Pagination from "react-js-pagination";
-import i18next from "i18next";
+import * as i18next from "i18next";
 import { Container, Tabs, Tab, Form, Button, Col } from 'react-bootstrap';
 import InnerHTML from 'dangerously-set-html-content'
 import "../App.css";
@@ -156,7 +156,7 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
 
     hasSeriesParameters() {
         const qs = parsedQueryString();
-        return qs.series !== undefined || qs.series_name !== undefined;
+        return qs.series !== "" || qs.series_name !== "";
     }
 
     populateData(title: string, image: string, created: string, tool: string) {
@@ -199,7 +199,7 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
     }
 
     generateSeriesColor(id: string) {
-        if (id == null) {
+        if (id === "") {
             return '#fff';
         }
 
@@ -280,7 +280,7 @@ class TranslatedDeeplink extends React.Component<DeeplinkProps, DeeplinkState> {
                                             })}
                                         </div>
                                         <div className="infos">
-                                            {episode.mediapackage.creators !== undefined && <div className="creator">
+                                            {episode.mediapackage.creators.length > 0 && <div className="creator">
                                                 {this.props.t("LTI.CREATOR", { creator: episode.mediapackage.creators })}
                                             </div>}
                                             {episode.mediapackage.seriestitle !== undefined && <div className="seriestitle">{episode.mediapackage.seriestitle}</div>}
