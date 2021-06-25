@@ -113,7 +113,30 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
         }));
     }
 
-    setUploadPogress(progress: number) {
+    refreshTimer() {
+        getEventMetadata(this.state.eventId).then((metadataCollection) => {
+            if (this.state.metadata === undefined || this.state.metadata === "error" || metadataCollection.length === 0)
+                return;
+
+            const metadata = metadataCollection[0];
+            const lockedBefore = this.state.metadata.edited.locked !== undefined;
+            const lockedAfter = metadata.locked !== undefined;
+            if (lockedBefore !== lockedAfter) {
+                this.setState({
+                    ...this.state,
+                    metadata: {
+                        ...this.state.metadata,
+                        initial: metadata,
+                        edited: metadata,
+                    },
+                });
+            }
+        }).catch((_) => {
+            console.log("couldn't retrieve metadata at this time, ignoring...");
+        });
+    }
+
+    setUploadProgress(progress: number) {
         this.setState({
             ...this.state,
             uploadProgress: progress
@@ -138,7 +161,7 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
             this.state.captionFile,
             this.state.captionFormat,
             this.state.captionLanguage,
-            this.setUploadPogress = this.setUploadPogress.bind(this)
+            this.setUploadProgress = this.setUploadProgress.bind(this)
         ).then((_) => {
             if (!isMetadata(this.state.metadata))
                 return;
@@ -306,7 +329,8 @@ class TranslatedUpload extends React.Component<UploadProps, UploadState> {
                                 options={this.seriesItems()}
                                 isSearchable={true}
                                 value={this.state.copySeries}
-                                onChange={(value: ValueType<OptionType>) => this.onChangeCopyTarget(value as OptionType)}
+                                onChange={(value: ValueType<OptionType, false>) =>
+                                    this.onChangeCopyTarget(value as OptionType)}
                                 placeholder={this.props.t("LTI.SELECT_COPY_TARGET")} />
                         </div>
                         <button

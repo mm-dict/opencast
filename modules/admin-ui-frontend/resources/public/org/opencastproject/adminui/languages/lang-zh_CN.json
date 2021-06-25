@@ -428,12 +428,12 @@
             "LAST_NAME": "姓",
             "STREET": "街道",
             "NUMBER": "号码",
-            "ADDITIONAL_ADRESS_INFO": "增加地址信息",
+            "ADDITIONAL_ADDRESS_INFO": "增加地址信息",
             "MAIL": "电子邮件",
             "CONTACT_ME": "有更新或安全问题时联系我",
             "WHICH_DATA_TO_SHARE": "您愿意分享哪些信息？",
             "POLICY_HEADLINE": "隐私政策和服务条款",
-            "USAGE_STATISTICS": "使用情况统计",
+            "USAGE_STATISTICS": "使用统计",
             "ERROR_REPORTS": "错误报告",
             "READ_TERMS_OF_USE_BEFORE": "我已阅读并同意",
             "READ_TERMS_OF_USE_LINK": "隐私政策和服务条款",
@@ -646,7 +646,7 @@
             "PROCESSED": "已完成",
             "RECORDING_FAILURE": "录制失败",
             "PROCESSING_FAILURE": "处理失败",
-            "PROCESSING_CANCELED": "处理已取消"
+            "PROCESSING_CANCELLED": "处理已取消"
          },
          "STATE_MAPPING": {
             "RETRACTING": "撤回中",
@@ -894,7 +894,7 @@
                   "REVIEW": "需要审核",
                   "ASYNC": "视音频轨道不同步",
                   "AUDIO_ISSUE": "音频轨道丢失或有缺陷",
-                  "CANCELED": "已取消事件",
+                  "CANCELLED": "已取消的事件",
                   "CONFLICTING_METADATA": "元数据冲突",
                   "IMPROPER_POINT": "入点或出点不当",
                   "MISSING_AGREEMENT": "缺少协议",
@@ -1609,7 +1609,7 @@
             "INSTANTIATED": "已实例化",
             "DISPATCHING": "分发中",
             "RESTART": "重启",
-            "CANCELED": "已取消",
+            "CANCELLED": "已取消",
             "WAITING": "等待中"
          }
       },

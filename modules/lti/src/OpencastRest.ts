@@ -25,6 +25,7 @@ export interface MediaPackage {
 }
 
 export interface SearchEpisodeResult {
+    readonly dcCreator?: string;
     readonly id: string;
     readonly dcTitle: string;
     readonly dcCreated: string;
@@ -208,6 +209,7 @@ export async function searchEpisode(
     const results = Array.isArray(resultsRaw) ? resultsRaw : resultsRaw !== undefined ? [resultsRaw] : [];
     return {
         results: results.map((result: any) => ({
+            dcCreator: result.dcCreator,
             id: result.id,
             dcTitle: result.dcTitle,
             dcCreated: result.dcCreated,

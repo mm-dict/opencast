@@ -235,7 +235,7 @@
       "SERVICE_UNAVAILABLE": "Ups! Serveren lader ikke til at svare. Forsøg igen senere.",
       "ACTIVE_TRANSACTION": "Begivenheden kan ikke redigeres under en aktiv arbejdsgang eller overførsel.",
       "BULK_METADATA_UPDATE": {
-         "UNEXPECTED_ERROR": "An unexpected error occured while updating. Some events might have been updated.",
+         "UNEXPECTED_ERROR": "An unexpected error occurred while updating. Some events might have been updated.",
          "ALL_EVENTS_UPDATED": "All events were successfully updated.",
          "NO_EVENTS_UPDATED": "All updates failed.",
          "SOME_EVENTS_NOT_UPDATED": "Some events could not be updated."
@@ -428,7 +428,7 @@
             "LAST_NAME": "Last name",
             "STREET": "Street",
             "NUMBER": "Number",
-            "ADDITIONAL_ADRESS_INFO": "Yderligere adresseoplysninger",
+            "ADDITIONAL_ADDRESS_INFO": "Ordre adresseoplysninger",
             "MAIL": "Email",
             "CONTACT_ME": "Kontakt mig for opdateringer og sikkerhedsproblemer",
             "WHICH_DATA_TO_SHARE": "Which data do you want to share?",
@@ -646,7 +646,7 @@
             "PROCESSED": "Afsluttet",
             "RECORDING_FAILURE": "Optagefejl",
             "PROCESSING_FAILURE": "Behandlingsfejl",
-            "PROCESSING_CANCELED": "Behandling annulleret"
+            "PROCESSING_CANCELLED": "Processing cancelled"
          },
          "STATE_MAPPING": {
             "RETRACTING": "Retracting",
@@ -894,7 +894,7 @@
                   "REVIEW": "Gennemsyn krævet",
                   "ASYNC": "Asynkrone A/V-spor",
                   "AUDIO_ISSUE": "Manglende eller ødelagt lydspor",
-                  "CANCELED": "Annulleret begivenhed",
+                  "CANCELLED": "Cancelled event",
                   "CONFLICTING_METADATA": "Modstridende metadata",
                   "IMPROPER_POINT": "Forkert indgangs- eller udgangspunkt",
                   "MISSING_AGREEMENT": "Manglende aftale",
@@ -1609,7 +1609,7 @@
             "INSTANTIATED": "Forberedt",
             "DISPATCHING": "Afsendelse",
             "RESTART": "Genstart",
-            "CANCELED": "Annulleret",
+            "CANCELLED": "Annulleret",
             "WAITING": "Afventer"
          }
       },

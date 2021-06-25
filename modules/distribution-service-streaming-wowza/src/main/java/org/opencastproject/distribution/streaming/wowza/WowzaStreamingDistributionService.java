@@ -213,7 +213,8 @@ public class WowzaStreamingDistributionService extends AbstractDistributionServi
       Map streamingUrlConfiguration = new ConcurrentHashMap<>();
 
       // Streaming directory
-      String distributionDirectoryPath = StringUtils.trimToNull(bundleContext.getProperty(STREAMING_DIRECTORY_KEY));
+      String distributionDirectoryPath = StringUtils.trimToNull((String) properties.get(STREAMING_DIRECTORY_KEY));
+
       if (distributionDirectoryPath == null) {
         // set default streaming directory to ${org.opencastproject.storage.dir}/streams
         distributionDirectoryPath
@@ -231,7 +232,8 @@ public class WowzaStreamingDistributionService extends AbstractDistributionServi
         try {
           Files.createDirectories(distributionDirectory.toPath());
         } catch (IOException e) {
-          throw new ComponentException("Distribution directory does not exist and can't be created", e);
+          throw new ComponentException("Distribution directory " + distributionDirectory
+              + " does not exist and can't be created", e);
         }
       }
 
@@ -1109,5 +1111,9 @@ public class WowzaStreamingDistributionService extends AbstractDistributionServi
       }
     }
     return elements;
+  }
+
+  public File getDistributionDirectory() {
+    return distributionDirectory;
   }
 }

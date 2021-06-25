@@ -428,7 +428,7 @@
             "LAST_NAME": "Familienaam",
             "STREET": "Straat",
             "NUMBER": "Nummer",
-            "ADDITIONAL_ADRESS_INFO": "Bijkomende adresinformatie",
+            "ADDITIONAL_ADDRESS_INFO": "Bijkomende adresinformatie",
             "MAIL": "E-mail",
             "CONTACT_ME": "Contacteer me bij updates en veiligheidsproblemen",
             "WHICH_DATA_TO_SHARE": "Welke data wil je delen?",
@@ -646,7 +646,7 @@
             "PROCESSED": "Voltooid",
             "RECORDING_FAILURE": "Opname mislukt",
             "PROCESSING_FAILURE": "Verwerking mislukt",
-            "PROCESSING_CANCELED": "Verwerking geannuleerd"
+            "PROCESSING_CANCELLED": "Verwerking geannuleerd"
          },
          "STATE_MAPPING": {
             "RETRACTING": "Intrekken",
@@ -894,7 +894,7 @@
                   "REVIEW": "Beoordeling vereist",
                   "ASYNC": "A/V tracks asynchroon",
                   "AUDIO_ISSUE": "Ontbrekend of gebrekkig audiokanaal",
-                  "CANCELED": "Event annuleren",
+                  "CANCELLED": "Event annuleren",
                   "CONFLICTING_METADATA": "Conflicterende metadata",
                   "IMPROPER_POINT": "Ongepast in- of uitpunt",
                   "MISSING_AGREEMENT": "Ontbrekende overeenkomst",
@@ -1609,7 +1609,7 @@
             "INSTANTIATED": "Geïnstantieerd",
             "DISPATCHING": "Versturen",
             "RESTART": "Herstart",
-            "CANCELED": "Geannuleerd",
+            "CANCELLED": "Geannuleerd",
             "WAITING": "Wachtend"
          }
       },
