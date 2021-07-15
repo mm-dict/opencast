@@ -83,13 +83,21 @@ function MetadataFieldInner(props: MetadataFieldProps) {
         return <MetadataFieldReadOnly {...props} />;
     }
     if (field.type === "text" && field.collection === undefined)
-        return <input
-            type="text"
-            id={field.id}
-            className="form-control"
-            value={field.value}
-            onChange={(e) => valueChange(field.id, e.currentTarget.value)} />;
-
+        if (field.required === true)
+            return <input
+                type="text"
+                id={field.id}
+                className="form-control"
+                value={field.value}
+                required
+                onChange={(e) => valueChange(field.id, e.currentTarget.value)} />;
+        else
+            return <input
+                type="text"
+                id={field.id}
+                className="form-control"
+                value={field.value}
+                onChange={(e) => valueChange(field.id, e.currentTarget.value)} />;
     if (field.collection !== undefined && field.type === "mixed_text") {
         return <CreatableSelect
             isMulti={true}
